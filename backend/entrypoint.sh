@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-echo "🚀 Building..."
+echo "🚀 Building TypeScript..."
 npm run build
 
 echo "🚀 Running database migrations..."

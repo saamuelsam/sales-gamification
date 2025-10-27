@@ -5,9 +5,9 @@
   "main": "src/server.ts",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "node ./node_modules/typescript/bin/tsc",
-    "migrate": "node ./node_modules/tsx/dist/cli.js src/database/migrate.ts",
-    "seed": "node ./node_modules/tsx/dist/cli.js src/database/seed.ts",
+    "build": "tsc",
+    "migrate": "node dist/database/migrate.js",
+    "seed": "node dist/database/seed.js",
     "start": "node dist/server.js"
   },
   "dependencies": {
