@@ -7,12 +7,13 @@ dotenv.config();
 export const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: Number(process.env.DB_PORT) || 5432,
-  database: process.env.DB_NAME || 'sales_gamification',
-  user: process.env.DB_USER || 'admin',
-  password: process.env.DB_PASSWORD || 'admin123',
-  max: 20,
+  database: process.env.DB_NAME || 'sales_gamification_db',  // Atualizado para nome do Render
+  user: process.env.DB_USER || 'postgres',  // Fallback genérico, mas force via env
+  password: process.env.DB_PASSWORD,
+  ssl: { rejectUnauthorized: false },  // Obrigatório para Render/DigitalOcean
+  max: 20,  // Bom para apps médios; aumente para 50 se alta concorrência [web:40]
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 20000,  // Aumentado para conexões externas lentas
 });
 
 export const verifyConnection = async (): Promise<void> => {
@@ -26,7 +27,7 @@ export const verifyConnection = async (): Promise<void> => {
   }
 };
 
-// Graceful shutdown
+// Graceful shutdown (permanece igual, bom para Render)
 process.on('SIGINT', async () => {
   await pool.end();
   console.log('🔌 Pool PostgreSQL encerrado');
