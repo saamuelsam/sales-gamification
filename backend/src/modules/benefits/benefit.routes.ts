@@ -1,18 +1,20 @@
 // backend/src/modules/benefits/benefit.routes.ts
-
 import { Router } from 'express';
 import { BenefitController } from './benefit.controller';
-import { verifyToken } from '@middleware/auth.middleware';
-import { requireRole } from '@middleware/role.middleware';
+import { verifyTokenMiddleware } from '@middleware/auth.middleware';
+import { requireRoles } from '@middleware/role.middleware';
 
 const router = Router();
 const controller = new BenefitController();
 
-router.get('/', verifyToken, controller.list);
-router.get('/level/:levelId', verifyToken, controller.getByLevel);
-router.get('/user/:userId?', verifyToken, controller.getUserBenefits);
-router.post('/', verifyToken, requireRole(['admin']), controller.create);
-router.put('/:id', verifyToken, requireRole(['admin']), controller.update);
-router.delete('/:id', verifyToken, requireRole(['admin']), controller.remove);
+router.use(verifyTokenMiddleware);
+
+router.get('/', controller.list.bind(controller));
+router.get('/level/:levelId', controller.getByLevel.bind(controller));
+router.get('/user/:userId?', controller.getUserBenefits.bind(controller));
+
+router.post('/', requireRoles('admin'), controller.create.bind(controller));
+router.put('/:id', requireRoles('admin'), controller.update.bind(controller));
+router.delete('/:id', requireRoles('admin'), controller.remove.bind(controller));
 
 export default router;

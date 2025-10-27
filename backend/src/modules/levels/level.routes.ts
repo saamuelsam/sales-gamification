@@ -1,16 +1,20 @@
 // backend/src/modules/levels/level.routes.ts
-
 import { Router } from 'express';
 import { LevelController } from './level.controller';
-import { verifyToken } from '@middleware/auth.middleware';
-import { requireRole } from '@middleware/role.middleware';
+import { verifyTokenMiddleware } from '@middleware/auth.middleware';
+import { requireRoles } from '@middleware/role.middleware';
 
 const router = Router();
 const controller = new LevelController();
 
-router.get('/', controller.list); // Público
-router.get('/:id', verifyToken, controller.find);
-router.post('/', verifyToken, requireRole(['admin']), controller.create);
-router.put('/:id', verifyToken, requireRole(['admin']), controller.update);
+// público
+router.get('/', controller.list.bind(controller));
+
+// autenticado
+router.get('/:id', verifyTokenMiddleware, controller.find.bind(controller));
+
+// admin
+router.post('/', verifyTokenMiddleware, requireRoles('admin'), controller.create.bind(controller));
+router.put('/:id', verifyTokenMiddleware, requireRoles('admin'), controller.update.bind(controller));
 
 export default router;

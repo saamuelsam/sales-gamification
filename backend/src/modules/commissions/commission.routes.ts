@@ -1,16 +1,17 @@
 // backend/src/modules/commissions/commission.routes.ts
-
 import { Router } from 'express';
 import { CommissionController } from './commission.controller';
-import { verifyToken } from '@middleware/auth.middleware';
-import { requireRole } from '@middleware/role.middleware';
+import { verifyTokenMiddleware } from '@middleware/auth.middleware';
+import { requireRoles } from '@middleware/role.middleware';
 
 const router = Router();
 const controller = new CommissionController();
 
-router.get('/user/:userId?', verifyToken, controller.getUserCommissions);
-router.get('/summary/:userId?', verifyToken, controller.getSummary);
-router.put('/:id/pay', verifyToken, requireRole(['admin']), controller.markAsPaid);
-router.get('/report', verifyToken, requireRole(['admin']), controller.getReport);
+router.use(verifyTokenMiddleware);
+
+router.get('/user/:userId?', controller.getUserCommissions.bind(controller));
+router.get('/summary/:userId?', controller.getSummary.bind(controller));
+router.put('/:id/pay', requireRoles('admin'), controller.markAsPaid.bind(controller));
+router.get('/report', requireRoles('admin'), controller.getReport.bind(controller));
 
 export default router;

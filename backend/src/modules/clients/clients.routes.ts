@@ -1,15 +1,15 @@
+// backend/src/modules/clients/clients.routes.ts
 import { Router } from 'express';
 import { ClientsController } from './clients.controller';
-import { verifyTokenMiddleware } from '../../middleware/auth.middleware';
+import { verifyTokenMiddleware } from '@middleware/auth.middleware';
 
 const router = Router();
-const clientsController = new ClientsController();
+const controller = new ClientsController();
 
 router.use(verifyTokenMiddleware);
 
-router.post('/', clientsController.create);
-router.get('/', clientsController.list);
-router.put('/:id', clientsController.update);
-
+router.post('/', controller.create.bind(controller));
+router.get('/', controller.list.bind(controller));
+router.put('/:id', controller.update.bind(controller));
 
 export default router;

@@ -1,16 +1,16 @@
+// backend/src/modules/dashboard/dashboard.routes.ts
 import { Router } from 'express';
 import { DashboardController } from './dashboard.controller';
-import { verifyTokenMiddleware } from '../../middleware/auth.middleware';
+import { verifyTokenMiddleware } from '@middleware/auth.middleware';
 
 const router = Router();
-const dashboardController = new DashboardController();
+const controller = new DashboardController();
 
-// Todas as rotas requerem autenticação
 router.use(verifyTokenMiddleware);
 
-router.get('/personal', dashboardController.getPersonal);
-router.get('/team', dashboardController.getTeam);
-router.get('/complete', dashboardController.getComplete);
-router.get('/admin', dashboardController.getAdmin);
+router.get('/personal', controller.getPersonal.bind(controller));
+router.get('/team', controller.getTeam.bind(controller));
+router.get('/complete', controller.getComplete.bind(controller));
+router.get('/admin', controller.getAdmin.bind(controller));
 
 export default router;
