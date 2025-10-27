@@ -5,8 +5,9 @@ WORKDIR /app
 # Instalar dependências
 COPY package*.json ./
 RUN npm ci
+RUN chmod +x ./node_modules/.bin/* || true
 
-# Copiar código
+# Copiar código (depois de node_modules)
 COPY . .
 
 # Entrypoint
