@@ -2,7 +2,7 @@
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { ApiResponse } from '../../utils/responses';
-import { pool } from '../../config/database'; // ← ADICIONAR ESTA LINHA
+import { pool } from '../../config/database';
 
 const authService = new AuthService();
 
@@ -21,8 +21,9 @@ export class AuthController {
 
       const user = await authService.register({ name, email, password, parent_id });
       return ApiResponse.created(res, user, 'Usuário cadastrado com sucesso');
-    } catch (error: any) {
-      return ApiResponse.error(res, error.message || 'Erro ao cadastrar usuário', 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro ao cadastrar usuário';
+      return ApiResponse.error(res, message, 500);
     }
   }
 
@@ -36,14 +37,18 @@ export class AuthController {
 
       const data = await authService.login(email, password);
       return ApiResponse.success(res, data, 'Login realizado com sucesso');
-    } catch (error: any) {
-      return ApiResponse.unauthorized(res, error.message || 'Erro ao fazer login');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro ao fazer login';
+      return ApiResponse.unauthorized(res, message);
     }
   }
 
   async me(req: Request, res: Response) {
     try {
-      const userId = (req as any).user?.userId;
+      const userId = req.user?.userId;
+      if (!userId) {
+        return ApiResponse.error(res, 'Usuário não autenticado', 401);
+      }
 
       const result = await pool.query(
         'SELECT id, name, email, role, created_at FROM users WHERE id = $1',
@@ -55,8 +60,9 @@ export class AuthController {
       }
 
       return ApiResponse.success(res, result.rows[0], 'Dados do usuário');
-    } catch (error: any) {
-      return ApiResponse.error(res, error.message, 500);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro ao obter dados do usuário';
+      return ApiResponse.error(res, message, 500);
     }
   }
 }
