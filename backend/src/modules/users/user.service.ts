@@ -1,11 +1,23 @@
 // backend/src/modules/users/user.service.ts
-
 import { pool } from '@config/database';
+import bcrypt from 'bcryptjs';
+
+interface AddMemberInput {
+  name: string;
+  email: string;
+  password: string;
+  role?: 'consultant' | 'manager' | 'admin';
+}
 
 export class UserService {
   // Adicionar membro à equipe (qualquer consultor pode fazer)
-  async addTeamMember(parentId: string, memberData: any) {
+  async addTeamMember(parentId: string, memberData: AddMemberInput) {
     const { name, email, password, role = 'consultant' } = memberData;
+
+    if (!parentId) throw new Error('Líder não informado');
+    if (!name || !email || !password) throw new Error('Nome, email e senha são obrigatórios');
+    if (password.length < 8) throw new Error('Senha deve ter no mínimo 8 caracteres');
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Verificar se parent existe
@@ -13,9 +25,14 @@ export class UserService {
       'SELECT id, path FROM users WHERE id = $1',
       [parentId]
     );
-
     if (parentExists.rows.length === 0) {
       throw new Error('Líder não encontrado');
+    }
+
+    // Opcional: checar se e-mail já existe
+    const emailExists = await pool.query('SELECT 1 FROM users WHERE email = $1', [email]);
+    if (emailExists.rows.length > 0) {
+      throw new Error('Email já está em uso');
     }
 
     // Inserir novo membro com parent_id definido
@@ -45,14 +62,13 @@ export class UserService {
        ORDER BY total_points DESC`,
       [userId]
     );
-
     return result.rows;
   }
 
   // Verificar se usuário tem equipe
   async hasTeam(userId: string): Promise<boolean> {
     const result = await pool.query(
-      'SELECT COUNT(*) as count FROM users WHERE parent_id = $1 AND is_active = true',
+      'SELECT COUNT(*)::int as count FROM users WHERE parent_id = $1 AND is_active = true',
       [userId]
     );
     return result.rows[0].count > 0;
@@ -73,20 +89,19 @@ export class UserService {
        ORDER BY u.path`,
       [userId]
     );
-
     return result.rows;
   }
 
   // Estatísticas da equipe
   async getTeamStats(userId: string) {
     const directMembers = await pool.query(
-      'SELECT COUNT(*) as count FROM users WHERE parent_id = $1 AND is_active = true',
+      'SELECT COUNT(*)::int as count FROM users WHERE parent_id = $1 AND is_active = true',
       [userId]
     );
 
     const teamSales = await pool.query(
       `SELECT 
-         COUNT(DISTINCT s.id) as total_sales,
+         COUNT(DISTINCT s.id)::int as total_sales,
          COALESCE(SUM(s.value), 0) as total_revenue,
          COALESCE(SUM(s.kilowatts), 0) as total_kw
        FROM sales s
@@ -109,4 +124,10 @@ export class UserService {
       team_points: teamPoints.rows[0].total_team_points,
     };
   }
+
+  // Stubs (apenas se suas rotas gerais existirem)
+  async list() { return []; }
+  async findById(id: string) { return { id }; }
+  async update(id: string, data: any) { return { id, ...data }; }
+  async remove(id: string) { return true; }
 }

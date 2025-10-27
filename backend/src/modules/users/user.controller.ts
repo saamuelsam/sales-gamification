@@ -1,4 +1,4 @@
-// backend/src/modules/users/user.controller.ts
+// Extensão do backend/src/modules/users/user.controller.ts
 import { Request, Response } from 'express';
 import { UserService } from './user.service';
 import { ApiResponse } from '@utils/responses';
@@ -6,77 +6,56 @@ import { ApiResponse } from '@utils/responses';
 const userService = new UserService();
 
 export class UserController {
-  // Adicionar membro à equipe
-  async addMember(req: Request, res: Response) {
+  // ... seus métodos atuais (addMember, getMyTeam, getFullNetwork, getTeamStats, checkHasTeam)
+
+  async list(req: Request, res: Response) {
     try {
-      const parentId = req.user?.userId; // Quem está adicionando
-      if (!parentId) {
-        return ApiResponse.error(res, 'Usuário não autenticado', 401);
-      }
-      const member = await userService.addTeamMember(parentId, req.body);
-      return ApiResponse.created(res, member, 'Membro adicionado à equipe');
+      const users = await userService.list();
+      return ApiResponse.success(res, users, 'Usuários listados');
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Erro ao adicionar membro';
+      const message = error instanceof Error ? error.message : 'Erro ao listar usuários';
       return ApiResponse.error(res, message, 500);
     }
   }
 
-  // Buscar membros diretos
-  async getMyTeam(req: Request, res: Response) {
+  async find(req: Request, res: Response) {
     try {
-      const userId = req.user?.userId;
-      if (!userId) {
-        return ApiResponse.error(res, 'Usuário não autenticado', 401);
+      const { id } = req.params;
+      if (!id) {
+        return ApiResponse.error(res, 'ID é obrigatório', 400);
       }
-      const team = await userService.getDirectTeamMembers(userId);
-      return ApiResponse.success(res, team, 'Membros da equipe');
+      const user = await userService.findById(id);
+      return ApiResponse.success(res, user, 'Usuário encontrado');
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Erro ao buscar membros da equipe';
+      const message = error instanceof Error ? error.message : 'Erro ao buscar usuário';
       return ApiResponse.error(res, message, 500);
     }
   }
 
-  // Buscar rede completa
-  async getFullNetwork(req: Request, res: Response) {
+  async update(req: Request, res: Response) {
     try {
-      const userId = req.user?.userId;
-      if (!userId) {
-        return ApiResponse.error(res, 'Usuário não autenticado', 401);
+      const { id } = req.params;
+      if (!id) {
+        return ApiResponse.error(res, 'ID é obrigatório', 400);
       }
-      const network = await userService.getFullNetwork(userId);
-      return ApiResponse.success(res, network, 'Rede completa');
+      const user = await userService.update(id, req.body);
+      return ApiResponse.success(res, user, 'Usuário atualizado');
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Erro ao buscar rede completa';
+      const message = error instanceof Error ? error.message : 'Erro ao atualizar usuário';
       return ApiResponse.error(res, message, 500);
     }
   }
 
-  // Estatísticas da equipe
-  async getTeamStats(req: Request, res: Response) {
+  async remove(req: Request, res: Response) {
     try {
-      const userId = req.user?.userId;
-      if (!userId) {
-        return ApiResponse.error(res, 'Usuário não autenticado', 401);
+      const { id } = req.params;
+      if (!id) {
+        return ApiResponse.error(res, 'ID é obrigatório', 400);
       }
-      const stats = await userService.getTeamStats(userId);
-      return ApiResponse.success(res, stats, 'Estatísticas da equipe');
+      await userService.remove(id);
+      return ApiResponse.success(res, null, 'Usuário removido');
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Erro ao buscar estatísticas';
-      return ApiResponse.error(res, message, 500);
-    }
-  }
-
-  // Verificar se tem equipe
-  async checkHasTeam(req: Request, res: Response) {
-    try {
-      const userId = req.user?.userId;
-      if (!userId) {
-        return ApiResponse.error(res, 'Usuário não autenticado', 401);
-      }
-      const hasTeam = await userService.hasTeam(userId);
-      return ApiResponse.success(res, { has_team: hasTeam });
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Erro ao verificar equipe';
+      const message = error instanceof Error ? error.message : 'Erro ao remover usuário';
       return ApiResponse.error(res, message, 500);
     }
   }
