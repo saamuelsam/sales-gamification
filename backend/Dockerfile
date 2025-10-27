@@ -1,24 +1,22 @@
-# backend/Dockerfile
 FROM node:20-alpine
 
-WORKDIR /usr/src/app
+# Definir diretório de trabalho
+WORKDIR /app
 
 # Copiar package.json e instalar dependências
 COPY package*.json ./
-RUN npm install
+RUN npm ci && \
+    chmod -R 755 /app/node_modules/.bin
 
 # Copiar código fonte
 COPY . .
 
-# Expor porta
-EXPOSE 4000
-
-# Comando padrão
-CMD ["npm", "run", "dev"]
-
-# Copiar script de entrypoint
+# Copiar e dar permissão ao entrypoint
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
+
+# Expor porta
+EXPOSE 4000
 
 # Usar o entrypoint personalizado
 CMD ["/app/entrypoint.sh"]
