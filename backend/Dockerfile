@@ -15,3 +15,10 @@ EXPOSE 4000
 
 # Comando padrão
 CMD ["npm", "run", "dev"]
+
+# Copiar script de entrypoint
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+# Usar o entrypoint personalizado
+CMD ["/app/entrypoint.sh"]
