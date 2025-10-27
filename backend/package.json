@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
-    "migrate": "tsx src/database/migrate.ts",
-    "seed": "tsx src/database/seed.ts"
+    "migrate": "node dist/database/migrate.js",
+    "seed": "node dist/database/seed.js",
+    "start": "node dist/server.js"
   },
   "dependencies": {
     "express": "^4.18.2",

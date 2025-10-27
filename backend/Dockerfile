@@ -1,22 +1,18 @@
 FROM node:20-alpine
 
-# Definir diretório de trabalho
 WORKDIR /app
 
-# Copiar package.json e instalar dependências
+# Dependências
 COPY package*.json ./
-RUN npm ci && \
-    chmod -R 755 /app/node_modules/.bin
+RUN npm ci
 
-# Copiar código fonte
+# Código
 COPY . .
 
-# Copiar e dar permissão ao entrypoint
+# Entrypoint
 COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
-# Expor porta
 EXPOSE 4000
 
-# Usar o entrypoint personalizado
 CMD ["/app/entrypoint.sh"]

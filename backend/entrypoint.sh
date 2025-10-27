@@ -1,9 +1,12 @@
 #!/bin/sh
 set -e
 
+echo "🚀 Building..."
+npm run build
+
 echo "🚀 Running database migrations..."
-npx tsx src/database/migrate.ts
+npm run migrate
 
 echo "✅ Migrations completed!"
 echo "🚀 Starting server..."
-exec npx tsx watch src/server.ts
+exec npm start
