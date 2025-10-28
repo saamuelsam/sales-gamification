@@ -2,13 +2,8 @@ import { pool } from '../../config/database';
 import bcrypt from 'bcryptjs';
 import { generateToken } from '../../config/jwt';
 
-// Função utilitária para converter UUID para string ltree válida
-function uuidToLtree(uuid: string) {
-  return uuid.replace(/-/g, '_');
-}
-
 export class AuthService {
-  async register(data: { name: string; email: string; password: string; parent_id?: string }) {
+  async register(data: { name: string; email: string; password: string; parent_id?: number }) {
     const { name, email, password, parent_id } = data;
 
     // Verificar se email já existe
@@ -25,27 +20,27 @@ export class AuthService {
       `INSERT INTO users (name, email, password, role, parent_id)
        VALUES ($1, $2, $3, $4, $5)
        RETURNING id, name, email, role, created_at`,
-      [name, email, hashedPassword, 'consultant', parent_id || null]
+      [name, email, hashedPassword, 'seller', parent_id || null]
     );
 
     const userId = result.rows[0].id;
-    const myLtreeId = uuidToLtree(userId);
+    const myLtreeId = String(userId); // ✅ Converte para string
 
-    // Atualizar path hierárquico
+    // Atualizar path hierárquico (team_path)
     if (parent_id) {
       // Buscar path do parent
-      const parentResult = await pool.query('SELECT path FROM users WHERE id = $1', [parent_id]);
-      const parentPath: string = parentResult.rows[0]?.path || '';
+      const parentResult = await pool.query('SELECT team_path FROM users WHERE id = $1', [parent_id]);
+      const parentPath: string = parentResult.rows[0]?.team_path || '';
       const fullPath = parentPath ? `${parentPath}.${myLtreeId}` : myLtreeId;
 
       await pool.query(
-        `UPDATE users SET path = $1::ltree WHERE id = $2`,
+        `UPDATE users SET team_path = $1::ltree WHERE id = $2`,
         [fullPath, userId]
       );
     } else {
       // user root
       await pool.query(
-        `UPDATE users SET path = $1::ltree WHERE id = $2`,
+        `UPDATE users SET team_path = $1::ltree WHERE id = $2`,
         [myLtreeId, userId]
       );
     }
@@ -54,9 +49,9 @@ export class AuthService {
   }
 
   async login(email: string, password: string) {
-    // Buscar usuário
+    // Buscar usuário (removido o is_active que não existe na tabela)
     const result = await pool.query(
-      'SELECT * FROM users WHERE email = $1 AND is_active = true',
+      'SELECT * FROM users WHERE email = $1',
       [email]
     );
 
