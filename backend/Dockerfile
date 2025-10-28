@@ -12,8 +12,11 @@ RUN chmod +x ./node_modules/.bin/* || true
 # Copia o código do backend para a imagem
 COPY backend/. .
 
-# Copia o entrypoint da raiz do repo (ajuste o caminho se mudou de lugar)
-COPY ../entrypoint.sh /app/entrypoint.sh
+# Garante que o tsconfig.json do backend esteja presente (opcional se já veio acima)
+COPY backend/tsconfig.json ./tsconfig.json
+
+# Copia o entrypoint da raiz do repo (sem usar .., pois o contexto é a raiz)
+COPY entrypoint.sh /app/entrypoint.sh
 RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 EXPOSE 4000
