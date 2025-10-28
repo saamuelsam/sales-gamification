@@ -1,7 +1,8 @@
 // backend/src/modules/sales/sales.routes.ts
+
 import { Router } from 'express';
 import { SalesController } from './sales.controller';
-import { verifyTokenMiddleware } from '@middleware/auth.middleware';
+import { verifyTokenMiddleware } from '../../middleware/auth.middleware'; 
 
 const router = Router();
 const controller = new SalesController();

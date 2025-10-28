@@ -12,7 +12,7 @@ RUN npm ci
 RUN chmod +x ./node_modules/.bin/* || true
 
 # Copia todo o código do backend
-COPY backend/. .
+COPY ..
 
 # Copia o entrypoint.sh da raiz
 COPY entrypoint.sh /app/entrypoint.sh
