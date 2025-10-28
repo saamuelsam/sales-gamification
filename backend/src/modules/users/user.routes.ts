@@ -1,7 +1,7 @@
 // backend/src/modules/users/user.routes.ts
 import { Router } from 'express';
 import { UserController } from './user.controller';
-import { verifyTokenMiddleware } from '@middleware/auth.middleware';
+import { verifyTokenMiddleware } from '../../middleware/auth.middleware';
 
 const router = Router();
 const controller = new UserController();

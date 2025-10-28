@@ -1,8 +1,8 @@
 // backend/src/modules/commissions/commission.routes.ts
 import { Router } from 'express';
 import { CommissionController } from './commission.controller';
-import { verifyTokenMiddleware } from '@middleware/auth.middleware';
-import { requireRoles } from '@middleware/role.middleware';
+import { verifyTokenMiddleware } from '../../middleware/auth.middleware';
+import { requireRoles } from '../../middleware/role.middleware';
 
 const router = Router();
 const controller = new CommissionController();

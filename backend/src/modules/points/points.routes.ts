@@ -1,7 +1,7 @@
 // backend/src/modules/points/points.routes.ts
 import { Router } from 'express';
 import { PointsController } from './points.controller';
-import { verifyTokenMiddleware } from '@middleware/auth.middleware';
+import { verifyTokenMiddleware } from '../../middleware/auth.middleware';
 
 const router = Router();
 const controller = new PointsController();

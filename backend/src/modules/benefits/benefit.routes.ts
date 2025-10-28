@@ -1,8 +1,8 @@
 // backend/src/modules/benefits/benefit.routes.ts
 import { Router } from 'express';
 import { BenefitController } from './benefit.controller';
-import { verifyTokenMiddleware } from '@middleware/auth.middleware';
-import { requireRoles } from '@middleware/role.middleware';
+import { verifyTokenMiddleware } from '../../middleware/auth.middleware';
+import { requireRoles } from '../../middleware/role.middleware';
 
 const router = Router();
 const controller = new BenefitController();

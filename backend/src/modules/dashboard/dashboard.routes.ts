@@ -1,7 +1,7 @@
 // backend/src/modules/dashboard/dashboard.routes.ts
 import { Router } from 'express';
 import { DashboardController } from './dashboard.controller';
-import { verifyTokenMiddleware } from '@middleware/auth.middleware';
+import { verifyTokenMiddleware } from '../../middleware/auth.middleware';
 
 const router = Router();
 const controller = new DashboardController();
