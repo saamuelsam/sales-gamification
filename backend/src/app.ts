@@ -10,11 +10,29 @@ dotenv.config();
 
 const app = express();
 
-// Middlewares
+// Middlewares - CORS atualizado
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: function(origin, callback) {
+    // Lista de origens permitidas
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:4000',
+      'https://sales-gamification-indol.vercel.app',
+      process.env.FRONTEND_URL
+    ].filter(Boolean); // Remove undefined se FRONTEND_URL não existir
+    
+    // Aceita qualquer subdomínio da Vercel ou origens na lista
+    if (!origin || allowedOrigins.includes(origin) || origin.includes('.vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -28,7 +46,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/sales', salesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/clients', clientsRoutes);
-
 
 // Rota 404
 app.use((req, res) => {
