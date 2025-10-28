@@ -1,4 +1,4 @@
-# Dockerfile
+# Dockerfile (na raiz do repositório)
 
 FROM node:20-alpine
 
@@ -11,8 +11,8 @@ COPY backend/package*.json ./
 RUN npm ci
 RUN chmod +x ./node_modules/.bin/* || true
 
-# Copia todo o código do backend
-COPY ..
+# Copia TODO o código do backend (src, tsconfig, etc.)
+COPY backend/. .
 
 # Copia o entrypoint.sh da raiz
 COPY entrypoint.sh /app/entrypoint.sh
