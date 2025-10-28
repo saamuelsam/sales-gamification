@@ -8,7 +8,7 @@ RUN chmod +x ./node_modules/.bin/* || true
 
 COPY backend/. .
 
-COPY backend/entrypoint.sh /app/entrypoint.sh
+COPY entrypoint.sh /app/entrypoint.sh
 RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 EXPOSE 4000
