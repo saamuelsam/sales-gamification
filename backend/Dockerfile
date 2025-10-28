@@ -2,22 +2,22 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copia apenas os manifests do backend para instalar deps
+# Copia os arquivos de dependência do backend
 COPY backend/package*.json ./
 
-# Instala dependências do backend
+# Instala dependências
 RUN npm ci
 RUN chmod +x ./node_modules/.bin/* || true
 
-# Copia o código do backend para a imagem
+# Copia TODO o código do backend (inclui src, tsconfig, etc)
 COPY backend/. .
 
-# Garante que o tsconfig.json do backend esteja presente (opcional se já veio acima)
-COPY backend/tsconfig.json ./tsconfig.json
+# Verifica se o entrypoint.sh está no lugar certo
+COPY backend/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
 
-# Copia o entrypoint da raiz do repo (sem usar .., pois o contexto é a raiz)
-COPY entrypoint.sh /app/entrypoint.sh
-RUN sed -i 's/\r$//' /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+# Verifica se o tsconfig está no /app
+RUN ls -la /app/tsconfig.json  # remove depois de testar
 
 EXPOSE 4000
 CMD ["/app/entrypoint.sh"]
