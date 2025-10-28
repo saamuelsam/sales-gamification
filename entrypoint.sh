@@ -2,11 +2,11 @@
 set -e
 
 echo "🚀 Building TypeScript..."
-npm run build --prefix backend
+npm run build
 
 echo "🚀 Running database migrations..."
-npm run migrate --prefix backend
+npm run migrate
 
 echo "✅ Migrations completed!"
 echo "🚀 Starting server..."
-exec npm start --prefix backend
+exec npm start
