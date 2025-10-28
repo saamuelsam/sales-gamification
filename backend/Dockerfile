@@ -13,7 +13,7 @@ RUN chmod +x ./node_modules/.bin/* || true
 COPY backend/. .
 
 # Verifica se o entrypoint.sh está no lugar certo
-COPY backend/entrypoint.sh /app/entrypoint.sh
+COPY ../entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 # Verifica se o tsconfig está no /app
