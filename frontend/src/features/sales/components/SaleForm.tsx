@@ -11,6 +11,17 @@ interface SaleFormProps {
 
 type SaleType = 'direct' | 'consortium' | 'cash';
 
+// Funções de formatação
+const formatNumber = (value: string | number): string => {
+  const numericValue = String(value).replace(/\D/g, '');
+  if (!numericValue) return '';
+  return Number(numericValue).toLocaleString('pt-BR');
+};
+
+const parseNumber = (value: string): string => {
+  return value.replace(/\D/g, '');
+};
+
 export const SaleForm = ({ onSuccess }: SaleFormProps) => {
   const [saleType, setSaleType] = useState<SaleType>('direct');
   const [formData, setFormData] = useState({
@@ -41,7 +52,6 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
         notes: formData.notes || undefined,
       };
 
-      // Adicionar campos específicos por tipo
       if (saleType === 'consortium') {
         payload.consortium_value = parseFloat(formData.consortium_value);
         payload.consortium_term = parseInt(formData.consortium_term);
@@ -53,7 +63,6 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
           payload.consortium_admin_fee = parseFloat(formData.consortium_admin_fee);
         }
       } else {
-        // Apenas vendas diretas/à vista podem ter seguro
         if (formData.insurance_value) {
           payload.insurance_value = parseFloat(formData.insurance_value);
         }
@@ -67,7 +76,6 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
           : 'Venda cadastrada com sucesso!'
       );
       
-      // Limpar formulário
       setFormData({
         client_name: '',
         value: '',
@@ -155,12 +163,11 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
               <div>
                 <label className="block text-sm font-medium mb-2">Valor do Sistema (R$)</label>
                 <input
-                  type="number"
-                  step="0.01"
-                  value={formData.value}
-                  onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+                  type="text"
+                  value={formatNumber(formData.value)}
+                  onChange={(e) => setFormData({ ...formData, value: parseNumber(e.target.value) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                  placeholder="50000"
+                  placeholder="50.000"
                   required
                 />
               </div>
@@ -168,12 +175,11 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
               <div>
                 <label className="block text-sm font-medium mb-2">Valor do Consórcio (R$)</label>
                 <input
-                  type="number"
-                  step="0.01"
-                  value={formData.consortium_value}
-                  onChange={(e) => setFormData({ ...formData, consortium_value: e.target.value })}
+                  type="text"
+                  value={formatNumber(formData.consortium_value)}
+                  onChange={(e) => setFormData({ ...formData, consortium_value: parseNumber(e.target.value) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                  placeholder="80000"
+                  placeholder="80.000"
                   required
                 />
               </div>
@@ -183,12 +189,11 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
               <div>
                 <label className="block text-sm font-medium mb-2">Potência (kW)</label>
                 <input
-                  type="number"
-                  step="0.01"
-                  value={formData.kilowatts}
-                  onChange={(e) => setFormData({ ...formData, kilowatts: e.target.value })}
+                  type="text"
+                  value={formatNumber(formData.kilowatts)}
+                  onChange={(e) => setFormData({ ...formData, kilowatts: parseNumber(e.target.value) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                  placeholder="10.5"
+                  placeholder="10"
                   required
                 />
               </div>
@@ -196,9 +201,9 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
               <div>
                 <label className="block text-sm font-medium mb-2">Prazo (meses)</label>
                 <input
-                  type="number"
-                  value={formData.consortium_term}
-                  onChange={(e) => setFormData({ ...formData, consortium_term: e.target.value })}
+                  type="text"
+                  value={formatNumber(formData.consortium_term)}
+                  onChange={(e) => setFormData({ ...formData, consortium_term: parseNumber(e.target.value) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                   placeholder="84"
                   required
@@ -210,22 +215,20 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
               <div>
                 <label className="block text-sm font-medium mb-2">Parcela Mensal (R$)</label>
                 <input
-                  type="number"
-                  step="0.01"
-                  value={formData.consortium_monthly_payment}
-                  onChange={(e) => setFormData({ ...formData, consortium_monthly_payment: e.target.value })}
+                  type="text"
+                  value={formatNumber(formData.consortium_monthly_payment)}
+                  onChange={(e) => setFormData({ ...formData, consortium_monthly_payment: parseNumber(e.target.value) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                  placeholder="1200 (opcional)"
+                  placeholder="1.200 (opcional)"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Taxa Admin (%)</label>
+                <label className="block text-sm font-medium mb-2">Taxa Admin (R$)</label>
                 <input
-                  type="number"
-                  step="0.01"
-                  value={formData.consortium_admin_fee}
-                  onChange={(e) => setFormData({ ...formData, consortium_admin_fee: e.target.value })}
+                  type="text"
+                  value={formatNumber(formData.consortium_admin_fee)}
+                  onChange={(e) => setFormData({ ...formData, consortium_admin_fee: parseNumber(e.target.value) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                   placeholder="15 (opcional)"
                 />
@@ -236,7 +239,7 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
             {formData.consortium_value && (
               <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
                 <p className="text-sm text-purple-800">
-                  <strong>Comissão prevista:</strong> R$ {(parseFloat(formData.consortium_value) * 0.05).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (5%)
+                  <strong>Comissão prevista:</strong> R$ {(parseFloat(formData.consortium_value) * 0.05).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}(5%)
                 </p>
               </div>
             )}
@@ -248,12 +251,11 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
               <div>
                 <label className="block text-sm font-medium mb-2">Valor (R$)</label>
                 <input
-                  type="number"
-                  step="0.01"
-                  value={formData.value}
-                  onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+                  type="text"
+                  value={formatNumber(formData.value)}
+                  onChange={(e) => setFormData({ ...formData, value: parseNumber(e.target.value) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="50000"
+                  placeholder="50.000"
                   required
                 />
               </div>
@@ -261,12 +263,11 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
               <div>
                 <label className="block text-sm font-medium mb-2">Kilowatts (kW)</label>
                 <input
-                  type="number"
-                  step="0.01"
-                  value={formData.kilowatts}
-                  onChange={(e) => setFormData({ ...formData, kilowatts: e.target.value })}
+                  type="text"
+                  value={formatNumber(formData.kilowatts)}
+                  onChange={(e) => setFormData({ ...formData, kilowatts: parseNumber(e.target.value) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  placeholder="10.5"
+                  placeholder="10"
                   required
                 />
               </div>
@@ -275,12 +276,11 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
             <div>
               <label className="block text-sm font-medium mb-2">Valor do Seguro (opcional)</label>
               <input
-                type="number"
-                step="0.01"
-                value={formData.insurance_value}
-                onChange={(e) => setFormData({ ...formData, insurance_value: e.target.value })}
+                type="text"
+                value={formatNumber(formData.insurance_value)}
+                onChange={(e) => setFormData({ ...formData, insurance_value: parseNumber(e.target.value) })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="2000"
+                placeholder="2.000"
               />
             </div>
           </>
