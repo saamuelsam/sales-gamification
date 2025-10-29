@@ -9,10 +9,10 @@ INSERT INTO levels (
   advancement_bonus, advancement_reward
 ) VALUES
 
--- FASE 1: Livre Iniciante
+-- FASE 1: Consultor Elite
 (
   1, 
-  'Livre Iniciante',
+  'Consultor Elite',
   'O ponto de partida da sua jornada',
   0,           -- Sem linhas
   0,           -- Começa sem equipe
@@ -27,10 +27,10 @@ INSERT INTO levels (
   'Kit Fortal'
 ),
 
--- FASE 2: Comercial Consultor (2 Linhas)
+-- FASE 2: Master
 (
   2,
-  'Comercial Consultor',
+  'Master',
   'Expandindo sua liderança e seus ganhos',
   1000,        -- Meta: 1.000 pontos
   2,           -- 2 linhas
@@ -45,10 +45,10 @@ INSERT INTO levels (
   'Jantar com direito a acompanhante'
 ),
 
--- FASE 3: Gerente Comercial (4 Linhas)
+-- FASE 3: Consultor Sênior
 (
   3,
-  'Gerente Comercial',
+  'Consultor Sênior',
   'Hora de gerenciar e multiplicar resultados',
   10000,       -- Meta: 10.000 pontos
   4,           -- 4 linhas
@@ -63,10 +63,10 @@ INSERT INTO levels (
   'Jantar no Llamare com acompanhante'
 ),
 
--- FASE 4: Diamante (6 Linhas)
+-- FASE 4: Consultor Prime
 (
   4,
-  'Diamante',
+  'Consultor Prime',
   'Elite da empresa',
   300000,      -- Meta: 300.000 pontos
   6,           -- 6 linhas
@@ -81,10 +81,10 @@ INSERT INTO levels (
   'Jantar no Llamare com acompanhante'
 ),
 
--- FASE 5: Diamante Black (10 Linhas)
+-- FASE 5: Executivo
 (
   5,
-  'Diamante Black',
+  'Executivo',
   'O topo da carreira',
   2000000,     -- Meta: 2.000.000 pontos
   10,          -- 10 linhas

@@ -5,7 +5,7 @@ const PORT = process.env.PORT || 4000;
 
 const startServer = async () => {
   try {
-    // Verificar conexão com banco
+    // Aguardar conexão com PostgreSQL (com retry)
     await verifyConnection();
 
     // Iniciar servidor
@@ -14,7 +14,7 @@ const startServer = async () => {
       console.log(`📍 http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.error('Erro ao iniciar servidor:', error);
+    console.error('❌ Erro ao iniciar servidor:', error);
     process.exit(1);
   }
 };

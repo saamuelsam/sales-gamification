@@ -31,3 +31,17 @@ COMMENT ON TABLE sales IS 'Vendas de sistemas de energia solar';
 COMMENT ON COLUMN sales.kilowatts IS 'Quantidade de kW vendida (1 kW = 1 ponto)';
 COMMENT ON COLUMN sales.status IS 'negotiation, pending, approved, financing_denied, cancelled, delivered';
 COMMENT ON COLUMN sales.product_delivered IS 'Verificação de entrega (compliance anti-pirâmide)';
+
+-- Adicionar colunas para consórcio na tabela sales
+ALTER TABLE sales ADD COLUMN IF NOT EXISTS sale_type VARCHAR(20) DEFAULT 'direct';
+ALTER TABLE sales ADD COLUMN IF NOT EXISTS consortium_value DECIMAL(12,2);
+ALTER TABLE sales ADD COLUMN IF NOT EXISTS consortium_term INTEGER;
+ALTER TABLE sales ADD COLUMN IF NOT EXISTS consortium_monthly_payment DECIMAL(10,2);
+ALTER TABLE sales ADD COLUMN IF NOT EXISTS consortium_admin_fee DECIMAL(5,2);
+
+-- Comentários explicativos
+COMMENT ON COLUMN sales.sale_type IS 'Tipo de venda: direct (financiamento direto), consortium (consórcio), cash (à vista)';
+COMMENT ON COLUMN sales.consortium_value IS 'Valor total do consórcio (se aplicável)';
+COMMENT ON COLUMN sales.consortium_term IS 'Prazo do consórcio em meses';
+COMMENT ON COLUMN sales.consortium_monthly_payment IS 'Valor da parcela mensal do consórcio';
+COMMENT ON COLUMN sales.consortium_admin_fee IS 'Taxa administrativa do consórcio (%)';
