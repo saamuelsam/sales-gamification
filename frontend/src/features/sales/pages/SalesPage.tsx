@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+//@ts-ignore
 import { Plus, Edit, Filter, X, Eye, Trash, Search } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import api from '@/services/api';
