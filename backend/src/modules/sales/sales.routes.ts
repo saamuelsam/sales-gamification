@@ -16,7 +16,7 @@ router.get('/chart-data', controller.getChartData.bind(controller));
 // CRUD
 router.post('/', controller.createSale.bind(controller));
 router.get('/', controller.listSales.bind(controller));
-router.get('/:id/client', controller.getSaleWithClient.bind(controller));
+router.get('/:id/with-client', controller.getSaleWithClient.bind(controller));
 router.get('/:id', controller.getSale.bind(controller));
 router.put('/:id', controller.updateSale.bind(controller));
 router.patch('/:id/status', controller.updateStatus.bind(controller));
