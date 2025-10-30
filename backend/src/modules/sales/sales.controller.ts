@@ -8,6 +8,7 @@ export class SalesController {
   async createSale(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
+
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
@@ -18,42 +19,30 @@ export class SalesController {
         value,
         kilowatts,
         insurance_value,
-        sale_type, // NOVO: 'direct' | 'consortium' | 'cash'
-        consortium_value, // NOVO
-        consortium_term, // NOVO
-        consortium_monthly_payment, // NOVO
-        consortium_admin_fee, // NOVO
+        sale_type, // 'direct' | 'consortium' | 'cash' | 'card'
+        consortium_value,
+        consortium_term,
+        consortium_monthly_payment,
+        consortium_admin_fee,
         template_type,
         notes,
       } = req.body;
 
       // Validações básicas obrigatórias
       if (!client_name || value == null || kilowatts == null) {
-        return ApiResponse.error(
-          res,
-          'Nome do cliente, valor e kilowatts são obrigatórios',
-          400
-        );
+        return ApiResponse.error(res, 'Nome do cliente, valor e kilowatts são obrigatórios', 400);
       }
 
       // Validação específica para consórcio
       if (sale_type === 'consortium') {
         if (!consortium_value || !consortium_term) {
-          return ApiResponse.error(
-            res,
-            'Consórcio requer: consortium_value e consortium_term obrigatórios',
-            400
-          );
+          return ApiResponse.error(res, 'Consórcio requer consortium_value e consortium_term obrigatórios', 400);
         }
       }
 
-      // Validar tipo de venda permitido
-      if (sale_type && !['direct', 'consortium', 'cash'].includes(sale_type)) {
-        return ApiResponse.error(
-          res,
-          'Tipo de venda inválido. Use: direct, consortium ou cash',
-          400
-        );
+      // ✅ VALIDAR TIPO DE VENDA PERMITIDO (ATUALIZADO COM 'card')
+      if (sale_type && !['direct', 'consortium', 'cash', 'card'].includes(sale_type)) {
+        return ApiResponse.error(res, "Tipo de venda inválido. Use: direct, consortium, cash ou card", 400);
       }
 
       // Conversão de tipos numéricos
@@ -76,15 +65,14 @@ export class SalesController {
 
       // Validações específicas para campos de consórcio
       if (sale_type === 'consortium') {
-        if (!Number.isFinite(numericConsortiumValue) || numericConsortiumValue! <= 0) {
+        if (!Number.isFinite(numericConsortiumValue!) || numericConsortiumValue! <= 0) {
           return ApiResponse.error(res, 'Valor do consórcio deve ser numérico e maior que zero', 400);
         }
 
-        if (!Number.isFinite(numericConsortiumTerm) || numericConsortiumTerm! <= 0) {
+        if (!Number.isFinite(numericConsortiumTerm!) || numericConsortiumTerm! <= 0) {
           return ApiResponse.error(res, 'Prazo do consórcio deve ser numérico e maior que zero', 400);
         }
 
-        // Validar prazo máximo (exemplo: 120 meses = 10 anos)
         if (numericConsortiumTerm! > 120) {
           return ApiResponse.error(res, 'Prazo do consórcio não pode exceder 120 meses', 400);
         }
@@ -97,7 +85,7 @@ export class SalesController {
         value: numericValue,
         kilowatts: numericKw,
         insurance_value: numericInsurance,
-        sale_type: sale_type as 'direct' | 'consortium' | 'cash' | undefined, // Type casting
+        sale_type: sale_type as 'direct' | 'consortium' | 'cash' | 'card' | undefined, // ✅ Type casting
         consortium_value: numericConsortiumValue,
         consortium_term: numericConsortiumTerm,
         consortium_monthly_payment: numericConsortiumMonthly,
@@ -116,6 +104,7 @@ export class SalesController {
   async listSales(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
+
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
@@ -123,20 +112,21 @@ export class SalesController {
       const { status, sale_type, limit } = req.query;
 
       const parsedLimit = typeof limit === 'string' ? Number(limit) : undefined;
+
       if (parsedLimit !== undefined && (!Number.isFinite(parsedLimit) || parsedLimit <= 0)) {
-        return ApiResponse.error(res, 'Parâmetro "limit" inválido', 400);
+        return ApiResponse.error(res, 'Parâmetro limit inválido', 400);
       }
 
-      // Validar sale_type se fornecido
+      // ✅ Validar sale_type se fornecido (ATUALIZADO COM 'card')
       if (sale_type && typeof sale_type === 'string') {
-        if (!['direct', 'consortium', 'cash'].includes(sale_type)) {
+        if (!['direct', 'consortium', 'cash', 'card'].includes(sale_type)) {
           return ApiResponse.error(res, 'Tipo de venda inválido', 400);
         }
       }
 
       const sales = await salesService.listUserSales(userId, {
         status: typeof status === 'string' ? status : undefined,
-        sale_type: typeof sale_type === 'string' ? sale_type : undefined, // NOVO
+        sale_type: typeof sale_type === 'string' ? sale_type : undefined,
         limit: parsedLimit,
       });
 
@@ -150,13 +140,15 @@ export class SalesController {
   async getSale(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
+
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
 
       const { id } = req.params;
+
       if (!id) {
-        return ApiResponse.error(res, 'ID da venda é obrigatório', 400);
+        return ApiResponse.error(res, 'ID da venda obrigatório', 400);
       }
 
       const sale = await salesService.getSaleById(id, userId);
@@ -170,13 +162,15 @@ export class SalesController {
   async getSaleWithClient(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
+
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
 
       const { id } = req.params;
+
       if (!id) {
-        return ApiResponse.error(res, 'ID da venda é obrigatório', 400);
+        return ApiResponse.error(res, 'ID da venda obrigatório', 400);
       }
 
       const sale = await salesService.getSaleWithClient(id, userId);
@@ -190,6 +184,7 @@ export class SalesController {
   async updateStatus(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
+
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
@@ -198,11 +193,11 @@ export class SalesController {
       const { status } = req.body;
 
       if (!id) {
-        return ApiResponse.error(res, 'ID da venda é obrigatório', 400);
+        return ApiResponse.error(res, 'ID da venda obrigatório', 400);
       }
 
       if (!status) {
-        return ApiResponse.error(res, 'Status é obrigatório', 400);
+        return ApiResponse.error(res, 'Status obrigatório', 400);
       }
 
       const sale = await salesService.updateSale(id, userId, { status });
@@ -216,13 +211,15 @@ export class SalesController {
   async updateSale(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
+
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
 
       const { id } = req.params;
+
       if (!id) {
-        return ApiResponse.error(res, 'ID da venda é obrigatório', 400);
+        return ApiResponse.error(res, 'ID da venda obrigatório', 400);
       }
 
       const {
@@ -242,23 +239,15 @@ export class SalesController {
         installation_proof_url,
       } = req.body;
 
-      // Validar sale_type se fornecido
-      if (sale_type && !['direct', 'consortium', 'cash'].includes(sale_type)) {
-        return ApiResponse.error(
-          res,
-          'Tipo de venda inválido. Use: direct, consortium ou cash',
-          400
-        );
+      // ✅ Validar sale_type se fornecido (ATUALIZADO COM 'card')
+      if (sale_type && !['direct', 'consortium', 'cash', 'card'].includes(sale_type)) {
+        return ApiResponse.error(res, "Tipo de venda inválido. Use: direct, consortium, cash ou card", 400);
       }
 
       // Validação específica para atualização para consórcio
       if (sale_type === 'consortium') {
         if (consortium_value == null || consortium_term == null) {
-          return ApiResponse.error(
-            res,
-            'Ao mudar para consórcio, informe consortium_value e consortium_term',
-            400
-          );
+          return ApiResponse.error(res, 'Ao mudar para consórcio, informe consortium_value e consortium_term', 400);
         }
       }
 
@@ -266,6 +255,7 @@ export class SalesController {
       const updateData: any = {};
 
       if (client_name !== undefined) updateData.client_name = client_name;
+
       if (value !== undefined) {
         const numValue = Number(value);
         if (!Number.isFinite(numValue) || numValue <= 0) {
@@ -273,6 +263,7 @@ export class SalesController {
         }
         updateData.value = numValue;
       }
+
       if (kilowatts !== undefined) {
         const numKw = Number(kilowatts);
         if (!Number.isFinite(numKw) || numKw <= 0) {
@@ -280,6 +271,7 @@ export class SalesController {
         }
         updateData.kilowatts = numKw;
       }
+
       if (insurance_value !== undefined) updateData.insurance_value = insurance_value ? Number(insurance_value) : null;
       if (sale_type !== undefined) updateData.sale_type = sale_type;
       if (consortium_value !== undefined) updateData.consortium_value = consortium_value ? Number(consortium_value) : null;
@@ -303,13 +295,15 @@ export class SalesController {
   async deleteSale(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
+
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
 
       const { id } = req.params;
+
       if (!id) {
-        return ApiResponse.error(res, 'ID da venda é obrigatório', 400);
+        return ApiResponse.error(res, 'ID da venda obrigatório', 400);
       }
 
       await salesService.deleteSale(id, userId);
@@ -320,14 +314,15 @@ export class SalesController {
     }
   }
 
-  // ========== MÉTODOS PARA ESTATÍSTICAS E GRÁFICOS ==========
-
+  // MÉTODOS PARA ESTATÍSTICAS E GRÁFICOS
   async getStats(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
+
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
+
       const stats = await salesService.getSalesStats(userId);
       return ApiResponse.success(res, stats, 'Estatísticas obtidas');
     } catch (error: unknown) {
@@ -339,9 +334,11 @@ export class SalesController {
   async getChartData(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
+
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
+
       const data = await salesService.getSalesChartData(userId);
       return ApiResponse.success(res, data, 'Dados do gráfico obtidos');
     } catch (error: unknown) {
@@ -350,3 +347,5 @@ export class SalesController {
     }
   }
 }
+
+export const salesController = new SalesController();

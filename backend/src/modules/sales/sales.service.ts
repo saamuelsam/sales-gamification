@@ -6,7 +6,7 @@ interface CreateSaleData {
   value: number;
   kilowatts: number;
   insurance_value?: number;
-  sale_type?: 'direct' | 'consortium' | 'cash';
+  sale_type?: 'direct' | 'consortium' | 'cash' | 'card'; // ✅ ADICIONADO 'card'
   consortium_value?: number;
   consortium_term?: number;
   consortium_monthly_payment?: number;
@@ -68,12 +68,12 @@ export class SalesService {
       const currentPoints = parseFloat(currentPointsResult.rows[0].total);
       const newAccumulatedPoints = currentPoints + points;
 
-      // 4. Registrar pontos
-      const description = data.sale_type === 'consortium' 
-        ? `Consórcio: ${data.client_name}` 
-        : data.sale_type === 'cash'
-        ? `Venda à vista: ${data.client_name}`
-        : `Venda: ${data.client_name}`;
+      // 4. Registrar pontos com descrição específica por tipo
+      const description = 
+        data.sale_type === 'consortium' ? `Consórcio: ${data.client_name}` : 
+        data.sale_type === 'cash' ? `Venda à vista: ${data.client_name}` :
+        data.sale_type === 'card' ? `Venda no cartão: ${data.client_name}` : // ✅ NOVO
+        `Venda: ${data.client_name}`;
 
       await client.query(
         `INSERT INTO points (user_id, sale_id, points, accumulated_points, description)
@@ -112,9 +112,9 @@ export class SalesService {
         if (data.consortium_value) {
           saleCommission = (data.consortium_value * 5.0) / 100;
         }
-        insuranceCommissionValue = 0; // Não tem comissão de seguro em consórcio
+        insuranceCommissionValue = 0;
       } else {
-        // VENDA NORMAL: usar comissão do nível do usuário
+        // VENDA NORMAL (direct, cash, card): usar comissão do nível do usuário
         const personalCommission = parseFloat(level.personal_commission);
         saleCommission = (data.value * personalCommission) / 100;
 
@@ -266,7 +266,7 @@ export class SalesService {
     value?: number;
     kilowatts?: number;
     insurance_value?: number;
-    sale_type?: 'direct' | 'consortium' | 'cash';
+    sale_type?: 'direct' | 'consortium' | 'cash' | 'card'; // ✅ ADICIONADO 'card'
     consortium_value?: number;
     consortium_term?: number;
     consortium_monthly_payment?: number;
@@ -347,7 +347,6 @@ export class SalesService {
       updates.push(`status = $${paramIndex++}`);
       values.push(data.status);
       
-      // Se status = approved, atualizar closed_at
       if (data.status === 'approved') {
         updates.push(`closed_at = NOW()`);
       }
@@ -394,7 +393,6 @@ export class SalesService {
     try {
       await client.query('BEGIN');
 
-      // Verificar se a venda pertence ao usuário
       const checkResult = await client.query(
         'SELECT id FROM sales WHERE id = $1 AND user_id = $2',
         [saleId, userId]
@@ -404,13 +402,8 @@ export class SalesService {
         throw new Error('Venda não encontrada');
       }
 
-      // Deletar pontos relacionados
       await client.query('DELETE FROM points WHERE sale_id = $1', [saleId]);
-
-      // Deletar comissões relacionadas
       await client.query('DELETE FROM commissions WHERE sale_id = $1', [saleId]);
-
-      // Deletar venda
       await client.query('DELETE FROM sales WHERE id = $1', [saleId]);
 
       await client.query('COMMIT');
@@ -439,6 +432,7 @@ export class SalesService {
         COUNT(CASE WHEN sale_type = 'consortium' THEN 1 END)::int as consortium_sales,
         COUNT(CASE WHEN sale_type = 'direct' THEN 1 END)::int as direct_sales,
         COUNT(CASE WHEN sale_type = 'cash' THEN 1 END)::int as cash_sales,
+        COUNT(CASE WHEN sale_type = 'card' THEN 1 END)::int as card_sales,
         COALESCE(SUM(CASE WHEN sale_type = 'consortium' THEN consortium_value END), 0) as total_consortium_value
       FROM sales 
       WHERE user_id = $1`,
@@ -450,7 +444,6 @@ export class SalesService {
 
   // Dados para gráficos
   async getSalesChartData(userId: string) {
-    // Vendas por mês (últimos 6 meses)
     const monthlyResult = await pool.query(
       `SELECT 
         TO_CHAR(created_at, 'Mon') as month,
@@ -464,7 +457,6 @@ export class SalesService {
       [userId]
     );
 
-    // Vendas por status
     const statusResult = await pool.query(
       `SELECT 
         status,
@@ -475,7 +467,6 @@ export class SalesService {
       [userId]
     );
 
-    // Vendas por tipo
     const typeResult = await pool.query(
       `SELECT 
         sale_type,

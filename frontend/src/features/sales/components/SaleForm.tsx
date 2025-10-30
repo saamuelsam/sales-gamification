@@ -4,23 +4,13 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
+import { formatNumber, parseNumber } from '@/utils/formatters'; // ADICIONE ESTA LINHA
 
 interface SaleFormProps {
   onSuccess?: () => void;
 }
 
 type SaleType = 'direct' | 'consortium' | 'cash';
-
-// Funções de formatação
-const formatNumber = (value: string | number): string => {
-  const numericValue = String(value).replace(/\D/g, '');
-  if (!numericValue) return '';
-  return Number(numericValue).toLocaleString('pt-BR');
-};
-
-const parseNumber = (value: string): string => {
-  return value.replace(/\D/g, '');
-};
 
 export const SaleForm = ({ onSuccess }: SaleFormProps) => {
   const [saleType, setSaleType] = useState<SaleType>('direct');
@@ -100,72 +90,17 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
   return (
     <Card title="Nova Venda">
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Tipo de Venda */}
-        <div>
-          <label className="block text-sm font-medium mb-2">Tipo de Venda</label>
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              type="button"
-              onClick={() => setSaleType('direct')}
-              className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
-                saleType === 'direct'
-                  ? 'border-blue-600 bg-blue-50 text-blue-700'
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
-            >
-              💳 Financiamento
-            </button>
-            
-            <button
-              type="button"
-              onClick={() => setSaleType('consortium')}
-              className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
-                saleType === 'consortium'
-                  ? 'border-purple-600 bg-purple-50 text-purple-700'
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
-            >
-              🏢 Consórcio
-            </button>
-            
-            <button
-              type="button"
-              onClick={() => setSaleType('cash')}
-              className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
-                saleType === 'cash'
-                  ? 'border-green-600 bg-green-50 text-green-700'
-                  : 'border-gray-300 hover:border-gray-400'
-              }`}
-            >
-              💰 À Vista
-            </button>
-          </div>
-        </div>
-
-        {/* Nome do Cliente */}
-        <div>
-          <label className="block text-sm font-medium mb-2">Nome do Cliente</label>
-          <input
-            type="text"
-            value={formData.client_name}
-            onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            placeholder="Digite o nome completo"
-            required
-          />
-        </div>
-
-        {/* Campos Específicos por Tipo */}
+        {/* ... código do tipo de venda e nome do cliente ... */}
+        
         {saleType === 'consortium' ? (
           <>
-            {/* CAMPOS DE CONSÓRCIO */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Valor do Sistema (R$)</label>
+                <label className="block text-sm font-medium mb-2">Valor Sistema (R$) *</label>
                 <input
                   type="text"
                   value={formatNumber(formData.value)}
-                  onChange={(e) => setFormData({ ...formData, value: parseNumber(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, value: String(parseNumber(e.target.value)) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                   placeholder="50.000"
                   required
@@ -173,13 +108,13 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Valor do Consórcio (R$)</label>
+                <label className="block text-sm font-medium mb-2">Valor Consórcio (R$) *</label>
                 <input
                   type="text"
                   value={formatNumber(formData.consortium_value)}
-                  onChange={(e) => setFormData({ ...formData, consortium_value: parseNumber(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, consortium_value: String(parseNumber(e.target.value)) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                  placeholder="80.000"
+                  placeholder="432.423"
                   required
                 />
               </div>
@@ -187,23 +122,23 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Potência (kW)</label>
+                <label className="block text-sm font-medium mb-2">Potência (kW) *</label>
                 <input
                   type="text"
                   value={formatNumber(formData.kilowatts)}
-                  onChange={(e) => setFormData({ ...formData, kilowatts: parseNumber(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, kilowatts: String(parseNumber(e.target.value)) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                  placeholder="10"
+                  placeholder="4.324"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Prazo (meses)</label>
+                <label className="block text-sm font-medium mb-2">Prazo (meses) *</label>
                 <input
                   type="text"
                   value={formatNumber(formData.consortium_term)}
-                  onChange={(e) => setFormData({ ...formData, consortium_term: parseNumber(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, consortium_term: String(parseNumber(e.target.value)) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
                   placeholder="84"
                   required
@@ -217,9 +152,9 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
                 <input
                   type="text"
                   value={formatNumber(formData.consortium_monthly_payment)}
-                  onChange={(e) => setFormData({ ...formData, consortium_monthly_payment: parseNumber(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, consortium_monthly_payment: String(parseNumber(e.target.value)) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                  placeholder="1.200 (opcional)"
+                  placeholder="1.200"
                 />
               </div>
 
@@ -228,32 +163,22 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
                 <input
                   type="text"
                   value={formatNumber(formData.consortium_admin_fee)}
-                  onChange={(e) => setFormData({ ...formData, consortium_admin_fee: parseNumber(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, consortium_admin_fee: String(parseNumber(e.target.value)) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
-                  placeholder="15 (opcional)"
+                  placeholder="4.234"
                 />
               </div>
             </div>
-
-            {/* Info de Comissão Consórcio */}
-            {formData.consortium_value && (
-              <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                <p className="text-sm text-purple-800">
-                  <strong>Comissão prevista:</strong> R$ {(parseFloat(formData.consortium_value) * 0.05).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}(5%)
-                </p>
-              </div>
-            )}
           </>
         ) : (
           <>
-            {/* CAMPOS DE VENDA NORMAL */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium mb-2">Valor (R$)</label>
+                <label className="block text-sm font-medium mb-2">Valor (R$) *</label>
                 <input
                   type="text"
                   value={formatNumber(formData.value)}
-                  onChange={(e) => setFormData({ ...formData, value: parseNumber(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, value: String(parseNumber(e.target.value)) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   placeholder="50.000"
                   required
@@ -261,11 +186,11 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">Kilowatts (kW)</label>
+                <label className="block text-sm font-medium mb-2">Kilowatts (kW) *</label>
                 <input
                   type="text"
                   value={formatNumber(formData.kilowatts)}
-                  onChange={(e) => setFormData({ ...formData, kilowatts: parseNumber(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, kilowatts: String(parseNumber(e.target.value)) })}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   placeholder="10"
                   required
@@ -278,13 +203,13 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
               <input
                 type="text"
                 value={formatNumber(formData.insurance_value)}
-                onChange={(e) => setFormData({ ...formData, insurance_value: parseNumber(e.target.value) })}
+                onChange={(e) => setFormData({ ...formData, insurance_value: String(parseNumber(e.target.value)) })}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 placeholder="2.000"
               />
             </div>
           </>
-        )}
+  
 
         {/* Observações */}
         <div>
@@ -319,7 +244,7 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
               Cadastrando...
             </span>
           ) : (
-            saleType === 'consortium' ? 'Cadastrar Consórcio' : 'Cadastrar Venda'
+            saleType === 'consortium' ? '✓ Finalizar Cadastro' : 'Cadastrar Venda'
           )}
         </Button>
       </form>

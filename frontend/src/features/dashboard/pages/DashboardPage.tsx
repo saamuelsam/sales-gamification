@@ -15,6 +15,40 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useState, useEffect } from 'react';
 import api from '@/services/api';
 
+// ✅ FORMATADORES ATUALIZADOS
+const formatNumber = (value: number): string => {
+  if (!value && value !== 0) return '0';
+  return value.toLocaleString('pt-BR');
+};
+
+const formatCurrency = (value: number): string => {
+  if (!value && value !== 0) return 'R$ 0,00';
+  return value.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
+// ✅ TOOLTIP CUSTOMIZADO PARA GRÁFICOS
+const CustomTooltip = ({ active, payload, label, isCurrency = false }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+        <p className="text-sm font-medium text-gray-700 mb-1">{label}</p>
+        <p className="text-sm font-bold text-blue-600">
+          {isCurrency 
+            ? formatCurrency(payload[0].value)
+            : formatNumber(payload[0].value)
+          }
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
 export const DashboardPage = () => {
   const { user } = useAuthStore();
   const { data, isLoading } = useDashboard();
@@ -77,9 +111,10 @@ export const DashboardPage = () => {
         />
         <StatsCard
           title="Receita"
-          value={`R$ ${(data?.personal?.sales?.total_revenue || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0 })}`}
+          value={data?.personal?.sales?.total_revenue || 0}
           icon={<DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />}
           variant="green"
+          isCurrency={true}
         />
         <StatsCard
           title="Pontos"
@@ -117,8 +152,8 @@ export const DashboardPage = () => {
             <span className="text-sm font-medium text-gray-700">
               {data?.personal?.level?.name || 'Iniciante'}
             </span>
-            <span className="text-sm text-gray-600">
-              {data?.personal?.points?.total_points || 0} pontos
+            <span className="text-sm font-bold text-gray-900">
+              {formatNumber(data?.personal?.points?.total_points || 0)} pontos
             </span>
           </div>
 
@@ -130,7 +165,7 @@ export const DashboardPage = () => {
           </div>
 
           <p className="text-xs text-gray-600">
-            Faltam {Math.max(1000 - (data?.personal?.points?.total_points || 0), 0)} pontos para o próximo nível
+            Faltam <strong className="text-gray-900">{formatNumber(Math.max(1000 - (data?.personal?.points?.total_points || 0), 0))}</strong> pontos para o próximo nível
           </p>
         </div>
       </div>
@@ -191,21 +226,25 @@ export const DashboardPage = () => {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6">
           <h3 className="text-base sm:text-lg font-semibold mb-4 flex items-center gap-2">
             <Users className="w-5 h-5 text-purple-600" />
-            Minha Equipe ({data.team.members.length})
+            Minha Equipe ({formatNumber(data.team.members.length)})
           </h3>
 
           <div className="space-y-3">
             {data.team.members.slice(0, 3).map((member: any) => (
-              <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-sm">{member.name}</p>
-                  <p className="text-xs text-gray-600">{member.total_points} pontos</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-green-600">
-                    R$ {member.total_revenue.toLocaleString('pt-BR')}
+              <div key={member.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm text-gray-900 truncate">{member.name}</p>
+                  <p className="text-xs text-gray-600">
+                    {formatNumber(member.total_points)} pontos
                   </p>
-                  <p className="text-xs text-gray-600">{member.total_sales} vendas</p>
+                </div>
+                <div className="text-right ml-4">
+                  <p className="text-sm font-semibold text-green-600">
+                    {formatCurrency(member.total_revenue)}
+                  </p>
+                  <p className="text-xs text-gray-600">
+                    {formatNumber(member.total_sales)} vendas
+                  </p>
                 </div>
               </div>
             ))}
@@ -216,7 +255,7 @@ export const DashboardPage = () => {
               to="/team"
               className="mt-4 block text-center text-sm text-blue-600 font-medium hover:underline"
             >
-              Ver todos os {data.team.members.length} membros
+              Ver todos os {formatNumber(data.team.members.length)} membros
             </Link>
           )}
         </div>
@@ -231,29 +270,41 @@ export const DashboardPage = () => {
 
         {chartLoading ? (
           <div className="flex items-center justify-center h-64 text-gray-500">
-            Carregando gráficos...
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ) : !chartData || (pieData.length === 0 && (!chartData?.monthly || chartData.monthly.length === 0)) ? (
           <div className="flex flex-col items-center justify-center h-64 text-gray-500">
             <TrendingUp size={48} className="mb-2 opacity-50" />
-            <p>Nenhuma venda registrada ainda</p>
-            <Link to="/sales" className="text-blue-600 text-sm mt-2 hover:underline">
+            <p className="text-sm">Nenhuma venda registrada ainda</p>
+            <Link to="/sales" className="text-blue-600 text-sm mt-2 hover:underline font-medium">
               Registrar primeira venda
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Gráfico de Barras - Vendas Mensais */}
             {chartData?.monthly && chartData.monthly.length > 0 && (
               <div>
                 <h4 className="text-sm font-medium text-gray-700 mb-3">Vendas Mensais</h4>
                 <ResponsiveContainer width="100%" height={250}>
                   <BarChart data={chartData.monthly}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#3b82f6" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis 
+                      dataKey="month" 
+                      tick={{ fontSize: 12 }}
+                      stroke="#9ca3af"
+                    />
+                    <YAxis 
+                      tick={{ fontSize: 12 }}
+                      stroke="#9ca3af"
+                      tickFormatter={(value) => formatNumber(value)}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar 
+                      dataKey="count" 
+                      fill="#3b82f6" 
+                      radius={[8, 8, 0, 0]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -270,7 +321,10 @@ export const DashboardPage = () => {
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }: any) => `${name}: ${(Number(percent) * 100).toFixed(0)}%`}
+                      label={({ name, percent }: any) => {
+                        const percentValue = (Number(percent) * 100).toFixed(0);
+                        return percentValue !== '0' ? `${name}: ${percentValue}%` : '';
+                      }}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
@@ -279,9 +333,24 @@ export const DashboardPage = () => {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip content={<CustomTooltip />} />
                   </PieChart>
                 </ResponsiveContainer>
+                
+                {/* Legenda customizada */}
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  {pieData.map((entry: any, index: number) => (
+                    <div key={index} className="flex items-center gap-2 text-xs">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                      />
+                      <span className="text-gray-700">
+                        {entry.name}: <strong>{formatNumber(entry.value)}</strong>
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

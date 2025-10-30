@@ -1,4 +1,4 @@
-export type SaleType = 'direct' | 'consortium' | 'cash';
+export type SaleType = 'direct' | 'consortium' | 'cash' | 'card';
 
 export interface Sale {
   id: string;

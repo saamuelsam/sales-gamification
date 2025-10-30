@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-//@ts-ignore
-import { Plus, Edit, Filter, X, Eye, Trash, Search } from 'lucide-react';
+import { Plus, X, Eye, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
+import { CurrencyInput } from '@/components/ui/CurrencyInput';
 
 interface Sale {
   id: string;
@@ -43,7 +43,6 @@ export const SalesPage = () => {
     fetchSales();
   }, []);
 
-  // NOVO: Bloquear scroll do body quando modal aberto
   useEffect(() => {
     if (showCreateModal || showDetailsModal) {
       document.body.style.overflow = 'hidden';
@@ -105,7 +104,6 @@ export const SalesPage = () => {
   return (
     <div className="min-h-screen bg-gray-50 p-2 sm:p-4 pb-20">
       <div className="max-w-7xl mx-auto space-y-3">
-        {/* Header Compacto */}
         <div className="flex justify-between items-center gap-2">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Vendas</h1>
@@ -119,7 +117,6 @@ export const SalesPage = () => {
           </Button>
         </div>
 
-        {/* Filtros Compactos */}
         <div className="bg-white rounded-lg shadow-sm border p-2 space-y-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <select
@@ -143,7 +140,6 @@ export const SalesPage = () => {
           </div>
         </div>
 
-        {/* Lista Compacta */}
         <div className="space-y-2">
           {loading ? (
             <div className="bg-white rounded-lg p-8 text-center">
@@ -166,10 +162,13 @@ export const SalesPage = () => {
                       <span className={`text-xs px-2 py-0.5 rounded-full ${
                         sale.sale_type === 'consortium' ? 'bg-purple-100 text-purple-800' :
                         sale.sale_type === 'cash' ? 'bg-green-100 text-green-800' :
+                        sale.sale_type === 'card' ? 'bg-orange-100 text-orange-800' :
                         'bg-blue-100 text-blue-800'
                       }`}>
-                        {sale.sale_type === 'consortium' ? 'Consórcio' : 
-                         sale.sale_type === 'cash' ? 'À Vista' : 'Financ.'}
+                        {sale.sale_type === 'consortium' ? '🏦 Consórcio' :
+                         sale.sale_type === 'cash' ? '💵 À Vista' :
+                         sale.sale_type === 'card' ? '💳 Cartão' :
+                         '💳 Financ.'}
                       </span>
                     </div>
                   </div>
@@ -184,8 +183,8 @@ export const SalesPage = () => {
                   <div>
                     <p className="text-gray-600">Valor</p>
                     <p className="font-semibold text-gray-900">
-                      {new Intl.NumberFormat('pt-BR', { 
-                        style: 'currency', 
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
                         currency: 'BRL',
                         minimumFractionDigits: 0,
                         maximumFractionDigits: 0
@@ -197,8 +196,8 @@ export const SalesPage = () => {
                     <div>
                       <p className="text-purple-600">Consórcio</p>
                       <p className="font-semibold text-purple-700">
-                        {new Intl.NumberFormat('pt-BR', { 
-                          style: 'currency', 
+                        {new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
                           currency: 'BRL',
                           minimumFractionDigits: 0,
                           maximumFractionDigits: 0
@@ -215,8 +214,8 @@ export const SalesPage = () => {
                   <div>
                     <p className="text-gray-600">Data</p>
                     <p className="text-gray-900">
-                      {new Date(sale.created_at).toLocaleDateString('pt-BR', { 
-                        day: '2-digit', 
+                      {new Date(sale.created_at).toLocaleDateString('pt-BR', {
+                        day: '2-digit',
                         month: '2-digit'
                       })}
                     </p>
@@ -251,7 +250,6 @@ export const SalesPage = () => {
         </div>
       </div>
 
-      {/* Modals com Z-Index Alto */}
       {showCreateModal && (
         <CreateSaleModal
           onClose={() => setShowCreateModal(false)}
@@ -275,7 +273,6 @@ export const SalesPage = () => {
   );
 };
 
-// Modal de Criação - COM Z-INDEX ALTO
 interface CreateSaleModalProps {
   onClose: () => void;
   onSuccess: () => void;
@@ -283,9 +280,9 @@ interface CreateSaleModalProps {
 
 const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
   const [step, setStep] = useState<'client' | 'sale'>('client');
-  const [saleType, setSaleType] = useState<'direct' | 'consortium' | 'cash'>('direct');
+  const [saleType, setSaleType] = useState<'direct' | 'consortium' | 'cash' | 'card'>('direct');
   const [loading, setLoading] = useState(false);
-  
+
   const [clientData, setClientData] = useState({
     name: '',
     cpf: '',
@@ -334,7 +331,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
       if (saleType === 'consortium') {
         payload.consortium_value = parseFloat(saleData.consortium_value);
         payload.consortium_term = parseInt(saleData.consortium_term);
-        
+
         if (saleData.consortium_monthly_payment) {
           payload.consortium_monthly_payment = parseFloat(saleData.consortium_monthly_payment);
         }
@@ -348,7 +345,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
       }
 
       await api.post('/sales', payload);
-      
+
       toast.success('Venda cadastrada!');
       onSuccess();
     } catch (error: any) {
@@ -359,58 +356,29 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
   };
 
   return (
-    // Z-INDEX 9999 para ficar acima de tudo
-    <div 
-      className="fixed inset-0 flex items-end sm:items-center justify-center"
-      style={{ zIndex: 9999 }}
-    >
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/60"
-        onClick={onClose}
-      />
+    <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ zIndex: 9999 }}>
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
-      {/* Modal */}
-      <div 
-        className="relative bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg flex flex-col shadow-2xl"
-        style={{ 
-          maxHeight: '90vh',
-          height: 'auto'
-        }}
-      >
-        {/* Header Fixo */}
+      <div className="relative bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg flex flex-col shadow-2xl" style={{ maxHeight: '90vh', height: 'auto' }}>
         <div className="flex justify-between items-center px-4 py-3 border-b bg-white rounded-t-2xl shrink-0">
           <h2 className="text-base font-bold">
             {step === 'client' ? '👤 Dados do Cliente' : '📊 Dados da Venda'}
           </h2>
-          <button 
-            onClick={onClose} 
-            className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
-          >
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-full transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Indicador de Progresso */}
         <div className="flex gap-2 px-4 py-2 bg-gray-50 shrink-0">
           <div className={`flex-1 h-1.5 rounded-full transition-all ${step === 'client' ? 'bg-blue-600' : 'bg-green-600'}`} />
           <div className={`flex-1 h-1.5 rounded-full transition-all ${step === 'sale' ? 'bg-blue-600' : 'bg-gray-300'}`} />
         </div>
 
-        {/* Conteúdo Scrollável */}
-        <div 
-          className="flex-1 overflow-y-auto overscroll-contain"
-          style={{ 
-            WebkitOverflowScrolling: 'touch',
-            maxHeight: 'calc(90vh - 140px)'
-          }}
-        >
+        <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', maxHeight: 'calc(90vh - 140px)' }}>
           {step === 'client' ? (
             <form onSubmit={handleNext} className="p-4 space-y-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                  Nome Completo *
-                </label>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">Nome Completo *</label>
                 <input
                   type="text"
                   value={clientData.name}
@@ -517,221 +485,170 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                 </div>
               </div>
 
-              {/* Espaço extra para evitar sobreposição */}
               <div className="h-4"></div>
             </form>
           ) : (
             <form onSubmit={handleSubmit} className="p-4 space-y-3">
-              {/* Badge Cliente */}
               <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
                 <p className="text-xs text-blue-600 font-medium mb-0.5">Cliente Selecionado</p>
                 <p className="font-bold text-sm text-gray-900">{clientData.name}</p>
               </div>
 
-              {/* Tipo de Venda */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-2">
-                  Tipo de Venda *
-                </label>
-                <div className="grid grid-cols-3 gap-2">
+                <label className="block text-sm font-medium text-gray-700 mb-3">Tipo de Venda *</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <button
                     type="button"
                     onClick={() => setSaleType('direct')}
-                    className={`px-2 py-3 rounded-lg border-2 text-xs font-medium transition-all ${
-                      saleType === 'direct'
-                        ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-sm'
-                        : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${
+                      saleType === 'direct' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-300 text-gray-700'
                     }`}
                   >
-                    💳<br/>Financ.
+                    💳 Financiamento
                   </button>
-                  
+
                   <button
                     type="button"
                     onClick={() => setSaleType('consortium')}
-                    className={`px-2 py-3 rounded-lg border-2 text-xs font-medium transition-all ${
-                      saleType === 'consortium'
-                        ? 'border-purple-600 bg-purple-50 text-purple-700 shadow-sm'
-                        : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${
+                      saleType === 'consortium' ? 'border-purple-600 bg-purple-50 text-purple-700' : 'border-gray-300 text-gray-700'
                     }`}
                   >
-                    🏦<br/>Consórc.
+                    🏦 Consórcio
                   </button>
-                  
+
                   <button
                     type="button"
                     onClick={() => setSaleType('cash')}
-                    className={`px-2 py-3 rounded-lg border-2 text-xs font-medium transition-all ${
-                      saleType === 'cash'
-                        ? 'border-green-600 bg-green-50 text-green-700 shadow-sm'
-                        : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${
+                      saleType === 'cash' ? 'border-green-600 bg-green-50 text-green-700' : 'border-gray-300 text-gray-700'
                     }`}
                   >
-                    💵<br/>À Vista
+                    💵 À Vista
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setSaleType('card')}
+                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${
+                      saleType === 'card' ? 'border-orange-600 bg-orange-50 text-orange-700' : 'border-gray-300 text-gray-700'
+                    }`}
+                  >
+                    💳 Cartão
                   </button>
                 </div>
               </div>
 
-              {/* Campos Condicionais */}
               {saleType === 'consortium' ? (
                 <>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                        Valor Sistema (R$) *
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={saleData.value}
-                        onChange={(e) => setSaleData({ ...saleData, value: e.target.value })}
-                        className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-                        placeholder="50000"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                        Valor Consórcio (R$) *
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={saleData.consortium_value}
-                        onChange={(e) => setSaleData({ ...saleData, consortium_value: e.target.value })}
-                        className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-                        placeholder="80000"
-                        required
-                      />
-                    </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <CurrencyInput
+                      label="Valor do Sistema (R$) *"
+                      value={saleData.value}
+                      onValueChange={(val) => setSaleData({ ...saleData, value: val })}
+                      placeholder="50.000,00"
+                      required
+                    />
+
+                    <CurrencyInput
+                      label="Valor do Consórcio (R$) *"
+                      value={saleData.consortium_value}
+                      onValueChange={(val) => setSaleData({ ...saleData, consortium_value: val })}
+                      placeholder="80.000,00"
+                      required
+                    />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                        Potência (kW) *
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Potência (kW) *</label>
                       <input
                         type="number"
                         step="0.01"
                         value={saleData.kilowatts}
                         onChange={(e) => setSaleData({ ...saleData, kilowatts: e.target.value })}
-                        className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-base"
                         placeholder="10.5"
                         required
                       />
                     </div>
+
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                        Prazo (meses) *
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Prazo (meses) *</label>
                       <input
                         type="number"
                         value={saleData.consortium_term}
                         onChange={(e) => setSaleData({ ...saleData, consortium_term: e.target.value })}
-                        className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-base"
                         placeholder="84"
-                        max="120"
                         required
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <CurrencyInput
+                      label="Parcela Mensal (R$)"
+                      value={saleData.consortium_monthly_payment}
+                      onValueChange={(val) => setSaleData({ ...saleData, consortium_monthly_payment: val })}
+                      placeholder="1.200,00"
+                    />
+
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                        Parcela Mensal (R$)
-                      </label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={saleData.consortium_monthly_payment}
-                        onChange={(e) => setSaleData({ ...saleData, consortium_monthly_payment: e.target.value })}
-                        className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-                        placeholder="1250"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                        Taxa Admin (R$)
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Taxa Admin (%)</label>
                       <input
                         type="number"
                         step="0.01"
                         value={saleData.consortium_admin_fee}
                         onChange={(e) => setSaleData({ ...saleData, consortium_admin_fee: e.target.value })}
-                        className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-purple-500"
-                        placeholder="5000"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-base"
+                        placeholder="15"
                       />
                     </div>
                   </div>
 
-                  {/* Comissão */}
                   {saleData.consortium_value && (
-                    <div className="bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200 rounded-lg p-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs font-medium text-purple-800">Sua Comissão (5%)</span>
-                        <span className="text-base font-bold text-purple-900">
-                          R$ {(parseFloat(saleData.consortium_value) * 0.05).toLocaleString('pt-BR', { 
-                            minimumFractionDigits: 2
-                          })}
-                        </span>
-                      </div>
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                      <p className="text-sm text-purple-800">
+                        <strong>Comissão prevista:</strong> R$ {(parseFloat(saleData.consortium_value) * 0.05).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (5%)
+                      </p>
                     </div>
                   )}
                 </>
               ) : (
                 <>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                      Valor da Venda (R$) *
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={saleData.value}
-                      onChange={(e) => setSaleData({ ...saleData, value: e.target.value })}
-                      className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
-                      placeholder="50000"
-                      required
-                    />
-                  </div>
+                  <CurrencyInput
+                    label="Valor da Venda (R$) *"
+                    value={saleData.value}
+                    onValueChange={(val) => setSaleData({ ...saleData, value: val })}
+                    placeholder="50.000,00"
+                    required
+                  />
 
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                      Potência (kW) *
-                    </label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Potência (kW) *</label>
                     <input
                       type="number"
                       step="0.01"
                       value={saleData.kilowatts}
                       onChange={(e) => setSaleData({ ...saleData, kilowatts: e.target.value })}
-                      className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-base"
                       placeholder="10.5"
                       required
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                      Valor do Seguro (R$)
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={saleData.insurance_value}
-                      onChange={(e) => setSaleData({ ...saleData, insurance_value: e.target.value })}
-                      className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
-                      placeholder="5000"
-                    />
-                  </div>
+                  <CurrencyInput
+                    label="Valor do Seguro (R$)"
+                    value={saleData.insurance_value}
+                    onValueChange={(val) => setSaleData({ ...saleData, insurance_value: val })}
+                    placeholder="5.000,00"
+                  />
                 </>
               )}
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">
-                  Observações
-                </label>
+                <label className="block text-xs font-medium text-gray-700 mb-1.5">Observações</label>
                 <textarea
                   value={saleData.notes}
                   onChange={(e) => setSaleData({ ...saleData, notes: e.target.value })}
@@ -741,13 +658,11 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                 />
               </div>
 
-              {/* Espaço extra para evitar sobreposição */}
               <div className="h-4"></div>
             </form>
           )}
         </div>
 
-        {/* Botões Fixos no Fundo - SEMPRE VISÍVEIS */}
         <div className="px-4 py-3 bg-white border-t shrink-0 rounded-b-2xl">
           <div className="flex gap-2">
             {step === 'sale' && (
@@ -759,7 +674,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                 ← Voltar
               </button>
             )}
-            
+
             {step === 'client' ? (
               <button
                 type="submit"
@@ -792,7 +707,6 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
   );
 };
 
-// Modal de Detalhes - COM Z-INDEX ALTO
 interface SaleDetailsModalProps {
   sale: any;
   onClose: () => void;
@@ -800,43 +714,31 @@ interface SaleDetailsModalProps {
 
 const SaleDetailsModal = ({ sale, onClose }: SaleDetailsModalProps) => {
   return (
-    <div 
-      className="fixed inset-0 flex items-end sm:items-center justify-center"
-      style={{ zIndex: 9999 }}
-    >
-      <div 
-        className="absolute inset-0 bg-black/60"
-        onClick={onClose}
-      />
+    <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ zIndex: 9999 }}>
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
 
-      <div 
-        className="relative bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl flex flex-col shadow-2xl"
-        style={{ maxHeight: '90vh' }}
-      >
+      <div className="relative bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl flex flex-col shadow-2xl" style={{ maxHeight: '90vh' }}>
         <div className="flex justify-between items-center px-4 py-3 border-b bg-white rounded-t-2xl shrink-0">
           <h2 className="text-base font-bold">Detalhes da Venda</h2>
-          <button 
-            onClick={onClose} 
-            className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
-          >
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-full transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        <div 
-          className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3"
-          style={{ WebkitOverflowScrolling: 'touch' }}
-        >
+        <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3" style={{ WebkitOverflowScrolling: 'touch' }}>
           {sale.sale_type && (
             <div className="bg-gray-50 rounded-lg p-2.5">
               <p className="text-xs text-gray-600 mb-1.5">Tipo de Venda</p>
               <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
                 sale.sale_type === 'consortium' ? 'bg-purple-100 text-purple-800' :
                 sale.sale_type === 'cash' ? 'bg-green-100 text-green-800' :
+                sale.sale_type === 'card' ? 'bg-orange-100 text-orange-800' :
                 'bg-blue-100 text-blue-800'
               }`}>
-                {sale.sale_type === 'consortium' ? '🏦 Consórcio' : 
-                 sale.sale_type === 'cash' ? '💵 À Vista' : '💳 Financiamento'}
+                {sale.sale_type === 'consortium' ? '🏦 Consórcio' :
+                 sale.sale_type === 'cash' ? '💵 À Vista' :
+                 sale.sale_type === 'card' ? '💳 Cartão' :
+                 '💳 Financiamento'}
               </span>
             </div>
           )}
@@ -919,15 +821,11 @@ const SaleDetailsModal = ({ sale, onClose }: SaleDetailsModalProps) => {
             </div>
           )}
 
-          {/* Espaço extra para evitar sobreposição */}
           <div className="h-4"></div>
         </div>
 
         <div className="px-4 py-3 border-t bg-white shrink-0 rounded-b-2xl">
-          <button 
-            onClick={onClose} 
-            className="w-full bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-lg font-medium transition-colors"
-          >
+          <button onClick={onClose} className="w-full bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-lg font-medium transition-colors">
             Fechar
           </button>
         </div>

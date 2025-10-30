@@ -5,7 +5,7 @@ BEGIN;
 
 -- Adicionar coluna de tipo de venda
 ALTER TABLE sales 
-  ADD COLUMN IF NOT EXISTS sale_type VARCHAR(20) DEFAULT 'direct' CHECK (sale_type IN ('direct', 'consortium', 'cash'));
+  ADD COLUMN IF NOT EXISTS sale_type VARCHAR(20) DEFAULT 'direct' CHECK (sale_type IN ('direct', 'consortium', 'cash', 'card'));
 
 -- Adicionar campos específicos de consórcio
 ALTER TABLE sales 
