@@ -66,3 +66,17 @@ export const formatPercent = (value: number | string | null | undefined): string
   
   return `${numValue.toFixed(2)}%`;
 };
+
+/**
+ * Remove formatação e retorna apenas números
+ * @param value - String formatada (ex: "1.234" ou "1,234.56")
+ * @returns Número sem formatação
+ */
+export const parseNumber = (value: string): number => {
+  if (!value) return 0;
+  
+  // Remove tudo exceto números
+  const numericValue = value.replace(/\D/g, '');
+  
+  return Number(numericValue) || 0;
+};
