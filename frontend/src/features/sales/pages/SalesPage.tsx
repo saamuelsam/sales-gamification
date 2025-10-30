@@ -159,22 +159,20 @@ export const SalesPage = () => {
                       {sale.client_name}
                     </h3>
                     <div className="flex gap-1 mt-1">
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        sale.sale_type === 'consortium' ? 'bg-purple-100 text-purple-800' :
-                        sale.sale_type === 'cash' ? 'bg-green-100 text-green-800' :
-                        sale.sale_type === 'card' ? 'bg-orange-100 text-orange-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${sale.sale_type === 'consortium' ? 'bg-purple-100 text-purple-800' :
+                          sale.sale_type === 'cash' ? 'bg-green-100 text-green-800' :
+                            sale.sale_type === 'card' ? 'bg-orange-100 text-orange-800' :
+                              'bg-blue-100 text-blue-800'
+                        }`}>
                         {sale.sale_type === 'consortium' ? '🏦 Consórcio' :
-                         sale.sale_type === 'cash' ? '💵 À Vista' :
-                         sale.sale_type === 'card' ? '💳 Cartão' :
-                         '💳 Financ.'}
+                          sale.sale_type === 'cash' ? '💵 À Vista' :
+                            sale.sale_type === 'card' ? '💳 Cartão' :
+                              '💳 Financ.'}
                       </span>
                     </div>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    statusConfig[sale.status as keyof typeof statusConfig]?.color
-                  }`}>
+                  <span className={`text-xs px-2 py-1 rounded-full ${statusConfig[sale.status as keyof typeof statusConfig]?.color
+                    }`}>
                     {statusConfig[sale.status as keyof typeof statusConfig]?.label}
                   </span>
                 </div>
@@ -500,9 +498,8 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                   <button
                     type="button"
                     onClick={() => setSaleType('direct')}
-                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${
-                      saleType === 'direct' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-300 text-gray-700'
-                    }`}
+                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${saleType === 'direct' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-300 text-gray-700'
+                      }`}
                   >
                     💳 Financiamento
                   </button>
@@ -510,9 +507,8 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                   <button
                     type="button"
                     onClick={() => setSaleType('consortium')}
-                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${
-                      saleType === 'consortium' ? 'border-purple-600 bg-purple-50 text-purple-700' : 'border-gray-300 text-gray-700'
-                    }`}
+                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${saleType === 'consortium' ? 'border-purple-600 bg-purple-50 text-purple-700' : 'border-gray-300 text-gray-700'
+                      }`}
                   >
                     🏦 Consórcio
                   </button>
@@ -520,9 +516,8 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                   <button
                     type="button"
                     onClick={() => setSaleType('cash')}
-                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${
-                      saleType === 'cash' ? 'border-green-600 bg-green-50 text-green-700' : 'border-gray-300 text-gray-700'
-                    }`}
+                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${saleType === 'cash' ? 'border-green-600 bg-green-50 text-green-700' : 'border-gray-300 text-gray-700'
+                      }`}
                   >
                     💵 À Vista
                   </button>
@@ -530,9 +525,8 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                   <button
                     type="button"
                     onClick={() => setSaleType('card')}
-                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${
-                      saleType === 'card' ? 'border-orange-600 bg-orange-50 text-orange-700' : 'border-gray-300 text-gray-700'
-                    }`}
+                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${saleType === 'card' ? 'border-orange-600 bg-orange-50 text-orange-700' : 'border-gray-300 text-gray-700'
+                      }`}
                   >
                     💳 Cartão
                   </button>
@@ -645,10 +639,11 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                     placeholder="5.000,00"
                   />
                 </>
-              )}
+              )}  {}
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">Observações</label>
+
                 <textarea
                   value={saleData.notes}
                   onChange={(e) => setSaleData({ ...saleData, notes: e.target.value })}
@@ -729,16 +724,15 @@ const SaleDetailsModal = ({ sale, onClose }: SaleDetailsModalProps) => {
           {sale.sale_type && (
             <div className="bg-gray-50 rounded-lg p-2.5">
               <p className="text-xs text-gray-600 mb-1.5">Tipo de Venda</p>
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                sale.sale_type === 'consortium' ? 'bg-purple-100 text-purple-800' :
-                sale.sale_type === 'cash' ? 'bg-green-100 text-green-800' :
-                sale.sale_type === 'card' ? 'bg-orange-100 text-orange-800' :
-                'bg-blue-100 text-blue-800'
-              }`}>
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${sale.sale_type === 'consortium' ? 'bg-purple-100 text-purple-800' :
+                  sale.sale_type === 'cash' ? 'bg-green-100 text-green-800' :
+                    sale.sale_type === 'card' ? 'bg-orange-100 text-orange-800' :
+                      'bg-blue-100 text-blue-800'
+                }`}>
                 {sale.sale_type === 'consortium' ? '🏦 Consórcio' :
-                 sale.sale_type === 'cash' ? '💵 À Vista' :
-                 sale.sale_type === 'card' ? '💳 Cartão' :
-                 '💳 Financiamento'}
+                  sale.sale_type === 'cash' ? '💵 À Vista' :
+                    sale.sale_type === 'card' ? '💳 Cartão' :
+                      '💳 Financiamento'}
               </span>
             </div>
           )}
