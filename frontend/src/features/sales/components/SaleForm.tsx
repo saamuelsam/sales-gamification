@@ -45,7 +45,7 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
       if (saleType === 'consortium') {
         payload.consortium_value = parseFloat(formData.consortium_value);
         payload.consortium_term = parseInt(formData.consortium_term);
-        
+
         if (formData.consortium_monthly_payment) {
           payload.consortium_monthly_payment = parseFloat(formData.consortium_monthly_payment);
         }
@@ -59,13 +59,13 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
       }
 
       await api.post('/sales', payload);
-      
+
       toast.success(
-        saleType === 'consortium' 
-          ? 'Consórcio cadastrado com sucesso!' 
+        saleType === 'consortium'
+          ? 'Consórcio cadastrado com sucesso!'
           : 'Venda cadastrada com sucesso!'
       );
-      
+
       setFormData({
         client_name: '',
         value: '',
@@ -78,7 +78,7 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
         notes: '',
         status: 'pending',
       });
-      
+
       onSuccess?.();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erro ao cadastrar venda');
@@ -87,11 +87,12 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
     }
   };
 
+
   return (
     <Card title="Nova Venda">
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* ... código do tipo de venda e nome do cliente ... */}
-        
+
         {saleType === 'consortium' ? (
           <>
             <div className="grid grid-cols-2 gap-4">
