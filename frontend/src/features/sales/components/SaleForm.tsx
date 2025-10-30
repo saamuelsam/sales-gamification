@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
-import { formatNumber, parseNumber } from '@/utils/formatters'; // ADICIONE ESTA LINHA
+import { formatNumber, parseNumber } from '@/utils/formatters';
 
 interface SaleFormProps {
   onSuccess?: () => void;
@@ -87,12 +87,65 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
     }
   };
 
-
   return (
     <Card title="Nova Venda">
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* ... código do tipo de venda e nome do cliente ... */}
+        {/* Nome do Cliente */}
+        <div>
+          <label className="block text-sm font-medium mb-2">Nome do Cliente *</label>
+          <input
+            type="text"
+            value={formData.client_name}
+            onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            placeholder="Digite o nome completo"
+            required
+          />
+        </div>
 
+        {/* Tipo de Venda */}
+        <div>
+          <label className="block text-sm font-medium mb-2">Tipo de Venda</label>
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => setSaleType('direct')}
+              className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                saleType === 'direct'
+                  ? 'border-blue-600 bg-blue-50 text-blue-700'
+                  : 'border-gray-300 hover:border-gray-400'
+              }`}
+            >
+              💳 Financ.
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSaleType('consortium')}
+              className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                saleType === 'consortium'
+                  ? 'border-purple-600 bg-purple-50 text-purple-700'
+                  : 'border-gray-300 hover:border-gray-400'
+              }`}
+            >
+              🏢 Consórc.
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSaleType('cash')}
+              className={`px-3 py-2 rounded-lg border-2 text-sm font-medium transition-all ${
+                saleType === 'cash'
+                  ? 'border-green-600 bg-green-50 text-green-700'
+                  : 'border-gray-300 hover:border-gray-400'
+              }`}
+            >
+              💰 À Vista
+            </button>
+          </div>
+        </div>
+
+        {/* Campos Condicionais */}
         {saleType === 'consortium' ? (
           <>
             <div className="grid grid-cols-2 gap-4">
@@ -210,7 +263,7 @@ export const SaleForm = ({ onSuccess }: SaleFormProps) => {
               />
             </div>
           </>
-  
+        )}
 
         {/* Observações */}
         <div>
