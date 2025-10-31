@@ -7,7 +7,7 @@ interface CreateSaleData {
   value: number;
   kilowatts: number;
   insurance_value?: number;
-  sale_type?: 'direct' | 'consortium' | 'cash' | 'card'; // ✅ ADICIONADO 'card'
+  sale_type?: 'direct' | 'consortium' | 'cash' | 'card';
   consortium_value?: number;
   consortium_term?: number;
   consortium_monthly_payment?: number;
@@ -73,7 +73,7 @@ export class SalesService {
       const description = 
         data.sale_type === 'consortium' ? `Consórcio: ${data.client_name}` : 
         data.sale_type === 'cash' ? `Venda à vista: ${data.client_name}` :
-        data.sale_type === 'card' ? `Venda no cartão: ${data.client_name}` : // ✅ NOVO
+        data.sale_type === 'card' ? `Venda no cartão: ${data.client_name}` :
         `Venda: ${data.client_name}`;
 
       await client.query(
@@ -140,6 +140,13 @@ export class SalesService {
       // 8. VERIFICAR PREMIAÇÃO (400 kW = Cesta Básica)
       await this.checkRewardEligibility(userId, client);
       await rewardsService.checkMonthlyReward(userId, client);
+
+      // 9. Atualizar pontos do usuário (1 ponto por kW)
+      const pointsEarned = Math.floor(data.kilowatts);
+      await client.query(
+        `UPDATE users SET points = points + $1 WHERE id = $2`,
+        [pointsEarned, userId]
+      );
 
       await client.query('COMMIT');
 
@@ -213,8 +220,6 @@ export class SalesService {
       );
     }
   }
-
-  // Os outros métodos da sua classe SalesService ficam exatamente iguais...
 
   // Listar vendas do usuário com filtros
   async listUserSales(userId: string, filters?: { 
@@ -324,7 +329,7 @@ export class SalesService {
     value?: number;
     kilowatts?: number;
     insurance_value?: number;
-    sale_type?: 'direct' | 'consortium' | 'cash' | 'card'; // ✅ ADICIONADO 'card'
+    sale_type?: 'direct' | 'consortium' | 'cash' | 'card';
     consortium_value?: number;
     consortium_term?: number;
     consortium_monthly_payment?: number;

@@ -1,20 +1,26 @@
 // backend/src/modules/levels/level.routes.ts
+
 import { Router } from 'express';
-import { LevelController } from './level.controller';
+import { levelController } from './level.controller';
 import { verifyTokenMiddleware } from '../../middleware/auth.middleware';
 import { requireRoles } from '../../middleware/role.middleware';
 
 const router = Router();
-const controller = new LevelController();
 
-// público
-router.get('/', controller.list.bind(controller));
+// ============ AUTENTICADO (ESPECÍFICAS PRIMEIRO!) ============
+router.get('/goals/my-goals', verifyTokenMiddleware, levelController.getUserGoals.bind(levelController));
+router.get('/pathway/user-pathway', verifyTokenMiddleware, levelController.getLevelPathway.bind(levelController));
+router.get('/by-points/:points', verifyTokenMiddleware, levelController.findByPoints.bind(levelController));
 
-// autenticado
-router.get('/:id', verifyTokenMiddleware, controller.find.bind(controller));
+// ============ PÚBLICO ============
+router.get('/', levelController.list.bind(levelController));
 
-// admin
-router.post('/', verifyTokenMiddleware, requireRoles('admin'), controller.create.bind(controller));
-router.put('/:id', verifyTokenMiddleware, requireRoles('admin'), controller.update.bind(controller));
+// ============ ESPECÍFICO POR ID ============
+router.get('/:id', verifyTokenMiddleware, levelController.find.bind(levelController));
+
+// ============ ADMIN ============
+router.post('/', verifyTokenMiddleware, requireRoles('admin'), levelController.create.bind(levelController));
+router.put('/:id', verifyTokenMiddleware, requireRoles('admin'), levelController.update.bind(levelController));
+router.delete('/:id', verifyTokenMiddleware, requireRoles('admin'), levelController.delete.bind(levelController));
 
 export default router;

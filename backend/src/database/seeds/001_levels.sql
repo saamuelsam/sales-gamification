@@ -14,16 +14,16 @@ INSERT INTO levels (
   1, 
   'Consultor Elite',
   'O ponto de partida da sua jornada',
-  0,           -- Sem linhas
-  0,           -- Começa sem equipe
+  0,           -- Sem meta de pontos
+  1,           -- 1 linha
   5.00,        -- 5% comissão venda
   5.00,        -- 5% comissão seguro
   NULL,        -- SEM comissão de rede
   NULL,        -- SEM ajuda de custo
   NULL,        -- SEM meta mensal obrigatória
-  NULL,
-  NULL,
-  300.00,      -- R$ 300 de bônus ao avançar
+  NULL,        -- SEM bônus goal
+  NULL,        -- SEM bonus allowance
+  0.00,        -- Sem bônus ao avançar
   'Kit Fortal'
 ),
 
@@ -39,10 +39,10 @@ INSERT INTO levels (
   2.00,        -- 2% comissão de rede (1ª linha)
   NULL,        -- SEM ajuda de custo fixa
   NULL,        -- SEM meta mensal obrigatória
-  NULL,
-  NULL,
+  NULL,        -- SEM bônus goal
+  NULL,        -- SEM bonus allowance
   1000.00,     -- R$ 1.000 de bônus ao avançar
-  'Jantar com direito a acompanhante'
+  'Jantar com acompanhante'
 ),
 
 -- FASE 3: Consultor Sênior
@@ -57,10 +57,10 @@ INSERT INTO levels (
   1.50,        -- 1,5% comissão de rede (1ª linha)
   1518.00,     -- R$ 1.518 ajuda de custo FIXA
   400000.00,   -- Meta mensal obrigatória: R$ 400.000 em vendas (equipe)
-  NULL,
-  NULL,
+  NULL,        -- SEM bônus goal
+  NULL,        -- SEM bonus allowance
   1500.00,     -- R$ 1.500 de bônus ao avançar
-  'Jantar no Llamare com acompanhante'
+  'Jantar no Ilamare com acompanhante'
 ),
 
 -- FASE 4: Consultor Prime
@@ -70,15 +70,15 @@ INSERT INTO levels (
   'Elite da empresa',
   300000,      -- Meta: 300.000 pontos
   6,           -- 6 linhas
-  10.00,       -- 10% comissão venda
+  12.00,       -- 12% comissão venda (CORRIGIDO)
   5.00,        -- 5% comissão seguro
   1.50,        -- 1,5% comissão de rede (1ª linha)
   1518.00,     -- R$ 1.518 ajuda de custo FIXA
-  400000.00,   -- Meta mensal obrigatória: R$ 400.000 em vendas (equipe)
-  NULL,
-  NULL,
+  800000.00,   -- Meta mensal obrigatória: R$ 800.000 em vendas (CORRIGIDO)
+  NULL,        -- SEM bônus goal
+  NULL,        -- SEM bonus allowance
   1500.00,     -- R$ 1.500 de bônus ao avançar
-  'Jantar no Llamare com acompanhante'
+  'Jantar no Ilamare com acompanhante'
 ),
 
 -- FASE 5: Executivo
