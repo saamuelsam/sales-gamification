@@ -2,7 +2,6 @@
 
 import { pool } from '../../config/database';
 import { notificationsService } from '../notifications/notifications.service';
-import { levelService } from '../levels/level.service';
 export class LevelService {
   // Listar todos os níveis
   async getAllLevels() {

@@ -7,6 +7,7 @@ import { DashboardPage } from './features/dashboard/pages/DashboardPage';
 import { SalesPage } from './features/sales/pages/SalesPage';
 import { TeamPage } from './features/team/pages/TeamPage';
 import { BenefitsPage } from './features/benefits/pages/BenefitsPage';
+import { GoalsPage } from '@/features/goals/pages/GoalsPage';
 
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -35,6 +36,7 @@ function App() {
         <Route path="sales" element={<SalesPage />} />
         <Route path="team" element={<TeamPage />} />
         <Route path="benefits" element={<BenefitsPage />} />
+        <Route path="/goals" element={<GoalsPage />} />
       </Route>
     </Routes>
   );
