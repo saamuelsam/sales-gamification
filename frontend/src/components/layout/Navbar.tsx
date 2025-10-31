@@ -1,6 +1,7 @@
 // src/components/layout/Navbar.tsx
 import { useAuthStore } from '@/store/authStore';
-import { Bell, User, LogOut } from 'lucide-react';
+import { User, LogOut } from 'lucide-react';
+import { NotificationBell } from '@/components/ui/NotificationBell';
 
 export const Navbar = () => {
   const { user, logout } = useAuthStore();
@@ -14,11 +15,8 @@ export const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Notificações */}
-          <button className="relative p-2 hover:bg-gray-100 rounded-lg transition">
-            <Bell className="w-5 h-5 text-gray-600" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
+          {/* Notificações - Componente Completo */}
+          <NotificationBell />
 
           {/* Perfil */}
           <div className="flex items-center gap-3">
@@ -35,6 +33,7 @@ export const Navbar = () => {
           <button
             onClick={logout}
             className="p-2 hover:bg-red-50 rounded-lg transition text-red-600"
+            title="Sair"
           >
             <LogOut className="w-5 h-5" />
           </button>

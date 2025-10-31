@@ -159,20 +159,22 @@ export const SalesPage = () => {
                       {sale.client_name}
                     </h3>
                     <div className="flex gap-1 mt-1">
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${sale.sale_type === 'consortium' ? 'bg-purple-100 text-purple-800' :
-                          sale.sale_type === 'cash' ? 'bg-green-100 text-green-800' :
-                            sale.sale_type === 'card' ? 'bg-orange-100 text-orange-800' :
-                              'bg-blue-100 text-blue-800'
-                        }`}>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
+                        sale.sale_type === 'consortium' ? 'bg-purple-100 text-purple-800' :
+                        sale.sale_type === 'cash' ? 'bg-green-100 text-green-800' :
+                        sale.sale_type === 'card' ? 'bg-orange-100 text-orange-800' :
+                        'bg-blue-100 text-blue-800'
+                      }`}>
                         {sale.sale_type === 'consortium' ? '🏦 Consórcio' :
-                          sale.sale_type === 'cash' ? '💵 À Vista' :
-                            sale.sale_type === 'card' ? '💳 Cartão' :
-                              '💳 Financ.'}
+                         sale.sale_type === 'cash' ? '💵 À Vista' :
+                         sale.sale_type === 'card' ? '💳 Cartão' :
+                         '💳 Financ.'}
                       </span>
                     </div>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${statusConfig[sale.status as keyof typeof statusConfig]?.color
-                    }`}>
+                  <span className={`text-xs px-2 py-1 rounded-full ${
+                    statusConfig[sale.status as keyof typeof statusConfig]?.color
+                  }`}>
                     {statusConfig[sale.status as keyof typeof statusConfig]?.label}
                   </span>
                 </div>
@@ -265,6 +267,7 @@ export const SalesPage = () => {
             setShowDetailsModal(false);
             setSaleDetails(null);
           }}
+          onUpdate={fetchSales}
         />
       )}
     </div>
@@ -498,8 +501,9 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                   <button
                     type="button"
                     onClick={() => setSaleType('direct')}
-                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${saleType === 'direct' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-300 text-gray-700'
-                      }`}
+                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${
+                      saleType === 'direct' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-300 text-gray-700'
+                    }`}
                   >
                     💳 Financiamento
                   </button>
@@ -507,8 +511,9 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                   <button
                     type="button"
                     onClick={() => setSaleType('consortium')}
-                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${saleType === 'consortium' ? 'border-purple-600 bg-purple-50 text-purple-700' : 'border-gray-300 text-gray-700'
-                      }`}
+                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${
+                      saleType === 'consortium' ? 'border-purple-600 bg-purple-50 text-purple-700' : 'border-gray-300 text-gray-700'
+                    }`}
                   >
                     🏦 Consórcio
                   </button>
@@ -516,8 +521,9 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                   <button
                     type="button"
                     onClick={() => setSaleType('cash')}
-                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${saleType === 'cash' ? 'border-green-600 bg-green-50 text-green-700' : 'border-gray-300 text-gray-700'
-                      }`}
+                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${
+                      saleType === 'cash' ? 'border-green-600 bg-green-50 text-green-700' : 'border-gray-300 text-gray-700'
+                    }`}
                   >
                     💵 À Vista
                   </button>
@@ -525,8 +531,9 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                   <button
                     type="button"
                     onClick={() => setSaleType('card')}
-                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${saleType === 'card' ? 'border-orange-600 bg-orange-50 text-orange-700' : 'border-gray-300 text-gray-700'
-                      }`}
+                    className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${
+                      saleType === 'card' ? 'border-orange-600 bg-orange-50 text-orange-700' : 'border-gray-300 text-gray-700'
+                    }`}
                   >
                     💳 Cartão
                   </button>
@@ -639,11 +646,10 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                     placeholder="5.000,00"
                   />
                 </>
-              )}  {}
+              )}
 
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1.5">Observações</label>
-
                 <textarea
                   value={saleData.notes}
                   onChange={(e) => setSaleData({ ...saleData, notes: e.target.value })}
@@ -705,9 +711,34 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
 interface SaleDetailsModalProps {
   sale: any;
   onClose: () => void;
+  onUpdate: () => void;
 }
 
-const SaleDetailsModal = ({ sale, onClose }: SaleDetailsModalProps) => {
+const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) => {
+  const [isEditingStatus, setIsEditingStatus] = useState(false);
+  const [newStatus, setNewStatus] = useState(sale.status);
+  const [loading, setLoading] = useState(false);
+
+  const handleUpdateStatus = async () => {
+    if (newStatus === sale.status) {
+      setIsEditingStatus(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await api.put(`/sales/${sale.id}`, { status: newStatus });
+      toast.success('Status atualizado!');
+      sale.status = newStatus;
+      setIsEditingStatus(false);
+      onUpdate();
+    } catch (error: any) {
+      toast.error('Erro ao atualizar status');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ zIndex: 9999 }}>
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
@@ -721,22 +752,79 @@ const SaleDetailsModal = ({ sale, onClose }: SaleDetailsModalProps) => {
         </div>
 
         <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3" style={{ WebkitOverflowScrolling: 'touch' }}>
+          {/* STATUS COM EDIÇÃO */}
+          <div className="bg-gray-50 rounded-lg p-3 border">
+            <div className="flex justify-between items-start mb-2">
+              <p className="text-xs text-gray-600 font-semibold">Status da Venda</p>
+              {!isEditingStatus && (
+                <button
+                  onClick={() => setIsEditingStatus(true)}
+                  className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  ✏️ Editar
+                </button>
+              )}
+            </div>
+
+            {isEditingStatus ? (
+              <div className="space-y-2">
+                <select
+                  value={newStatus}
+                  onChange={(e) => setNewStatus(e.target.value)}
+                  className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="negotiation">🔵 Negociação</option>
+                  <option value="pending">🟡 Pendente</option>
+                  <option value="approved">🟢 Aprovado</option>
+                  <option value="financing_denied">🔴 Financiamento Negado</option>
+                  <option value="cancelled">⚫ Cancelado</option>
+                  <option value="delivered">🟣 Entregue</option>
+                </select>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setIsEditingStatus(false)}
+                    className="flex-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleUpdateStatus}
+                    disabled={loading}
+                    className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+                  >
+                    {loading ? 'Salvando...' : 'Salvar'}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold ${
+                statusConfig[sale.status as keyof typeof statusConfig]?.color || 'bg-gray-100 text-gray-800'
+              }`}>
+                {statusConfig[sale.status as keyof typeof statusConfig]?.label || sale.status}
+              </span>
+            )}
+          </div>
+
+          {/* TIPO DE VENDA */}
           {sale.sale_type && (
             <div className="bg-gray-50 rounded-lg p-2.5">
               <p className="text-xs text-gray-600 mb-1.5">Tipo de Venda</p>
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${sale.sale_type === 'consortium' ? 'bg-purple-100 text-purple-800' :
-                  sale.sale_type === 'cash' ? 'bg-green-100 text-green-800' :
-                    sale.sale_type === 'card' ? 'bg-orange-100 text-orange-800' :
-                      'bg-blue-100 text-blue-800'
-                }`}>
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                sale.sale_type === 'consortium' ? 'bg-purple-100 text-purple-800' :
+                sale.sale_type === 'cash' ? 'bg-green-100 text-green-800' :
+                sale.sale_type === 'card' ? 'bg-orange-100 text-orange-800' :
+                'bg-blue-100 text-blue-800'
+              }`}>
                 {sale.sale_type === 'consortium' ? '🏦 Consórcio' :
-                  sale.sale_type === 'cash' ? '💵 À Vista' :
-                    sale.sale_type === 'card' ? '💳 Cartão' :
-                      '💳 Financiamento'}
+                 sale.sale_type === 'cash' ? '💵 À Vista' :
+                 sale.sale_type === 'card' ? '💳 Cartão' :
+                 '💳 Financiamento'}
               </span>
             </div>
           )}
 
+          {/* VALORES */}
           <div className="grid grid-cols-2 gap-2">
             <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
               <p className="text-xs text-blue-600 mb-1">Valor Total</p>
@@ -767,6 +855,7 @@ const SaleDetailsModal = ({ sale, onClose }: SaleDetailsModalProps) => {
             )}
           </div>
 
+          {/* INFORMAÇÕES DO CLIENTE */}
           <div>
             <h3 className="text-sm font-semibold mb-2">Informações do Cliente</h3>
             <div className="grid grid-cols-2 gap-2">
@@ -795,6 +884,7 @@ const SaleDetailsModal = ({ sale, onClose }: SaleDetailsModalProps) => {
             </div>
           </div>
 
+          {/* ENDEREÇO */}
           {sale.street && (
             <div className="bg-gray-50 rounded-lg p-3">
               <h3 className="text-sm font-semibold mb-1.5">Endereço</h3>
@@ -808,6 +898,7 @@ const SaleDetailsModal = ({ sale, onClose }: SaleDetailsModalProps) => {
             </div>
           )}
 
+          {/* OBSERVAÇÕES */}
           {sale.notes && (
             <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
               <h3 className="text-sm font-semibold mb-1.5">Observações</h3>
