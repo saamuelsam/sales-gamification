@@ -15,8 +15,8 @@ export class UserController {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
 
-      // ✅ FORÇAR STRING
-      const dashboard = await userService.getDashboard(userId.toString());
+      // ✅ CONVERTER PARA STRING
+      const dashboard = await userService.getDashboard(String(userId));
       return ApiResponse.success(res, dashboard, 'Dashboard');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro ao buscar dashboard';
@@ -33,8 +33,8 @@ export class UserController {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
 
-      // ✅ FORÇAR STRING
-      const member = await userService.addTeamMember(parentId.toString(), req.body);
+      // ✅ CONVERTER PARA STRING
+      const member = await userService.addTeamMember(String(parentId), req.body);
       return ApiResponse.created(res, member, 'Membro adicionado à equipe');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro ao adicionar membro';
@@ -50,8 +50,8 @@ export class UserController {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
 
-      // ✅ FORÇAR STRING
-      const team = await userService.getDirectTeamMembers(userId.toString());
+      // ✅ CONVERTER PARA STRING
+      const team = await userService.getDirectTeamMembers(String(userId));
       return ApiResponse.success(res, team, 'Membros da equipe');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro ao buscar membros da equipe';
@@ -67,8 +67,8 @@ export class UserController {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
 
-      // ✅ FORÇAR STRING
-      const network = await userService.getFullNetwork(userId.toString());
+      // ✅ CONVERTER PARA STRING
+      const network = await userService.getFullNetwork(String(userId));
       return ApiResponse.success(res, network, 'Rede completa');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro ao buscar rede completa';
@@ -84,8 +84,8 @@ export class UserController {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
 
-      // ✅ FORÇAR STRING
-      const stats = await userService.getTeamStats(userId.toString());
+      // ✅ CONVERTER PARA STRING
+      const stats = await userService.getTeamStats(String(userId));
       return ApiResponse.success(res, stats, 'Estatísticas da equipe');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro ao buscar estatísticas';
@@ -101,8 +101,8 @@ export class UserController {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
 
-      // ✅ FORÇAR STRING
-      const hasTeam = await userService.hasTeam(userId.toString());
+      // ✅ CONVERTER PARA STRING
+      const hasTeam = await userService.hasTeam(String(userId));
       return ApiResponse.success(res, { has_team: hasTeam });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro ao verificar equipe';
@@ -129,7 +129,6 @@ export class UserController {
         return ApiResponse.error(res, 'ID é obrigatório', 400);
       }
 
-      // ✅ FORÇAR STRING
       const user = await userService.findById(id);
       return ApiResponse.success(res, user, 'Usuário encontrado');
     } catch (error: unknown) {
@@ -146,7 +145,6 @@ export class UserController {
         return ApiResponse.error(res, 'ID é obrigatório', 400);
       }
 
-      // ✅ FORÇAR STRING
       const user = await userService.update(id, req.body);
       return ApiResponse.success(res, user, 'Usuário atualizado');
     } catch (error: unknown) {
@@ -163,7 +161,6 @@ export class UserController {
         return ApiResponse.error(res, 'ID é obrigatório', 400);
       }
 
-      // ✅ FORÇAR STRING
       await userService.remove(id);
       return ApiResponse.success(res, null, 'Usuário removido');
     } catch (error: unknown) {

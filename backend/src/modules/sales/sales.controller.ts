@@ -264,8 +264,12 @@ export class SalesController {
       if (status !== undefined) updateData.status = status;
       if (notes !== undefined) updateData.notes = notes;
       if (product_delivered !== undefined) updateData.product_delivered = product_delivered;
-      if (delivery_date !== undefined) (updateData.delivery_date);
-      return ApiResponse.success(res, sale, 'Venda atualizada com sucesso');
+      if (delivery_date !== undefined) updateData.delivery_date = delivery_date; // ✅ CORRIGIDO
+      if (installation_proof_url !== undefined) updateData.installation_proof_url = installation_proof_url;
+
+      // ✅ CORRIGIDO - Chamar o service e retornar o resultado
+      const updatedSale = await salesService.updateSale(id, userId, updateData);
+      return ApiResponse.success(res, updatedSale, 'Venda atualizada com sucesso');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro ao atualizar venda';
       return ApiResponse.error(res, message, 500);
@@ -289,14 +293,14 @@ export class SalesController {
         [id, userId]
       );
 
-      const sale = saleResult.rows[0];
-      if (!sale) {
+      const saleData = saleResult.rows[0]; // ✅ RENOMEADO DE 'sale' para 'saleData'
+      if (!saleData) {
         await client.query('ROLLBACK');
         await client.release();
         return ApiResponse.error(res, 'Venda não encontrada', 404);
       }
 
-      const pointsToRemove = Math.floor(parseFloat(sale.kilowatts));
+      const pointsToRemove = Math.floor(parseFloat(saleData.kilowatts));
 
       await client.query(
         `DELETE FROM sales WHERE id = $1 AND user_id = $2`,
@@ -343,8 +347,6 @@ export class SalesController {
     }
   }
 
-  // ✅ MÉTODOS PARA ESTATÍSTICAS E GRÁFICOS
-
   async getStats(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
@@ -360,7 +362,6 @@ export class SalesController {
     }
   }
 
-  // ✅ NOVO MÉTODO - Dados de gráficos
   async getChartData(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
@@ -377,7 +378,6 @@ export class SalesController {
     }
   }
 
-  // Método legado mantido para compatibilidade
   async getSalesChartData(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
