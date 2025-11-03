@@ -1,7 +1,7 @@
 // backend/src/modules/users/user.controller.ts
 import { Request, Response } from 'express';
 import { UserService } from './user.service';
-import { ApiResponse } from '@utils/responses';
+import { ApiResponse } from '../../utils/responses'; 
 
 const userService = new UserService();
 
