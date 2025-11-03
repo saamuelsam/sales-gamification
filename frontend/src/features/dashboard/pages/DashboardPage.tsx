@@ -16,21 +16,13 @@ const LEVEL_THRESHOLDS = {
   'Executivo': 2000000,
 };
 
-// ✅ FORMATADORES
-const formatNumber = (value: number): string => {
-  if (value === null || value === undefined || isNaN(value)) return '0';
-  return Math.floor(value).toLocaleString('pt-BR');
+// ✅ FORMATADORES - CORRIGIDO
+const formatNumber = (value: any): string => {
+  const numValue = typeof value === 'string' ? parseInt(value) : Number(value);
+  if (isNaN(numValue) || numValue === null || numValue === undefined) return '0';
+  return Math.floor(numValue).toLocaleString('pt-BR');
 };
 
-const formatCurrency = (value: number): string => {
-  if (value === null || value === undefined || isNaN(value)) return 'R$ 0,00';
-  return value.toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-};
 
 // ✅ TOOLTIP CUSTOMIZADO
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -86,7 +78,6 @@ export function DashboardPage() {
   const { user } = useAuthStore();
   const location = useLocation();
   const [dashboardData, setDashboardData] = useState<any>(null);
-  const [chartData, setChartData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -107,26 +98,18 @@ export function DashboardPage() {
       setIsRefreshing(true);
 
       // ✅ BUSCAR DADOS
-      const [dashResponse, chartResponse] = await Promise.all([
-        api.get('/users/dashboard'),
-        api.get('/sales/chart-data')
-      ]);
+      const dashResponse = await api.get('/users/dashboard');
 
-      // ✅ CORRIGIR O ACESSO AOS DADOS
-      const dashData = dashResponse.data?.data || dashResponse.data || {};
-      const chartDataResult = chartResponse.data?.data || chartResponse.data || {};
+      // ✅ ACESSAR CORRETAMENTE: response.data.data
+      const dashData = dashResponse.data?.data || {};
 
-      console.log('📊 Dashboard Response:', dashData);
-      console.log('📈 Chart Response:', chartDataResult);
+      console.log('✅ Dashboard Data:', dashData);
+      console.log('💰 total_revenue RAW:', dashData.total_revenue, 'Type:', typeof dashData.total_revenue);
 
       setDashboardData(dashData);
-      setChartData(chartDataResult);
-
-      console.log('✅ Dashboard atualizado');
     } catch (error) {
       console.error('❌ Erro ao buscar dados:', error);
       setDashboardData({});
-      setChartData({});
     } finally {
       setLoading(false);
       setIsRefreshing(false);
@@ -135,23 +118,28 @@ export function DashboardPage() {
 
   if (loading && !dashboardData) return <Loading />;
 
-  // ✅ DADOS COM VALIDAÇÃO
-  const currentPoints = dashboardData?.total_points || 0;
+  // ✅ DADOS COM VALIDAÇÃO - CORRIGIDO
+  const totalRevenue = parseFloat(String(dashboardData?.total_revenue)) || 0;
+  const totalSales = parseInt(String(dashboardData?.total_sales)) || 0;
+  const totalKilowatts = parseFloat(String(dashboardData?.total_kilowatts)) || 0;
+  const currentPoints = parseInt(String(dashboardData?.total_points)) || 0;
   const currentLevel = dashboardData?.level || 'Consultor Elite';
-  const totalSales = dashboardData?.total_sales || 0;
-  const totalRevenue = dashboardData?.total_revenue || 0;
-  const totalKilowatts = dashboardData?.total_kilowatts || 0;
-  const teamMembers = dashboardData?.team_members || 0;
+  const teamMembers = parseInt(String(dashboardData?.team_members)) || 0;
 
-  console.log('🔍 Dados do Dashboard:', { totalSales, totalRevenue, totalKilowatts, currentPoints });
+  console.log('✅ Valores Parseados:', {
+    totalRevenue,
+    totalSales,
+    totalKilowatts,
+    currentPoints,
+  });
 
   const progressPercentage = calculateProgressPercentage(currentPoints, currentLevel);
   const pointsToNext = calculatePointsToNextLevel(currentPoints, currentLevel);
   const nextLevel = getNextLevel(currentLevel);
 
   // ✅ DADOS DOS GRÁFICOS
-  const barChartData = chartData?.monthly || [];
-  const pieChartData = chartData?.byStatus || [];
+  const barChartData = dashboardData?.charts?.monthly || [];
+  const pieChartData = dashboardData?.charts?.byStatus || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 lg:p-8 pb-20 sm:pb-6">
@@ -177,7 +165,8 @@ export function DashboardPage() {
           <StatsCard
             icon={<DollarSign className="w-6 h-6" />}
             title="Receita Total"
-            value={formatCurrency(totalRevenue)}
+            value={totalRevenue}
+            isCurrency={true}
           />
 
           <StatsCard
@@ -243,11 +232,10 @@ export function DashboardPage() {
               {/* Pontos Faltantes */}
               <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-4 border border-yellow-200">
                 <p className="text-sm text-gray-600">
-                  Faltam <strong className="text-yellow-700">{formatNumber(pointsToNext)}</strong> pontos para <strong className="text-yellow-700">{nextLevel}</strong>
+                  Faltam <strong className="text-yellow-700">{formatNumber(pointsToNext)}</strong> pontos para{' '}
+                  <strong className="text-yellow-700">{nextLevel}</strong>
                 </p>
-                <p className="text-xs text-gray-500 mt-2">
-                  ⚡ Complete mais vendas para acumular pontos!
-                </p>
+                <p className="text-xs text-gray-500 mt-2">⚡ Complete mais vendas para acumular pontos!</p>
               </div>
 
               {/* Estrutura de Níveis */}
@@ -351,7 +339,10 @@ export function DashboardPage() {
                     dataKey="count"
                   >
                     {pieChartData.map((_: any, index: number) => (
-                      <Cell key={`cell-${index}`} fill={['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'][index % 5]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'][index % 5]}
+                      />
                     ))}
                   </Pie>
                   <Tooltip content={<CustomTooltip />} />

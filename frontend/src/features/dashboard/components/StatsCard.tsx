@@ -8,18 +8,29 @@ interface StatsCardProps {
   isCurrency?: boolean;
 }
 
-export const StatsCard = ({ 
-  title, 
-  value, 
-  icon, 
+export const StatsCard = ({
+  title,
+  value,
+  icon,
   variant = 'blue',
-  isCurrency = false 
+  isCurrency = false,
 }: StatsCardProps) => {
+  // ✅ GARANTIR QUE value SEJA NÚMERO
+  let numValue = 0;
   
-  // Garantir que value seja número
-  const numValue = typeof value === 'string' ? parseFloat(value) : value;
-  
-  // Formatação correta
+  if (typeof value === 'string') {
+    numValue = parseFloat(value);
+  } else {
+    numValue = Number(value);
+  }
+
+  // ✅ VALIDAR SE É NÚMERO VÁLIDO
+  if (isNaN(numValue)) {
+    console.error('❌ StatsCard recebeu valor inválido:', value);
+    numValue = 0;
+  }
+
+  // ✅ FORMATAÇÃO CORRETA
   const displayValue = isCurrency
     ? numValue.toLocaleString('pt-BR', {
         style: 'currency',
@@ -38,24 +49,14 @@ export const StatsCard = ({
   };
 
   return (
-    <div className={`bg-gradient-to-br ${variants[variant]} rounded-xl sm:rounded-2xl shadow-lg p-4 text-white overflow-hidden`}>
-      <div className="flex items-center justify-between mb-3">
-        <div className="p-2 bg-white bg-opacity-20 rounded-lg shrink-0">
-          {icon}
-        </div>
+    <div
+      className={`bg-gradient-to-br ${variants[variant]} rounded-2xl shadow-lg p-6 text-white`}
+    >
+      <div className="flex items-center justify-between mb-4">
+        {icon}
       </div>
-      
-      <p className="text-xs sm:text-sm opacity-90 mb-1 font-medium uppercase tracking-wide">
-        {title}
-      </p>
-      
-      <p className={`font-bold break-words ${
-        isCurrency 
-          ? 'text-xl sm:text-2xl' 
-          : 'text-2xl sm:text-3xl'
-      }`}>
-        {displayValue}
-      </p>
+      <p className="text-white/80 text-sm font-medium">{title}</p>
+      <p className="text-3xl font-bold mt-2">{displayValue}</p>
     </div>
   );
 };

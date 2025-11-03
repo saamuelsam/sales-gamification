@@ -15,18 +15,19 @@ export class UserService {
     try {
       console.log('🔍 userId recebido:', userId);
 
-      // ✅ USAR POOL DIRETO - SEM client.connect()
+      // ✅ BUSCAR VENDAS
       const salesResult = await pool.query(
         `SELECT 
           COALESCE(COUNT(*), 0)::INT as total_sales,
           COALESCE(SUM(value), 0)::NUMERIC as total_revenue,
           COALESCE(SUM(kilowatts), 0)::NUMERIC as total_kilowatts
         FROM sales
-        WHERE user_id = $1 AND status IN ('approved', 'negotiation')`,
+        WHERE user_id = $1 AND status NOT IN ('cancelled', 'rejected')`,
         [userId]
       );
 
-      console.log('📊 Sales Result:', salesResult.rows[0]);
+      const salesData = salesResult.rows[0];
+      console.log('📊 Sales Data:', salesData);
 
       // ✅ PONTOS
       const pointsResult = await pool.query(
@@ -56,7 +57,7 @@ export class UserService {
       const statusResult = await pool.query(
         `SELECT status, COUNT(*) as count
          FROM sales
-         WHERE user_id = $1 AND status IN ('approved', 'negotiation')
+         WHERE user_id = $1 AND status NOT IN ('cancelled', 'rejected')
          GROUP BY status`,
         [userId]
       );
@@ -67,16 +68,16 @@ export class UserService {
           TO_CHAR(created_at, 'Mon') as month,
           COUNT(*) as count
          FROM sales
-         WHERE user_id = $1 AND status IN ('approved', 'negotiation')
+         WHERE user_id = $1 AND status NOT IN ('cancelled', 'rejected')
          GROUP BY TO_CHAR(created_at, 'Mon'), EXTRACT(MONTH FROM created_at)
          ORDER BY EXTRACT(MONTH FROM created_at)`,
         [userId]
       );
 
       return {
-        total_sales: parseInt(salesResult.rows[0]?.total_sales || '0'),
-        total_revenue: parseFloat(salesResult.rows[0]?.total_revenue || '0'),
-        total_kilowatts: parseFloat(salesResult.rows[0]?.total_kilowatts || '0'),
+        total_sales: parseInt(salesData?.total_sales || '0'),
+        total_revenue: parseFloat(salesData?.total_revenue || '0'),
+        total_kilowatts: parseFloat(salesData?.total_kilowatts || '0'),
         total_points: totalPoints,
         level: levelResult.rows[0]?.name || 'Consultor Elite',
         team_members: parseInt(teamResult.rows[0]?.team_members || '0'),
@@ -94,7 +95,6 @@ export class UserService {
     } catch (error) {
       console.error('❌ Erro no getDashboard:', error);
       
-      // ✅ RETORNAR DADOS ZERADOS EM CASO DE ERRO
       return {
         total_sales: 0,
         total_revenue: 0,
@@ -120,19 +120,16 @@ export class UserService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Verificar se parent existe
     const parentExists = await pool.query('SELECT id, path FROM users WHERE id = $1', [parentId]);
     if (parentExists.rows.length === 0) {
       throw new Error('Líder não encontrado');
     }
 
-    // Checar se e-mail já existe
     const emailExists = await pool.query('SELECT 1 FROM users WHERE email = $1', [email]);
     if (emailExists.rows.length > 0) {
       throw new Error('Email já está em uso');
     }
 
-    // Inserir novo membro
     const result = await pool.query(
       `INSERT INTO users (name, email, password, role, parent_id)
       VALUES ($1, $2, $3, $4, $5)
@@ -152,7 +149,7 @@ export class UserService {
         COALESCE(SUM(s.value), 0) as total_revenue
       FROM users u
       LEFT JOIN points p ON p.user_id = u.id
-      LEFT JOIN sales s ON s.user_id = u.id AND s.status = 'approved'
+      LEFT JOIN sales s ON s.user_id = u.id AND s.status NOT IN ('cancelled', 'rejected')
       WHERE u.parent_id = $1 AND u.is_active = true
       GROUP BY u.id, u.name, u.email, u.role, u.created_at
       ORDER BY total_points DESC`,
@@ -200,7 +197,7 @@ export class UserService {
         COALESCE(SUM(s.kilowatts), 0) as total_kw
       FROM sales s
       INNER JOIN users u ON u.id = s.user_id
-      WHERE u.parent_id = $1 AND s.status != 'cancelled'`,
+      WHERE u.parent_id = $1 AND s.status NOT IN ('cancelled', 'rejected')`,
       [userId]
     );
 
