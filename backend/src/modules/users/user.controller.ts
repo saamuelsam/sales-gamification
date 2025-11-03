@@ -1,5 +1,4 @@
 // backend/src/modules/users/user.controller.ts
-
 import { Request, Response } from 'express';
 import { UserService } from './user.service';
 import { ApiResponse } from '@utils/responses';
@@ -8,45 +7,34 @@ const userService = new UserService();
 
 export class UserController {
   // ========== MÉTODOS DE DASHBOARD ==========
-
   async getDashboard(req: Request, res: Response) {
     try {
-      const userId = req.user?.userId || (req as any).user?.id;
-      
+      const userId = req.user?.userId;
+
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
 
-      const dashboard = await userService.getDashboard(userId);
-      
-      // ✅ Garantir que é um objeto plano
-      const data = {
-        total_sales: parseInt(dashboard.total_sales) || 0,
-        total_revenue: parseFloat(dashboard.total_revenue) || 0,
-        total_kilowatts: parseFloat(dashboard.total_kilowatts) || 0,
-        total_points: parseFloat(dashboard.total_points) || 0,
-        level: dashboard.level || 'Consultor Elite',
-        team_members: parseInt(dashboard.team_members) || 0,
-      };
-      
-      return ApiResponse.success(res, data, 'Dashboard carregado');
+      // ✅ FORÇAR STRING
+      const dashboard = await userService.getDashboard(userId.toString());
+      return ApiResponse.success(res, dashboard, 'Dashboard');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro ao buscar dashboard';
-      console.error('Erro no getDashboard:', message);
       return ApiResponse.error(res, message, 500);
     }
   }
 
   // ========== MÉTODOS DE EQUIPE ==========
-
   async addMember(req: Request, res: Response) {
     try {
       const parentId = req.user?.userId;
+
       if (!parentId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
 
-      const member = await userService.addTeamMember(parentId, req.body);
+      // ✅ FORÇAR STRING
+      const member = await userService.addTeamMember(parentId.toString(), req.body);
       return ApiResponse.created(res, member, 'Membro adicionado à equipe');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro ao adicionar membro';
@@ -57,11 +45,13 @@ export class UserController {
   async getMyTeam(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
+
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
 
-      const team = await userService.getDirectTeamMembers(userId);
+      // ✅ FORÇAR STRING
+      const team = await userService.getDirectTeamMembers(userId.toString());
       return ApiResponse.success(res, team, 'Membros da equipe');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro ao buscar membros da equipe';
@@ -72,11 +62,13 @@ export class UserController {
   async getFullNetwork(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
+
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
 
-      const network = await userService.getFullNetwork(userId);
+      // ✅ FORÇAR STRING
+      const network = await userService.getFullNetwork(userId.toString());
       return ApiResponse.success(res, network, 'Rede completa');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro ao buscar rede completa';
@@ -87,11 +79,13 @@ export class UserController {
   async getTeamStats(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
+
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
 
-      const stats = await userService.getTeamStats(userId);
+      // ✅ FORÇAR STRING
+      const stats = await userService.getTeamStats(userId.toString());
       return ApiResponse.success(res, stats, 'Estatísticas da equipe');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro ao buscar estatísticas';
@@ -102,11 +96,13 @@ export class UserController {
   async checkHasTeam(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
+
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
 
-      const hasTeam = await userService.hasTeam(userId);
+      // ✅ FORÇAR STRING
+      const hasTeam = await userService.hasTeam(userId.toString());
       return ApiResponse.success(res, { has_team: hasTeam });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro ao verificar equipe';
@@ -115,7 +111,6 @@ export class UserController {
   }
 
   // ========== MÉTODOS GERAIS ==========
-
   async list(req: Request, res: Response) {
     try {
       const users = await userService.list();
@@ -129,10 +124,12 @@ export class UserController {
   async find(req: Request, res: Response) {
     try {
       const { id } = req.params;
+
       if (!id) {
         return ApiResponse.error(res, 'ID é obrigatório', 400);
       }
 
+      // ✅ FORÇAR STRING
       const user = await userService.findById(id);
       return ApiResponse.success(res, user, 'Usuário encontrado');
     } catch (error: unknown) {
@@ -144,10 +141,12 @@ export class UserController {
   async update(req: Request, res: Response) {
     try {
       const { id } = req.params;
+
       if (!id) {
         return ApiResponse.error(res, 'ID é obrigatório', 400);
       }
 
+      // ✅ FORÇAR STRING
       const user = await userService.update(id, req.body);
       return ApiResponse.success(res, user, 'Usuário atualizado');
     } catch (error: unknown) {
@@ -159,10 +158,12 @@ export class UserController {
   async remove(req: Request, res: Response) {
     try {
       const { id } = req.params;
+
       if (!id) {
         return ApiResponse.error(res, 'ID é obrigatório', 400);
       }
 
+      // ✅ FORÇAR STRING
       await userService.remove(id);
       return ApiResponse.success(res, null, 'Usuário removido');
     } catch (error: unknown) {
