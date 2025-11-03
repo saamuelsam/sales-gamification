@@ -1,7 +1,7 @@
 // backend/src/modules/commissions/commission.controller.ts
 import { Request, Response } from 'express';
 import { CommissionService } from './commission.service';
-import { ApiResponse } from '@utils/responses';
+import { ApiResponse } from '../../utils/responses';
 
 const commissionService = new CommissionService();
 

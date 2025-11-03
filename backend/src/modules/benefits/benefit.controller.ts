@@ -1,7 +1,7 @@
 // backend/src/modules/benefits/benefit.controller.ts
 import { Request, Response } from 'express';
 import { BenefitService } from './benefit.service';
-import { ApiResponse } from '@utils/responses';
+import { ApiResponse } from '../../utils/responses';
 
 const benefitService = new BenefitService();
 

@@ -1,7 +1,7 @@
 // backend/src/modules/points/points.controller.ts
 import { Request, Response } from 'express';
 import { PointsService } from './points.service';
-import { ApiResponse } from '@utils/responses';
+import { ApiResponse } from '../../utils/responses';
 
 const pointsService = new PointsService();
 
