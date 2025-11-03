@@ -1,6 +1,7 @@
 // frontend/src/features/dashboard/hooks/useDashboard.ts
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/services/api';
+import api from '@/services/api';
+
 
 export interface DashboardPersonal {
   sales: {
