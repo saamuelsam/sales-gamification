@@ -13,6 +13,7 @@ interface LevelConfig {
     advancement_bonus: number;
     advancement_reward: string;
     monthly_sales_goal: number | null;
+    bonus_goal: number | null;
     max_lines: number;
 }
 
@@ -36,8 +37,19 @@ export const GoalsPage = () => {
 
     useEffect(() => {
         fetchGoals();
-        const interval = setInterval(fetchGoals, 60000);
-        return () => clearInterval(interval);
+
+        // Atualizar APENAS quando o usuário volta para a aba
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                fetchGoals();
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
     }, []);
 
     const fetchGoals = async () => {
@@ -46,6 +58,11 @@ export const GoalsPage = () => {
             setError(null);
             const { data } = await api.get('/levels/goals/my-goals');
             setGoals(data.data);
+
+            // Se mudou de nível, mostrar notificação
+            if (data.data.currentLevel.name !== goals?.currentLevel.name) {
+                toast.success(`🆙 Parabéns! Você passou para ${data.data.currentLevel.name}!`);
+            }
         } catch (error: any) {
             const message = error.response?.data?.message || 'Erro ao carregar metas';
             setError(message);
@@ -95,6 +112,23 @@ export const GoalsPage = () => {
 
     const currentLevelColor = levelColors[goals.currentLevel.name] || 'from-blue-500 to-blue-600';
 
+    // Função para obter requisitos específicos por nível
+    const getRequirements = (levelName: string) => {
+        if (levelName === 'Master') {
+            return { contracts: 2, salesGoal: null };
+        } else if (levelName === 'Consultor Sênior') {
+            return { contracts: 4, salesGoal: 500000 };
+        } else if (levelName === 'Consultor Prime') {
+            return { contracts: 5, salesGoal: 500000 };
+        } else if (levelName === 'Executivo') {
+            return { contracts: null, salesGoal: 400000 };
+        }
+        return { contracts: null, salesGoal: null };
+    };
+
+    const currentRequirements = getRequirements(goals.currentLevel.name);
+    const nextRequirements = goals.nextLevel ? getRequirements(goals.nextLevel.name) : null;
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 pb-20 sm:pb-6">
             <div className="max-w-6xl mx-auto space-y-6">
@@ -122,7 +156,9 @@ export const GoalsPage = () => {
                         <div className="space-y-2">
                             <p className="text-sm opacity-90">Comissão Pessoal</p>
                             <p className="text-4xl font-bold">{goals.currentLevel.personal_commission}%</p>
-                            <p className="text-sm opacity-90">+ {goals.currentLevel.insurance_commission}% (Seguro)</p>
+                            <p className="text-sm opacity-90">+ {goals.currentLevel.insurance_commission}% (Seguro)
+                                {goals.currentLevel.network_commission && ` + ${goals.currentLevel.network_commission}% (Rede)`}
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -132,7 +168,7 @@ export const GoalsPage = () => {
                     {goals.currentLevel.advancement_bonus > 0 && (
                         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
                             <Award className="w-8 h-8 text-yellow-500 mb-3" />
-                            <h3 className="font-semibold text-gray-900 mb-2">Bônus</h3>
+                            <h3 className="font-semibold text-gray-900 mb-2">Bônus de Avanço</h3>
                             <p className="text-2xl font-bold text-green-600">
                                 R$ {goals.currentLevel.advancement_bonus.toLocaleString('pt-BR')}
                             </p>
@@ -157,31 +193,48 @@ export const GoalsPage = () => {
                 </div>
 
                 {/* Requisitos Atuais */}
-{goals.requirements && (goals.requirements.minContracts > 0 || goals.requirements.minSalesValue > 0) && (
-  <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-      <Target className="w-5 h-5" />
-      Requisitos do Seu Nível
-    </h3>
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {goals.requirements.minContracts > 0 && (
-        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-sm text-blue-600 mb-1">Linhas Máximas</p>
-          <p className="text-2xl font-bold text-blue-700">{goals.requirements.minContracts}</p>
-        </div>
-      )}
-      {goals.requirements.minSalesValue > 0 && (
-        <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-          <p className="text-sm text-green-600 mb-1">Meta de Vendas/Mês</p>
-          <p className="text-2xl font-bold text-green-700">
-            R$ {(goals.requirements.minSalesValue / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}k
-          </p>
-        </div>
-      )}
-    </div>
-  </div>
-)}
+                {(currentRequirements.contracts || currentRequirements.salesGoal || goals.currentLevel.bonus_goal) && (
+                    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+                        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                            <Target className="w-5 h-5" />
+                            Requisitos do Seu Nível
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {currentRequirements.contracts && (
+                                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                                    <p className="text-sm text-purple-600 mb-1">Contratos/Mês</p>
+                                    <p className="text-2xl font-bold text-purple-700">{currentRequirements.contracts}</p>
+                                </div>
+                            )}
 
+                            {currentRequirements.salesGoal && (
+                                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                                    <p className="text-sm text-green-600 mb-1">Meta de Vendas/Mês</p>
+                                    <p className="text-2xl font-bold text-green-700">
+                                        R$ {(currentRequirements.salesGoal / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}k
+                                    </p>
+                                </div>
+                            )}
+
+                            {goals.currentLevel.name === 'Executivo' && goals.currentLevel.bonus_goal && (
+                                <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
+                                    <p className="text-sm text-amber-600 mb-1">Meta Bônus (R$ 5.000)</p>
+                                    <p className="text-2xl font-bold text-amber-700">
+                                        R$ {(goals.currentLevel.bonus_goal / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}k
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Nota sobre equipe */}
+                            {['Consultor Sênior', 'Consultor Prime', 'Executivo'].includes(goals.currentLevel.name) && (
+                                <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200 col-span-full">
+                                    <p className="text-xs font-semibold text-indigo-600 mb-1">📊 IMPORTANTE</p>
+                                    <p className="text-sm text-indigo-700">Pontos e vendas incluem sua equipe geral</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 {/* Próximo Nível */}
                 {goals.nextLevel && (
@@ -191,6 +244,7 @@ export const GoalsPage = () => {
                         </h3>
 
                         <div className="space-y-4">
+                            {/* Progresso */}
                             <div>
                                 <div className="flex justify-between items-center mb-2">
                                     <span className="text-sm font-medium text-gray-700">Progresso</span>
@@ -207,6 +261,7 @@ export const GoalsPage = () => {
                                 </p>
                             </div>
 
+                            {/* Benefícios do próximo nível */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                                 <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
                                     <p className="text-sm text-purple-600 mb-1">Nova Comissão Pessoal</p>
@@ -221,6 +276,35 @@ export const GoalsPage = () => {
                                     </div>
                                 )}
                             </div>
+
+                            {/* Requisitos do próximo nível */}
+                            {nextRequirements && (nextRequirements.contracts || nextRequirements.salesGoal) && (
+                                <div className="mt-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
+                                    <p className="text-sm font-bold text-orange-700 mb-3">📋 Requisitos para {goals.nextLevel.name}</p>
+                                    <div className="space-y-2">
+                                        {nextRequirements.contracts && (
+                                            <p className="text-sm text-orange-600">
+                                                • Contratos/Mês: <strong>{nextRequirements.contracts}</strong>
+                                            </p>
+                                        )}
+                                        {nextRequirements.salesGoal && (
+                                            <p className="text-sm text-orange-600">
+                                                • Meta de Vendas: <strong>R$ {(nextRequirements.salesGoal / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}k</strong>
+                                            </p>
+                                        )}
+                                        {goals.nextLevel.advancement_bonus > 0 && (
+                                            <p className="text-sm text-orange-600">
+                                                • Bônus de Avanço: <strong>R$ {goals.nextLevel.advancement_bonus.toLocaleString('pt-BR')}</strong>
+                                            </p>
+                                        )}
+                                        {goals.nextLevel.advancement_reward && (
+                                            <p className="text-sm text-orange-600">
+                                                • Prêmio: <strong>{goals.nextLevel.advancement_reward}</strong>
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

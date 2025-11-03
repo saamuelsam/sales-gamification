@@ -1,5 +1,6 @@
 import { pool } from '../../config/database';
 import { rewardsService } from '../rewards/rewards.service';
+import { LevelService } from '../levels/level.service';
 
 interface CreateSaleData {
   client_id?: string;
@@ -17,6 +18,8 @@ interface CreateSaleData {
 }
 
 export class SalesService {
+  private levelService = new LevelService();
+
   async createSale(userId: string, data: CreateSaleData) {
     const client = await pool.connect();
 
@@ -33,7 +36,7 @@ export class SalesService {
       // 1. Inserir venda
       const saleResult = await client.query(
         `INSERT INTO sales (
-          user_id, client_id, client_name, value, kilowatts, 
+          user_id, client_id, client_name, value, kilowatts,
           insurance_value, sale_type, consortium_value, consortium_term,
           consortium_monthly_payment, consortium_admin_fee,
           template_type, notes, status
@@ -70,11 +73,11 @@ export class SalesService {
       const newAccumulatedPoints = currentPoints + points;
 
       // 4. Registrar pontos com descrição específica por tipo
-      const description = 
-        data.sale_type === 'consortium' ? `Consórcio: ${data.client_name}` : 
-        data.sale_type === 'cash' ? `Venda à vista: ${data.client_name}` :
-        data.sale_type === 'card' ? `Venda no cartão: ${data.client_name}` :
-        `Venda: ${data.client_name}`;
+      const description =
+        data.sale_type === 'consortium' ? `Consórcio: ${data.client_name}` :
+          data.sale_type === 'cash' ? `Venda à vista: ${data.client_name}` :
+            data.sale_type === 'card' ? `Venda no cartão: ${data.client_name}` :
+              `Venda: ${data.client_name}`;
 
       await client.query(
         `INSERT INTO points (user_id, sale_id, points, accumulated_points, description)
@@ -87,10 +90,10 @@ export class SalesService {
       const userRole = userResult.rows[0].role;
 
       const levelResult = await client.query(
-        `SELECT personal_commission, insurance_commission 
-         FROM levels 
+        `SELECT personal_commission, insurance_commission
+         FROM levels
          WHERE phase_number = (
-           CASE 
+           CASE
              WHEN $1 = 'consultant' THEN 1
              WHEN $1 = 'master_consultant' THEN 2
              WHEN $1 = 'senior_consultant' THEN 3
@@ -131,7 +134,7 @@ export class SalesService {
       // 7. Registrar comissão
       await client.query(
         `INSERT INTO commissions (
-          user_id, sale_id, sale_commission, 
+          user_id, sale_id, sale_commission,
           insurance_commission, total_commission
         ) VALUES ($1, $2, $3, $4, $5)`,
         [userId, sale.id, saleCommission, insuranceCommissionValue, totalCommission]
@@ -177,11 +180,11 @@ export class SalesService {
     const firstDayOfMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
 
     const monthlyKwResult = await client.query(
-      `SELECT 
+      `SELECT
          COALESCE(SUM(kilowatts), 0) as total_kw,
          COUNT(*) as total_sales
-       FROM sales 
-       WHERE user_id = $1 
+       FROM sales
+       WHERE user_id = $1
          AND created_at >= $2
          AND status NOT IN ('cancelled', 'financing_denied')`,
       [userId, firstDayOfMonth]
@@ -192,8 +195,8 @@ export class SalesService {
 
     // Verificar se já ganhou prêmio este mês
     const existingRewardResult = await client.query(
-      `SELECT id FROM rewards 
-       WHERE user_id = $1 
+      `SELECT id FROM rewards
+       WHERE user_id = $1
          AND reward_type = 'cesta_basica'
          AND created_at >= $2`,
       [userId, firstDayOfMonth]
@@ -213,8 +216,8 @@ export class SalesService {
       // Criar notificação
       await client.query(
         `INSERT INTO notifications (user_id, type, title, message, metadata)
-         VALUES ($1, 'reward', '🎁 Parabéns! Você ganhou uma Cesta Básica!', 
-                 'Você atingiu 400 kW este mês e conquistou uma Cesta Básica! Entre em contato com a administração para retirar seu prêmio.', 
+         VALUES ($1, 'reward', '🎁 Parabéns! Você ganhou uma Cesta Básica!',
+                 'Você atingiu 400 kW este mês e conquistou uma Cesta Básica! Entre em contato com a administração para retirar seu prêmio.',
                  $2)`,
         [userId, JSON.stringify({ reward_type: 'cesta_basica', kw_total: totalKw })]
       );
@@ -222,17 +225,17 @@ export class SalesService {
   }
 
   // Listar vendas do usuário com filtros
-  async listUserSales(userId: string, filters?: { 
-    status?: string; 
-    sale_type?: string; 
-    limit?: number 
+  async listUserSales(userId: string, filters?: {
+    status?: string;
+    sale_type?: string;
+    limit?: number
   }) {
     const status = filters?.status;
     const saleType = filters?.sale_type;
     const limit = filters?.limit || 50;
 
     let query = `
-      SELECT 
+      SELECT
         s.*,
         p.points,
         p.accumulated_points,
@@ -265,7 +268,7 @@ export class SalesService {
   // Buscar venda por ID
   async getSaleById(saleId: string, userId: string) {
     const result = await pool.query(
-      `SELECT 
+      `SELECT
         s.*,
         p.points,
         p.accumulated_points,
@@ -289,7 +292,7 @@ export class SalesService {
   // Buscar venda com dados do cliente
   async getSaleWithClient(saleId: string, userId: string) {
     const result = await pool.query(
-      `SELECT 
+      `SELECT
         s.*,
         c.id as client_id,
         c.name as client_full_name,
@@ -341,7 +344,7 @@ export class SalesService {
     installation_proof_url?: string;
   }) {
     const validStatuses = ['negotiation', 'pending', 'approved', 'financing_denied', 'cancelled', 'delivered'];
-    
+
     if (data.status && !validStatuses.includes(data.status)) {
       throw new Error('Status inválido');
     }
@@ -409,7 +412,7 @@ export class SalesService {
     if (data.status !== undefined) {
       updates.push(`status = $${paramIndex++}`);
       values.push(data.status);
-      
+
       if (data.status === 'approved') {
         updates.push(`closed_at = NOW()`);
       }
@@ -439,8 +442,8 @@ export class SalesService {
     values.push(saleId, userId);
 
     const query = `
-      UPDATE sales 
-      SET ${updates.join(', ')} 
+      UPDATE sales
+      SET ${updates.join(', ')}
       WHERE id = $${paramIndex++} AND user_id = $${paramIndex}
       RETURNING *
     `;
@@ -450,40 +453,44 @@ export class SalesService {
   }
 
   // Deletar venda
-  async deleteSale(saleId: string, userId: string) {
-    const client = await pool.connect();
+  async deleteSale(saleId: string): Promise<void> {
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
 
-    try {
-      await client.query('BEGIN');
+    // 1️⃣ Deletar pontos associados à venda
+    await client.query(
+      'DELETE FROM points WHERE sale_id = $1',
+      [saleId]
+    );
 
-      const checkResult = await client.query(
-        'SELECT id FROM sales WHERE id = $1 AND user_id = $2',
-        [saleId, userId]
-      );
+    // 2️⃣ Deletar a venda
+    const result = await client.query(
+      'DELETE FROM sales WHERE id = $1 RETURNING id',
+      [saleId]
+    );
 
-      if (checkResult.rows.length === 0) {
-        throw new Error('Venda não encontrada');
-      }
+    await client.query('COMMIT');
 
-      await client.query('DELETE FROM points WHERE sale_id = $1', [saleId]);
-      await client.query('DELETE FROM commissions WHERE sale_id = $1', [saleId]);
-      await client.query('DELETE FROM sales WHERE id = $1', [saleId]);
-
-      await client.query('COMMIT');
-
-      return { success: true, message: 'Venda excluída com sucesso' };
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
+    if (result.rows.length === 0) {
+      throw new Error('Venda não encontrada');
     }
+
+    console.log('✅ Venda e pontos deletados:', saleId);
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Erro ao deletar venda:', error);
+    throw error;
+  } finally {
+    client.release();
   }
+}
 
   // Estatísticas de vendas
   async getSalesStats(userId: string) {
     const result = await pool.query(
-      `SELECT 
+      `SELECT
         COUNT(*)::int as total_sales,
         COALESCE(SUM(value), 0) as total_value,
         COALESCE(SUM(kilowatts), 0) as total_kilowatts,
@@ -497,7 +504,7 @@ export class SalesService {
         COUNT(CASE WHEN sale_type = 'cash' THEN 1 END)::int as cash_sales,
         COUNT(CASE WHEN sale_type = 'card' THEN 1 END)::int as card_sales,
         COALESCE(SUM(CASE WHEN sale_type = 'consortium' THEN consortium_value END), 0) as total_consortium_value
-      FROM sales 
+      FROM sales
       WHERE user_id = $1`,
       [userId]
     );
@@ -505,15 +512,88 @@ export class SalesService {
     return result.rows[0];
   }
 
-  // Dados para gráficos
+  // ✅ NOVO MÉTODO - Dados para gráficos
+  async getChartData(userId: string) {
+    const client = await pool.connect();
+
+    try {
+      // Vendas por mês (últimos 12 meses)
+      const monthlyResult = await client.query(
+        `SELECT
+          DATE_TRUNC('month', created_at)::date as month,
+          COUNT(*) as count
+        FROM sales
+        WHERE user_id = $1
+          AND created_at >= NOW() - INTERVAL '12 months'
+          AND status != 'cancelled'
+        GROUP BY DATE_TRUNC('month', created_at)
+        ORDER BY month ASC`,
+        [userId]
+      );
+
+      // Vendas por status
+      const statusResult = await client.query(
+        `SELECT
+          status as name,
+          COUNT(*) as count
+        FROM sales
+        WHERE user_id = $1
+        GROUP BY status`,
+        [userId]
+      );
+
+      const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+      // Formatar dados mensais
+      const monthlyData = monthlyResult.rows.map((row: any) => {
+        const date = new Date(row.month);
+        const monthIndex = date.getMonth();
+
+        return {
+          month: monthNames[monthIndex],
+          count: parseInt(row.count),
+        };
+      });
+
+      // Formatar dados de status
+      const statusData = statusResult.rows.map((row: any) => ({
+        name: this.formatStatusName(row.name),
+        count: parseInt(row.count),
+      }));
+
+      return {
+        monthly: monthlyData,
+        byStatus: statusData,
+      };
+    } finally {
+      client.release();
+    }
+  }
+
+  // ✅ NOVO MÉTODO - Formatar nomes de status em [translate:Português]
+  private formatStatusName(status: string): string {
+    const statusMap: { [key: string]: string } = {
+      'pending': 'Pendente',
+      'completed': 'Concluída',
+      'cancelled': 'Cancelada',
+      'negotiation': 'Negociação',
+      'financing_denied': 'Financiamento Negado',
+      'approved': 'Aprovada',
+      'delivered': 'Entregue',
+    };
+
+    return statusMap[status] || status;
+  }
+
+  // Dados para gráficos (mantido para compatibilidade)
   async getSalesChartData(userId: string) {
     const monthlyResult = await pool.query(
-      `SELECT 
+      `SELECT
         TO_CHAR(created_at, 'Mon') as month,
         COUNT(*)::int as count,
         COALESCE(SUM(value), 0) as total
-      FROM sales 
-      WHERE user_id = $1 
+      FROM sales
+      WHERE user_id = $1
         AND created_at >= NOW() - INTERVAL '6 months'
       GROUP BY TO_CHAR(created_at, 'Mon'), EXTRACT(MONTH FROM created_at)
       ORDER BY EXTRACT(MONTH FROM created_at)`,
@@ -521,21 +601,21 @@ export class SalesService {
     );
 
     const statusResult = await pool.query(
-      `SELECT 
+      `SELECT
         status,
         COUNT(*)::int as count
-      FROM sales 
+      FROM sales
       WHERE user_id = $1
       GROUP BY status`,
       [userId]
     );
 
     const typeResult = await pool.query(
-      `SELECT 
+      `SELECT
         sale_type,
         COUNT(*)::int as count,
         COALESCE(SUM(value), 0) as total_value
-      FROM sales 
+      FROM sales
       WHERE user_id = $1
       GROUP BY sale_type`,
       [userId]

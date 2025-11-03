@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { SalesService } from './sales.service';
 import { ApiResponse } from '../../utils/responses';
+import { pool } from '../../config/database';
 
 const salesService = new SalesService();
 
@@ -8,7 +9,6 @@ export class SalesController {
   async createSale(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
-
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
@@ -19,7 +19,7 @@ export class SalesController {
         value,
         kilowatts,
         insurance_value,
-        sale_type, // 'direct' | 'consortium' | 'cash' | 'card'
+        sale_type,
         consortium_value,
         consortium_term,
         consortium_monthly_payment,
@@ -28,24 +28,20 @@ export class SalesController {
         notes,
       } = req.body;
 
-      // Validações básicas obrigatórias
       if (!client_name || value == null || kilowatts == null) {
         return ApiResponse.error(res, 'Nome do cliente, valor e kilowatts são obrigatórios', 400);
       }
 
-      // Validação específica para consórcio
       if (sale_type === 'consortium') {
         if (!consortium_value || !consortium_term) {
           return ApiResponse.error(res, 'Consórcio requer consortium_value e consortium_term obrigatórios', 400);
         }
       }
 
-      // ✅ VALIDAR TIPO DE VENDA PERMITIDO (ATUALIZADO COM 'card')
       if (sale_type && !['direct', 'consortium', 'cash', 'card'].includes(sale_type)) {
         return ApiResponse.error(res, "Tipo de venda inválido. Use: direct, consortium, cash ou card", 400);
       }
 
-      // Conversão de tipos numéricos
       const numericValue = Number(value);
       const numericKw = Number(kilowatts);
       const numericInsurance = insurance_value != null ? Number(insurance_value) : undefined;
@@ -54,7 +50,6 @@ export class SalesController {
       const numericConsortiumMonthly = consortium_monthly_payment != null ? Number(consortium_monthly_payment) : undefined;
       const numericConsortiumFee = consortium_admin_fee != null ? Number(consortium_admin_fee) : undefined;
 
-      // Validações numéricas
       if (!Number.isFinite(numericValue) || !Number.isFinite(numericKw)) {
         return ApiResponse.error(res, 'Valor e kilowatts devem ser numéricos', 400);
       }
@@ -63,7 +58,6 @@ export class SalesController {
         return ApiResponse.error(res, 'Valor e kilowatts devem ser maiores que zero', 400);
       }
 
-      // Validações específicas para campos de consórcio
       if (sale_type === 'consortium') {
         if (!Number.isFinite(numericConsortiumValue!) || numericConsortiumValue! <= 0) {
           return ApiResponse.error(res, 'Valor do consórcio deve ser numérico e maior que zero', 400);
@@ -78,14 +72,13 @@ export class SalesController {
         }
       }
 
-      // Chamar service com todos os campos
       const result = await salesService.createSale(userId, {
         client_id,
         client_name,
         value: numericValue,
         kilowatts: numericKw,
         insurance_value: numericInsurance,
-        sale_type: sale_type as 'direct' | 'consortium' | 'cash' | 'card' | undefined, // ✅ Type casting
+        sale_type: sale_type as 'direct' | 'consortium' | 'cash' | 'card' | undefined,
         consortium_value: numericConsortiumValue,
         consortium_term: numericConsortiumTerm,
         consortium_monthly_payment: numericConsortiumMonthly,
@@ -104,20 +97,17 @@ export class SalesController {
   async listSales(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
-
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
 
       const { status, sale_type, limit } = req.query;
-
       const parsedLimit = typeof limit === 'string' ? Number(limit) : undefined;
 
       if (parsedLimit !== undefined && (!Number.isFinite(parsedLimit) || parsedLimit <= 0)) {
         return ApiResponse.error(res, 'Parâmetro limit inválido', 400);
       }
 
-      // ✅ Validar sale_type se fornecido (ATUALIZADO COM 'card')
       if (sale_type && typeof sale_type === 'string') {
         if (!['direct', 'consortium', 'cash', 'card'].includes(sale_type)) {
           return ApiResponse.error(res, 'Tipo de venda inválido', 400);
@@ -140,7 +130,6 @@ export class SalesController {
   async getSale(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
-
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
@@ -162,7 +151,6 @@ export class SalesController {
   async getSaleWithClient(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
-
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
@@ -184,7 +172,6 @@ export class SalesController {
   async updateStatus(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
-
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
@@ -211,7 +198,6 @@ export class SalesController {
   async updateSale(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
-
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
@@ -239,19 +225,16 @@ export class SalesController {
         installation_proof_url,
       } = req.body;
 
-      // ✅ Validar sale_type se fornecido (ATUALIZADO COM 'card')
       if (sale_type && !['direct', 'consortium', 'cash', 'card'].includes(sale_type)) {
         return ApiResponse.error(res, "Tipo de venda inválido. Use: direct, consortium, cash ou card", 400);
       }
 
-      // Validação específica para atualização para consórcio
       if (sale_type === 'consortium') {
         if (consortium_value == null || consortium_term == null) {
           return ApiResponse.error(res, 'Ao mudar para consórcio, informe consortium_value e consortium_term', 400);
         }
       }
 
-      // Preparar objeto de atualização com conversões numéricas
       const updateData: any = {};
 
       if (client_name !== undefined) updateData.client_name = client_name;
@@ -281,10 +264,7 @@ export class SalesController {
       if (status !== undefined) updateData.status = status;
       if (notes !== undefined) updateData.notes = notes;
       if (product_delivered !== undefined) updateData.product_delivered = product_delivered;
-      if (delivery_date !== undefined) updateData.delivery_date = delivery_date;
-      if (installation_proof_url !== undefined) updateData.installation_proof_url = installation_proof_url;
-
-      const sale = await salesService.updateSale(id, userId, updateData);
+      if (delivery_date !== undefined) (updateData.delivery_date);
       return ApiResponse.success(res, sale, 'Venda atualizada com sucesso');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro ao atualizar venda';
@@ -293,32 +273,81 @@ export class SalesController {
   }
 
   async deleteSale(req: Request, res: Response) {
+    const client = await pool.connect();
     try {
+      const { id } = req.params;
       const userId = req.user?.userId;
 
-      if (!userId) {
-        return ApiResponse.error(res, 'Usuário não autenticado', 401);
+      if (!id || !userId) {
+        return ApiResponse.error(res, 'ID e usuário são obrigatórios', 400);
       }
 
-      const { id } = req.params;
+      await client.query('BEGIN');
 
-      if (!id) {
-        return ApiResponse.error(res, 'ID da venda obrigatório', 400);
+      const saleResult = await client.query(
+        `SELECT kilowatts FROM sales WHERE id = $1 AND user_id = $2`,
+        [id, userId]
+      );
+
+      const sale = saleResult.rows[0];
+      if (!sale) {
+        await client.query('ROLLBACK');
+        await client.release();
+        return ApiResponse.error(res, 'Venda não encontrada', 404);
       }
 
-      await salesService.deleteSale(id, userId);
-      return ApiResponse.success(res, null, 'Venda excluída com sucesso');
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Erro ao excluir venda';
-      return ApiResponse.error(res, message, 500);
+      const pointsToRemove = Math.floor(parseFloat(sale.kilowatts));
+
+      await client.query(
+        `DELETE FROM sales WHERE id = $1 AND user_id = $2`,
+        [id, userId]
+      );
+
+      await client.query(
+        `UPDATE users 
+         SET points = GREATEST(0, points - $1) 
+         WHERE id = $2`,
+        [pointsToRemove, userId]
+      );
+
+      console.log(`🗑️ Venda ${id} deletada! ${pointsToRemove} pontos removidos`);
+
+      const userPointsResult = await client.query(
+        `SELECT points FROM users WHERE id = $1`,
+        [userId]
+      );
+
+      const newTotalPoints = parseFloat(userPointsResult.rows[0].points);
+
+      if (newTotalPoints < 1000) {
+        await client.query(
+          `UPDATE users SET role = 'consultant' WHERE id = $1`,
+          [userId]
+        );
+        console.log(`⬇️ Usuário ${userId} voltou para Consultant (${newTotalPoints} pontos)`);
+      }
+
+      await client.query('COMMIT');
+
+      return ApiResponse.success(res, { 
+        id, 
+        pointsRemoved: pointsToRemove,
+        newPoints: newTotalPoints 
+      }, 'Venda deletada com sucesso');
+    } catch (error: any) {
+      await client.query('ROLLBACK');
+      console.error('Erro ao deletar venda:', error);
+      return ApiResponse.error(res, error.message || 'Erro ao deletar venda', 500);
+    } finally {
+      await client.release();
     }
   }
 
-  // MÉTODOS PARA ESTATÍSTICAS E GRÁFICOS
+  // ✅ MÉTODOS PARA ESTATÍSTICAS E GRÁFICOS
+
   async getStats(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
-
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }
@@ -331,10 +360,27 @@ export class SalesController {
     }
   }
 
+  // ✅ NOVO MÉTODO - Dados de gráficos
   async getChartData(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
 
+      if (!userId) {
+        return ApiResponse.error(res, 'Usuário não autenticado', 401);
+      }
+
+      const chartData = await salesService.getChartData(userId);
+      return ApiResponse.success(res, chartData, 'Dados de gráficos carregados');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erro ao buscar dados de gráficos';
+      return ApiResponse.error(res, message, 500);
+    }
+  }
+
+  // Método legado mantido para compatibilidade
+  async getSalesChartData(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
       if (!userId) {
         return ApiResponse.error(res, 'Usuário não autenticado', 401);
       }

@@ -7,6 +7,8 @@ import dashboardRoutes from './modules/dashboard/dashboard.routes';
 import clientsRoutes from './modules/clients/clients.routes';
 import notificationsRoutes from './modules/notifications/notifications.routes';
 import levelRoutes from './modules/levels/level.routes';
+import userRoutes from './modules/users/user.routes';
+
 
 dotenv.config();
 
@@ -50,6 +52,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/clients', clientsRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/levels', levelRoutes);
+app.use('/api/users', userRoutes);
 
 // Rota 404
 app.use((req, res) => {

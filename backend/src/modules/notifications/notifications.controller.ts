@@ -12,7 +12,6 @@ export class NotificationsController {
 
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = parseInt(req.query.offset as string) || 0;
-
       const notifications = await notificationsService.list(userId, limit, offset);
       return ApiResponse.success(res, notifications, 'Notificações carregadas');
     } catch (error: any) {
@@ -38,7 +37,6 @@ export class NotificationsController {
     try {
       const userId = req.user?.userId;
       const { id } = req.params;
-
       if (!userId) {
         return ApiResponse.error(res, 'Não autenticado', 401);
       }
@@ -68,7 +66,6 @@ export class NotificationsController {
     try {
       const userId = req.user?.userId;
       const { id } = req.params;
-
       if (!userId) {
         return ApiResponse.error(res, 'Não autenticado', 401);
       }

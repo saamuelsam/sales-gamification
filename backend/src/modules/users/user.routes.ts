@@ -1,24 +1,25 @@
-// backend/src/modules/users/user.routes.ts
 import { Router } from 'express';
-import { UserController } from './user.controller';
+import { userController } from './user.controller';
 import { verifyTokenMiddleware } from '../../middleware/auth.middleware';
 
 const router = Router();
-const controller = new UserController();
 
 router.use(verifyTokenMiddleware);
 
-// Rotas de equipe
-router.post('/team/add', controller.addMember.bind(controller));
-router.get('/team/members', controller.getMyTeam.bind(controller));
-router.get('/team/network', controller.getFullNetwork.bind(controller));
-router.get('/team/stats', controller.getTeamStats.bind(controller));
-router.get('/team/check', controller.checkHasTeam.bind(controller));
+// ✅ Dashboard
+router.get('/dashboard', (req, res) => userController.getDashboard(req, res));
 
-// Rotas gerais (se realmente necessárias)
-router.get('/', controller.list.bind(controller));
-router.get('/:id', controller.find.bind(controller));
-router.put('/:id', controller.update.bind(controller));
-router.delete('/:id', controller.remove.bind(controller));
+// Equipe
+router.post('/team/add', (req, res) => userController.addMember(req, res));
+router.get('/team/members', (req, res) => userController.getMyTeam(req, res));
+router.get('/team/network', (req, res) => userController.getFullNetwork(req, res));
+router.get('/team/stats', (req, res) => userController.getTeamStats(req, res));
+router.get('/team/check', (req, res) => userController.checkHasTeam(req, res));
+
+// CRUD
+router.get('/', (req, res) => userController.list(req, res));
+router.get('/:id', (req, res) => userController.find(req, res));
+router.put('/:id', (req, res) => userController.update(req, res));
+router.delete('/:id', (req, res) => userController.remove(req, res));
 
 export default router;
