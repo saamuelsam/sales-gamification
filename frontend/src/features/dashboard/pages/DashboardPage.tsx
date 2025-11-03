@@ -165,8 +165,7 @@ export function DashboardPage() {
           <button
             onClick={fetchDashboardData}
             disabled={isRefreshing}
-            className={`p-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-all ${isRefreshing ? 'animate-spin' : ''
-              }`}
+            className={`p-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-all ${isRefreshing ? 'animate-spin' : ''}`}
             title="Atualizar dados"
           >
             <RefreshCw className="w-5 h-5 text-gray-600" />
@@ -176,11 +175,10 @@ export function DashboardPage() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <StatsCard
-  icon={<DollarSign className="w-6 h-6" />}
-  title="Receita Total"
-  value={totalRevenue}
-  isCurrency={true}
-/>
+            icon={<DollarSign className="w-6 h-6" />}
+            title="Receita Total"
+            value={formatCurrency(totalRevenue)}
+          />
 
           <StatsCard
             icon={<TrendingUp className="w-6 h-6" />}
@@ -306,7 +304,7 @@ export function DashboardPage() {
 
               <Link
                 to="/sales"
-                className="w-full bg-white text-blue-600 font-semibold py-2 px-4 rounded-lg hover:bg-blue-50 transition-colors text-center"
+                className="w-full bg-white text-blue-600 font-semibold py-2 px-4 rounded-lg hover:bg-blue-50 transition-colors text-center block"
               >
                 Registrar Venda
               </Link>
@@ -352,7 +350,7 @@ export function DashboardPage() {
                     fill="#8884d8"
                     dataKey="count"
                   >
-                    {pieChartData.map((entry: any, index: number) => (
+                    {pieChartData.map((_: any, index: number) => (
                       <Cell key={`cell-${index}`} fill={['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'][index % 5]} />
                     ))}
                   </Pie>

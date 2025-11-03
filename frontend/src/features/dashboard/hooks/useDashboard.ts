@@ -1,6 +1,6 @@
 // frontend/src/features/dashboard/hooks/useDashboard.ts
 import { useQuery } from '@tanstack/react-query';
-import api  from '@/services/api';
+import api from '@/services/api'; // ✅ CORRIGIDO: import default ao invés de { api }
 
 export interface DashboardPersonal {
   sales: {
@@ -23,6 +23,7 @@ export interface DashboardPersonal {
     phase_number: number;
     points_required: number;
   } | null;
+  team_members?: number;
 }
 
 export const useDashboard = () => {
@@ -50,6 +51,7 @@ export const useDashboard = () => {
             pending_commissions: Number(data?.commissions?.pending_commissions) || 0,
             paid_commissions: Number(data?.commissions?.paid_commissions) || 0,
           },
+          team_members: Number(data?.team_members) || 0,
         };
       } catch (error) {
         console.error('Erro ao buscar dashboard:', error);
