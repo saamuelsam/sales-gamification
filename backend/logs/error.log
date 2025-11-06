@@ -1,0 +1,596 @@
+{"level":"error","message":"❌ Erro ao verificar avanço de nível: relation \"user_levels\" does not exist","timestamp":"2025-11-03 22:12:17"}
+{"level":"error","message":"❌ Erro ao criar venda: current transaction is aborted, commands ignored until end of transaction block","timestamp":"2025-11-03 22:12:17"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:27"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:27"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:27"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:27"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:00:27"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:00:27"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:00:35"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:00:35"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:35"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:35"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:35"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:35"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:00:36"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:00:36"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:36"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:36"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:36"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:36"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:00:37"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:00:37"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:37"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:37"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:37"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:37"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:44"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:44"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:00:44"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:00:44"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:44"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:00:44"}
+{"level":"error","message":"❌ Erro ao verificar avanço de nível: operator does not exist: integer = uuid","timestamp":"2025-11-04 01:00:56"}
+{"level":"error","message":"❌ Erro ao criar venda: current transaction is aborted, commands ignored until end of transaction block","timestamp":"2025-11-04 01:00:56"}
+{"level":"error","message":"❌ Erro ao verificar avanço de nível: operator does not exist: integer = uuid","timestamp":"2025-11-04 01:01:00"}
+{"level":"error","message":"❌ Erro ao criar venda: current transaction is aborted, commands ignored until end of transaction block","timestamp":"2025-11-04 01:01:00"}
+{"level":"error","message":"❌ Erro ao verificar avanço de nível: operator does not exist: integer = uuid","timestamp":"2025-11-04 01:01:26"}
+{"level":"error","message":"❌ Erro ao criar venda: current transaction is aborted, commands ignored until end of transaction block","timestamp":"2025-11-04 01:01:26"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:03:59"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:03:59"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:03:59"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:03:59"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:03:59"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:03:59"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:04:07"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:04:07"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:07"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:07"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:07"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:07"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:04:07"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:04:07"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:07"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:07"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:07"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:07"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:04:08"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:04:08"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:08"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:08"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:08"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:08"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:04:09"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:04:09"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:09"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:09"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:09"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:09"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:04:09"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:04:09"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:09"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:09"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:09"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:09"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:04:10"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:04:10"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:10"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:10"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:10"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:10"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:04:18"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:18"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:18"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:04:18"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:18"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:18"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:04:20"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:04:20"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:20"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:20"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:20"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:20"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:38"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:38"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:04:38"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:38"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:04:38"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:04:38"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:13"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:13"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:13"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:13"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:13"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:13"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:23"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:23"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:23"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:23"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:23"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:23"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:24"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:24"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:24"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:24"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:24"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:24"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:25"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:26"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:42"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:15:42"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:42"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:42"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:42"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:15:42"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:19:22"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:19:22"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:19:22"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:19:22"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:19:22"}
+{"level":"error","message":"❌ Erro ao buscar comissões de rede: column nc.member_id does not exist","timestamp":"2025-11-04 01:19:22"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:19:22"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:19:22"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:19:22"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:19:22"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: column \"amount\" does not exist","timestamp":"2025-11-04 01:19:22"}
+{"level":"error","message":"❌ Erro ao calcular resumo completo: column \"amount\" does not exist","timestamp":"2025-11-04 01:19:22"}
+{"level":"error","message":"❌ Erro ao buscar comissões para 6febce56-0a6e-4b4d-8dce-36e2ab382ca2: column nc.member_id does not exist","timestamp":"2025-11-04 01:20:02"}
+{"level":"error","message":"❌ Erro em getNetworkCommissions: column nc.member_id does not exist","timestamp":"2025-11-04 01:20:02"}
+{"level":"error","message":"Stack: error: column nc.member_id does not exist\n    at /usr/src/app/node_modules/pg-pool/index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async CommissionService.getNetworkCommissions (/usr/src/app/src/modules/commissions/commission.service.ts:106:22)\n    at async CommissionController.getNetworkCommissions (/usr/src/app/src/modules/commissions/commission.controller.ts:20:27)","timestamp":"2025-11-04 01:20:02"}
+{"level":"error","message":"❌ Erro ao buscar resumo para 6febce56-0a6e-4b4d-8dce-36e2ab382ca2: column \"amount\" does not exist","timestamp":"2025-11-04 01:20:02"}
+{"level":"error","message":"❌ Erro ao calcular resumo para 6febce56-0a6e-4b4d-8dce-36e2ab382ca2: column \"amount\" does not exist","timestamp":"2025-11-04 01:20:02"}
+{"level":"error","message":"❌ Erro ao buscar comissões para 6febce56-0a6e-4b4d-8dce-36e2ab382ca2: column nc.member_id does not exist","timestamp":"2025-11-04 01:20:02"}
+{"level":"error","message":"❌ Erro em getNetworkCommissions: column nc.member_id does not exist","timestamp":"2025-11-04 01:20:02"}
+{"level":"error","message":"Stack: error: column nc.member_id does not exist\n    at /usr/src/app/node_modules/pg-pool/index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async CommissionService.getNetworkCommissions (/usr/src/app/src/modules/commissions/commission.service.ts:106:22)\n    at async CommissionController.getNetworkCommissions (/usr/src/app/src/modules/commissions/commission.controller.ts:20:27)","timestamp":"2025-11-04 01:20:02"}
+{"level":"error","message":"❌ Erro ao buscar resumo para 6febce56-0a6e-4b4d-8dce-36e2ab382ca2: column \"amount\" does not exist","timestamp":"2025-11-04 01:20:02"}
+{"level":"error","message":"❌ Erro ao calcular resumo para 6febce56-0a6e-4b4d-8dce-36e2ab382ca2: column \"amount\" does not exist","timestamp":"2025-11-04 01:20:02"}
+{"level":"error","message":"❌ Erro ao buscar comissões para 6febce56-0a6e-4b4d-8dce-36e2ab382ca2: column nc.member_id does not exist","timestamp":"2025-11-04 01:37:22"}
+{"level":"error","message":"❌ Erro em getNetworkCommissions: column nc.member_id does not exist","timestamp":"2025-11-04 01:37:22"}
+{"level":"error","message":"Stack: error: column nc.member_id does not exist\n    at /usr/src/app/node_modules/pg-pool/index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async CommissionService.getNetworkCommissions (/usr/src/app/src/modules/commissions/commission.service.ts:106:22)\n    at async CommissionController.getNetworkCommissions (/usr/src/app/src/modules/commissions/commission.controller.ts:20:27)","timestamp":"2025-11-04 01:37:22"}
+{"level":"error","message":"❌ Erro ao buscar resumo para 6febce56-0a6e-4b4d-8dce-36e2ab382ca2: column \"amount\" does not exist","timestamp":"2025-11-04 01:37:22"}
+{"level":"error","message":"❌ Erro ao calcular resumo para 6febce56-0a6e-4b4d-8dce-36e2ab382ca2: column \"amount\" does not exist","timestamp":"2025-11-04 01:37:22"}
+{"level":"error","message":"❌ Erro ao buscar comissões para 6febce56-0a6e-4b4d-8dce-36e2ab382ca2: column nc.member_id does not exist","timestamp":"2025-11-04 01:37:22"}
+{"level":"error","message":"❌ Erro em getNetworkCommissions: column nc.member_id does not exist","timestamp":"2025-11-04 01:37:22"}
+{"level":"error","message":"Stack: error: column nc.member_id does not exist\n    at /usr/src/app/node_modules/pg-pool/index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async CommissionService.getNetworkCommissions (/usr/src/app/src/modules/commissions/commission.service.ts:106:22)\n    at async CommissionController.getNetworkCommissions (/usr/src/app/src/modules/commissions/commission.controller.ts:20:27)","timestamp":"2025-11-04 01:37:22"}
+{"level":"error","message":"❌ Erro ao buscar resumo para 6febce56-0a6e-4b4d-8dce-36e2ab382ca2: column \"amount\" does not exist","timestamp":"2025-11-04 01:37:22"}
+{"level":"error","message":"❌ Erro ao calcular resumo para 6febce56-0a6e-4b4d-8dce-36e2ab382ca2: column \"amount\" does not exist","timestamp":"2025-11-04 01:37:22"}
+{"level":"error","message":"❌ [COMISSÃO] ERRO: null value in column \"sale_id\" of relation \"network_commissions\" violates not-null constraint","timestamp":"2025-11-04 01:59:03"}
+{"level":"error","message":"❌ [COMISSÃO] Stack: error: null value in column \"sale_id\" of relation \"network_commissions\" violates not-null constraint\n    at /usr/src/app/node_modules/pg-pool/index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async CommissionService.processNetworkCommission (/usr/src/app/src/modules/commissions/commission.service.ts:57:28)\n    at async SalesService.createSale (/usr/src/app/src/modules/sales/sales.service.ts:158:9)\n    at async SalesController.createSale (/usr/src/app/src/modules/sales/sales.controller.ts:77:22)","timestamp":"2025-11-04 01:59:04"}
+{"level":"error","message":"❌ [COMISSÃO] ERRO: null value in column \"sale_id\" of relation \"network_commissions\" violates not-null constraint","timestamp":"2025-11-04 02:04:42"}
+{"level":"error","message":"❌ [COMISSÃO] Stack: error: null value in column \"sale_id\" of relation \"network_commissions\" violates not-null constraint\n    at /usr/src/app/node_modules/pg-pool/index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async CommissionService.processNetworkCommission (/usr/src/app/src/modules/commissions/commission.service.ts:57:28)\n    at async SalesService.createSale (/usr/src/app/src/modules/sales/sales.service.ts:158:9)\n    at async SalesController.createSale (/usr/src/app/src/modules/sales/sales.controller.ts:77:22)","timestamp":"2025-11-04 02:04:42"}
+{"level":"error","message":"❌ [COMISSÃO] ERRO: null value in column \"line_level\" of relation \"network_commissions\" violates not-null constraint","timestamp":"2025-11-04 02:09:40"}
+{"level":"error","message":"❌ [COMISSÃO] Stack: error: null value in column \"line_level\" of relation \"network_commissions\" violates not-null constraint\n    at /usr/src/app/node_modules/pg-pool/index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async CommissionService.processNetworkCommission (/usr/src/app/src/modules/commissions/commission.service.ts:50:26)\n    at async SalesService.createSale (/usr/src/app/src/modules/sales/sales.service.ts:158:9)\n    at async SalesController.createSale (/usr/src/app/src/modules/sales/sales.controller.ts:77:22)","timestamp":"2025-11-04 02:09:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:05:01"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:05:01"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:05:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:05:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:06:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:06:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:07:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:07:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:08:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:08:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:09:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:09:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:10:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:10:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:11:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:11:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:12:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:12:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:31:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:31:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:31:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:31:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:32:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:32:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:32:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:32:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:33:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:33:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:33:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:33:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:34:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:34:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:34:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:34:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:35:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:35:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:35:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:35:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:36:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:36:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:36:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:36:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:37:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:37:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:37:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:37:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:38:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:38:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:38:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:38:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:39:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:39:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:39:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:39:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:40:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:40:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:40:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:40:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:41:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:41:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:41:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:41:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:42:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:42:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:42:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:42:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:43:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:43:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:43:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:43:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:44:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:44:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:44:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:44:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:45:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:45:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:45:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:45:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:46:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:46:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:46:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:46:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:47:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:47:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:47:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:47:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:48:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:48:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:48:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:48:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:49:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:49:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:49:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:49:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:50:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:50:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:50:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 17:50:40"}
+{"level":"error","message":"❌ [ADD_MEMBER] LEADER NÃO EXISTE! ID: f764b02f-9b65-4385-9d98-b0b7d70f121d","timestamp":"2025-11-04 18:04:51"}
+{"level":"error","message":"❌ [ADD_MEMBER] ERRO: Líder com ID f764b02f-9b65-4385-9d98-b0b7d70f121d não encontrado no banco de dados","timestamp":"2025-11-04 18:04:51"}
+{"level":"error","message":"❌ [ADD_MEMBER] Stack: Error: Líder com ID f764b02f-9b65-4385-9d98-b0b7d70f121d não encontrado no banco de dados\n    at TeamService.addTeamMember (/usr/src/app/src/modules/team/team.service.ts:55:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async TeamController.addTeamMember (/usr/src/app/src/modules/team/team.controller.ts:34:22)","timestamp":"2025-11-04 18:04:51"}
+{"level":"error","message":"❌ Erro ao criar venda: Cannot read properties of undefined (reading 'personal_commission')","timestamp":"2025-11-04 18:08:57"}
+{"level":"error","message":"❌ Erro ao criar venda: Cannot read properties of undefined (reading 'personal_commission')","timestamp":"2025-11-04 18:09:35"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 18:21:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 18:21:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 18:21:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 18:21:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 18:22:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 18:22:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 18:22:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 18:22:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 18:23:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 18:23:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 18:23:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 18:23:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 18:24:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 18:24:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-04 18:24:40"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-04 18:24:40"}
+{"level":"error","message":"❌ Erro ao criar venda: column \"points\" does not exist","timestamp":"2025-11-04 18:40:16"}
+{"level":"error","message":"❌ Erro ao criar venda: column \"points\" does not exist","timestamp":"2025-11-04 18:50:32"}
+{"level":"error","message":"❌ Erro ao criar venda: column \"points\" does not exist","timestamp":"2025-11-05 01:32:57"}
+{"level":"error","message":"❌ Erro ao criar venda: column \"points\" does not exist","timestamp":"2025-11-05 04:26:40"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 04:37:37"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 04:37:37"}
+{"level":"error","message":"❌ Erro ao criar venda: column \"userid\" of relation \"sales\" does not exist","timestamp":"2025-11-05 18:05:09"}
+{"level":"error","message":"❌ Erro ao criar venda: column \"userid\" of relation \"sales\" does not exist","timestamp":"2025-11-05 18:08:05"}
+{"level":"error","message":"❌ Erro ao criar venda: column \"points_earned\" of relation \"points\" does not exist","timestamp":"2025-11-05 18:13:03"}
+{"level":"error","message":"❌ Erro ao criar venda: column \"points_earned\" of relation \"points\" does not exist","timestamp":"2025-11-05 18:15:15"}
+{"level":"error","message":"❌ Erro ao criar venda: column \"level\" does not exist","timestamp":"2025-11-05 18:20:52"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:33:41"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:33:41"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:34:11"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:34:11"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:34:41"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:34:41"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:36:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:36:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:37:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:37:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:38:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:38:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:39:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:39:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:40:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:40:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:41:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:41:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:42:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:42:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:43:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:43:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:44:12"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:44:12"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:44:41"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:44:41"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:45:11"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:45:11"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:46:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:46:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:47:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:47:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:48:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:48:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:49:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:49:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:50:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:50:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:51:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:51:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:52:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:52:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:53:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:53:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:54:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:54:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:55:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:55:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:56:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:56:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:57:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:57:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:58:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:58:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:59:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 21:59:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:00:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:00:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:01:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:01:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:02:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:02:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:03:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:03:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:04:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:04:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:05:23"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:05:23"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:05:25"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:05:25"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:05:25"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:05:25"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:05:32"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:05:32"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:05:32"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:05:32"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:06:02"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:06:02"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:06:32"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:06:32"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:07:02"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:07:02"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:07:32"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:07:32"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:08:02"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:08:02"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:08:32"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:08:32"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:09:02"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:09:02"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:09:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:09:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:10:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:10:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:11:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:11:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:12:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:12:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:13:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:13:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:14:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:14:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:15:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:15:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:16:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:16:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:17:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:17:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:18:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:18:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:19:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:19:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:20:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:20:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:21:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:21:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:22:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:22:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:23:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:23:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:24:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:24:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:25:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:25:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:26:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:26:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:27:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:27:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:28:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:28:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:29:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:29:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:30:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:30:33"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:31:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:31:33"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:32:23"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-05 22:32:23"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:42:08"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:42:08"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:42:08"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:42:08"}
+{"0":"r","1":"e","10":"u","11":"s","12":"e","13":"r","14":"_","15":"h","16":"i","17":"e","18":"r","19":"a","2":"l","20":"r","21":"c","22":"h","23":"y","24":"\"","25":" ","26":"d","27":"o","28":"e","29":"s","3":"a","30":" ","31":"n","32":"o","33":"t","34":" ","35":"e","36":"x","37":"i","38":"s","39":"t","4":"t","5":"i","6":"o","7":"n","8":" ","9":"\"","level":"error","message":"Erro ao buscar estatísticas:","timestamp":"2025-11-06 00:42:12"}
+{"0":"r","1":"e","10":"u","11":"s","12":"e","13":"r","14":"_","15":"h","16":"i","17":"e","18":"r","19":"a","2":"l","20":"r","21":"c","22":"h","23":"y","24":"\"","25":" ","26":"d","27":"o","28":"e","29":"s","3":"a","30":" ","31":"n","32":"o","33":"t","34":" ","35":"e","36":"x","37":"i","38":"s","39":"t","4":"t","5":"i","6":"o","7":"n","8":" ","9":"\"","level":"error","message":"Erro ao buscar membros:","timestamp":"2025-11-06 00:42:12"}
+{"level":"error","message":"❌ Erro ao buscar: relation \"network_commissions\" does not exist","timestamp":"2025-11-06 00:42:12"}
+{"0":"r","1":"e","10":"u","11":"s","12":"e","13":"r","14":"_","15":"h","16":"i","17":"e","18":"r","19":"a","2":"l","20":"r","21":"c","22":"h","23":"y","24":"\"","25":" ","26":"d","27":"o","28":"e","29":"s","3":"a","30":" ","31":"n","32":"o","33":"t","34":" ","35":"e","36":"x","37":"i","38":"s","39":"t","4":"t","5":"i","6":"o","7":"n","8":" ","9":"\"","level":"error","message":"Erro ao buscar estatísticas:","timestamp":"2025-11-06 00:42:12"}
+{"level":"error","message":"❌ Erro ao buscar: relation \"network_commissions\" does not exist","timestamp":"2025-11-06 00:42:12"}
+{"0":"r","1":"e","10":"u","11":"s","12":"e","13":"r","14":"_","15":"h","16":"i","17":"e","18":"r","19":"a","2":"l","20":"r","21":"c","22":"h","23":"y","24":"\"","25":" ","26":"d","27":"o","28":"e","29":"s","3":"a","30":" ","31":"n","32":"o","33":"t","34":" ","35":"e","36":"x","37":"i","38":"s","39":"t","4":"t","5":"i","6":"o","7":"n","8":" ","9":"\"","level":"error","message":"Erro ao buscar membros:","timestamp":"2025-11-06 00:42:12"}
+{"level":"error","message":"❌ Erro ao buscar resumo: relation \"network_commissions\" does not exist","timestamp":"2025-11-06 00:42:12"}
+{"level":"error","message":"❌ Erro ao buscar resumo: relation \"network_commissions\" does not exist","timestamp":"2025-11-06 00:42:12"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:42:39"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:42:39"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:43:09"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:43:09"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:43:39"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:43:39"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:44:09"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:44:09"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:44:39"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:44:39"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:45:09"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:45:09"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:45:39"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:45:39"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:46:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:46:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:47:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:47:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:48:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:48:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:49:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:49:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:50:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:50:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:51:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:51:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:52:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:52:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:53:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:53:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:54:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:54:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:55:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:55:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:56:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:56:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:57:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:57:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:58:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:58:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:59:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 00:59:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:00:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:00:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:01:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:01:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:02:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:02:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:03:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:03:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:04:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:04:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:05:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:05:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:06:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:06:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:07:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:07:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:08:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:08:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:09:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:09:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:10:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:10:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:11:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:11:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:12:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:12:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:13:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:13:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:14:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:14:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:15:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:15:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:16:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:16:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:17:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:17:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:18:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:18:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:19:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:19:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:20:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:20:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:21:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:21:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:22:28"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:22:28"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:23:25"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:23:25"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:23:39"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:23:39"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:24:09"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:24:09"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:25:15"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:25:15"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:26:16"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:26:16"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:27:17"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:27:17"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:28:18"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:28:18"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:29:19"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:29:19"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:31:18"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:31:18"}
+{"level":"error","message":"❌ Erro ao listar notificações: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:31:21"}
+{"level":"error","message":"❌ Erro ao contar notificações não lidas: relation \"notifications\" does not exist","timestamp":"2025-11-06 01:31:21"}

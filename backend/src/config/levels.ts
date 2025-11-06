@@ -1,110 +1,91 @@
 export const LEVELS_CONFIG = {
   elite: {
     name: 'Elite',
-    minPoints: 0,
+    minPoints: 0, // Começa como Elite
+    nextLevelPoints: 1000, // Avança com 1000 pontos
+    minContracts: 1,
+    minKilowattsReward: 400, // APENAS para recompensa mensal de Cesta
     commission: {
       personal: 5,
       insurance: 5,
       network: 0,
     },
-    benefits: {
-      bonus: 0,
-      helpValue: 0,
-    },
-    requirements: {
-      minContracts: 1,
-      minSalesValue: 0,
-    },
-    reward: 'Iniciar jornada de vendas',
+    monthlyReward: 'Cesta Básica', // Se atingir 400 kW + 1 contrato no mês
+    bonus: null, // Sem bônus de avanço
   },
   master: {
     name: 'Master',
-    minPoints: 1000,
+    nextLevelPoints: 10000,
+    minContracts: 2,
     commission: {
       personal: 7,
       insurance: 5,
       network: 2,
     },
-    benefits: {
-      bonus: 1000,
-      helpValue: 0,
-      reward: 'Jantar com acompanhante',
+    monthlyReward: null,
+    bonus: {
+      amount: 1000,
+      description: 'R$ 1.000,00 + Jantar com acompanhante',
     },
-    requirements: {
-      minContracts: 2,
-      minSalesValue: 0,
-    },
-    nextGoal: 10000,
   },
   seniorConsultant: {
     name: 'Consultor Sênior',
-    minPoints: 10000,
+    nextLevelPoints: 500000, // Pontos da equipe
+    minContracts: 4,
+    minTeamPoints: 500000,
+    minSalesValue: 500000,
     commission: {
       personal: 10,
       insurance: 5,
       network: 1.5,
     },
+    monthlyReward: null,
+    bonus: {
+      amount: 1500,
+      description: 'R$ 1.500,00 + Jantar Ilamare com acompanhante',
+    },
     benefits: {
-      bonus: 1500,
-      helpValue: 1518,
-      reward: 'Jantar com acompanhante',
+      helpCost: 1518,
     },
-    requirements: {
-      minContracts: 4,
-      minSalesValue: 0,
-      includeTeamPoints: true,
-    },
-    nextGoal: 500000,
   },
   consultorPrime: {
     name: 'Consultor Prime',
-    minPoints: 500000,
+    nextLevelPoints: 800000, // Pontos da equipe
+    minContracts: 5,
+    minTeamPoints: 800000,
+    minSalesValue: 800000,
     commission: {
       personal: 12,
       insurance: 5,
       network: 1.5,
     },
+    monthlyReward: null,
+    bonus: {
+      amount: 1500,
+      description: 'R$ 1.500,00 + Jantar Ilamare com acompanhante',
+    },
     benefits: {
-      bonus: 1500,
-      helpValue: 1518,
-      reward: 'Jantar no Ilamare com acompanhante',
+      helpCost: 1518,
     },
-    requirements: {
-      minContracts: 5,
-      minSalesValue: 800000,
-      includeTeamPoints: true,
-    },
-    nextGoal: 500000,
   },
   executive: {
     name: 'Executivo',
-    minPoints: 2000000,
+    nextLevelPoints: 2000000, // Pontos da equipe
+    minContracts: 10,
+    minTeamPoints: 2000000,
+    minSalesValue: 400000,
     commission: {
       personal: 15,
       insurance: 5,
       network: 1,
     },
+    monthlyReward: null,
+    bonus: {
+      amount: 10000,
+      description: 'R$ 10.000,00 + Fim de semana em Balneário Camboriú',
+    },
     benefits: {
-      bonus: 10000,
-      helpValue: 5000,
-      reward: 'Fim de semana em Balneário Camboriú',
+      helpCost: 5000,
     },
-    requirements: {
-      minContracts: 0,
-      minSalesValue: 400000,
-      includeTeamPoints: true,
-    },
-    nextGoal: null,
   },
-};
-
-export const getLevelByPoints = (points: number) => {
-  const levels = Object.values(LEVELS_CONFIG).sort((a, b) => b.minPoints - a.minPoints);
-  return levels.find(level => points >= level.minPoints) || LEVELS_CONFIG.elite;
-};
-
-export const getNextLevel = (currentLevel: string) => {
-  const order = ['elite', 'master', 'seniorConsultant', 'consultorPrime', 'executive'];
-  const currentIndex = order.indexOf(currentLevel);
-  return currentIndex < order.length - 1 ? LEVELS_CONFIG[order[currentIndex + 1] as keyof typeof LEVELS_CONFIG] : null;
 };

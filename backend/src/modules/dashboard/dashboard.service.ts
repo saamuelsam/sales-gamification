@@ -1,8 +1,20 @@
 // backend/src/modules/dashboard/dashboard.service.ts
+
 import { pool } from '../../config/database';
 import { logger } from '../../utils/logger';
 
 export class DashboardService {
+  /**
+   * Calcula o nível baseado na quantidade de pontos
+   */
+  private calculateLevelFromPoints(points: number): { levelId: number; levelName: string; phaseName: string } {
+    if (points >= 2_000_000) return { levelId: 5, levelName: 'Executive', phaseName: 'executive' };
+    if (points >= 800_000) return { levelId: 4, levelName: 'Consultor Prime', phaseName: 'consultorPrime' };
+    if (points >= 10_000) return { levelId: 3, levelName: 'Consultor Sênior', phaseName: 'seniorConsultant' };
+    if (points >= 1_000) return { levelId: 2, levelName: 'Master', phaseName: 'master' };
+    return { levelId: 1, levelName: 'Consultor Elite', phaseName: 'elite' };
+  }
+
   // Dashboard pessoal do usuário
   async getPersonalDashboard(userId: string) {
     const client = await pool.connect();
@@ -29,56 +41,48 @@ export class DashboardService {
         [userId]
       );
 
-      const totalPoints = parseFloat(pointsResult.rows[0]?.total_points || 0);
+      // 🔧 Normaliza pontos (corrige escala se vier em kW)
+      const totalPointsRaw = parseFloat(pointsResult.rows[0]?.total_points || 0);
+      const totalPoints =
+        totalPointsRaw < 10 ? Math.round(totalPointsRaw * 1000) : Math.round(totalPointsRaw);
 
-      // Comissões
-      const commissionsResult = await client.query(
-        `SELECT 
-          COALESCE(SUM(total_commission), 0) as total_commissions,
-          COALESCE(SUM(CASE WHEN paid = false THEN total_commission ELSE 0 END), 0) as pending_commissions,
-          COALESCE(SUM(CASE WHEN paid = true THEN total_commission ELSE 0 END), 0) as paid_commissions
-        FROM commissions
-        WHERE user_id = $1`,
-        [userId]
-      );
+      console.log('[DEBUG] totalPointsRaw:', totalPointsRaw, '→ ajustado:', totalPoints);
 
-      // Nível atual baseado nos PONTOS (não no role)
-      const levelResult = await client.query(
-        `SELECT * FROM levels 
-         WHERE points_required <= $1
-         ORDER BY points_required DESC
-         LIMIT 1`,
-        [totalPoints]
-      );
+      // ⚙️ Calcula o nível baseado nos pontos ajustados
+      const levelInfo = this.calculateLevelFromPoints(totalPoints);
 
-      const currentLevel = levelResult.rows[0] || null;
+      // ⚡ Atualiza o nível do usuário no banco de dados
+      await client.query('UPDATE users SET level = $1 WHERE id = $2', [
+        levelInfo.phaseName,
+        userId,
+      ]);
 
-      // Atualizar role do usuário se necessário
-      if (currentLevel) {
-        const newRole = this.getRoleFromPhase(currentLevel.phase_number);
-        await client.query(
-          'UPDATE users SET role = $1 WHERE id = $2 AND role != $1',
-          [newRole, userId]
-        );
-      }
+      // 💬 Mapeia nomes amigáveis pro front
+      const levelDisplayMap: Record<string, string> = {
+        elite: 'Consultor Elite',
+        master: 'Master',
+        seniorConsultant: 'Consultor Sênior',
+        consultorPrime: 'Consultor Prime',
+        executive: 'Executive',
+      };
 
-      // ✅ GARANTIR TIPOS CORRETOS
+      const displayLevel = levelDisplayMap[levelInfo.phaseName] || 'Nível Desconhecido';
+
+      // 🧠 Log de depuração
+      console.log('⭐ Points:', totalPoints, '| Level calculado:', levelInfo.phaseName);
+
+      // Retorna o dashboard formatado
       return {
-        sales: {
-          total_sales: parseInt(salesResult.rows[0]?.total_sales || 0),
-          total_revenue: parseFloat(salesResult.rows[0]?.total_revenue || 0),
-          total_kilowatts: parseFloat(salesResult.rows[0]?.total_kilowatts || 0),
-          average_sale_value: parseFloat(salesResult.rows[0]?.average_sale_value || 0),
+        total_sales: parseInt(salesResult.rows[0]?.total_sales || 0),
+        total_revenue: parseFloat(salesResult.rows[0]?.total_revenue || 0),
+        total_kilowatts: parseFloat(salesResult.rows[0]?.total_kilowatts || 0),
+        total_points: totalPoints,
+        level: displayLevel, // ✅ agora usa o nível calculado corretamente
+        team_members: 0,
+        charts: {
+          byStatus: [],
+          monthly: [],
         },
-        points: {
-          total_points: totalPoints,
-        },
-        commissions: {
-          total_commissions: parseFloat(commissionsResult.rows[0]?.total_commissions || 0),
-          pending_commissions: parseFloat(commissionsResult.rows[0]?.pending_commissions || 0),
-          paid_commissions: parseFloat(commissionsResult.rows[0]?.paid_commissions || 0),
-        },
-        level: currentLevel,
       };
     } catch (error) {
       logger.error('Erro ao buscar dashboard pessoal:', error);
@@ -93,7 +97,6 @@ export class DashboardService {
     const client = await pool.connect();
 
     try {
-      // Buscar path do usuário
       const userResult = await client.query(
         'SELECT path FROM users WHERE id = $1',
         [userId]
@@ -111,7 +114,7 @@ export class DashboardService {
           u.id,
           u.name,
           u.email,
-          u.role,
+          u.level,
           COALESCE(p.total_points, 0) as total_points,
           COALESCE(s.total_sales, 0) as total_sales,
           COALESCE(s.total_revenue, 0) as total_revenue
@@ -136,7 +139,7 @@ export class DashboardService {
         [userPath]
       );
 
-      // Totais da equipe (todos os níveis abaixo)
+      // Totais da equipe
       const teamTotalsResult = await client.query(
         `SELECT 
           COUNT(DISTINCT u.id) as total_members,
@@ -162,13 +165,12 @@ export class DashboardService {
         [userPath]
       );
 
-      // ✅ GARANTIR TIPOS CORRETOS
       return {
         members: membersResult.rows.map((member: any) => ({
           id: member.id,
           name: member.name,
           email: member.email,
-          role: member.role,
+          level: member.level,
           total_points: parseFloat(member.total_points || 0),
           total_sales: parseInt(member.total_sales || 0),
           total_revenue: parseFloat(member.total_revenue || 0),
@@ -193,7 +195,6 @@ export class DashboardService {
     const client = await pool.connect();
 
     try {
-      // Estatísticas gerais
       const generalStats = await client.query(`
         SELECT 
           (SELECT COUNT(*) FROM users WHERE is_active = true) as total_users,
@@ -202,12 +203,12 @@ export class DashboardService {
           (SELECT COALESCE(SUM(total_commission), 0) FROM commissions WHERE paid = true) as total_commissions_paid
       `);
 
-      // Top 10 vendedores
       const topSellers = await client.query(`
         SELECT 
           u.id,
           u.name,
           u.email,
+          u.level,
           COALESCE(MAX(p.accumulated_points), 0) as total_points,
           COALESCE(s.total_sales, 0) as total_sales,
           COALESCE(s.total_revenue, 0) as total_revenue
@@ -222,12 +223,11 @@ export class DashboardService {
           GROUP BY user_id
         ) s ON u.id = s.user_id
         WHERE u.is_active = true
-        GROUP BY u.id, u.name, u.email, s.total_sales, s.total_revenue
+        GROUP BY u.id, u.name, u.email, u.level, s.total_sales, s.total_revenue
         ORDER BY total_points DESC
         LIMIT 10
       `);
 
-      // Vendas recentes
       const recentSales = await client.query(`
         SELECT 
           s.id,
@@ -246,7 +246,6 @@ export class DashboardService {
         LIMIT 20
       `);
 
-      // ✅ GARANTIR TIPOS CORRETOS
       return {
         stats: {
           total_users: parseInt(generalStats.rows[0]?.total_users || 0),
@@ -258,6 +257,7 @@ export class DashboardService {
           id: seller.id,
           name: seller.name,
           email: seller.email,
+          level: seller.level,
           total_points: parseFloat(seller.total_points || 0),
           total_sales: parseInt(seller.total_sales || 0),
           total_revenue: parseFloat(seller.total_revenue || 0),
@@ -280,18 +280,6 @@ export class DashboardService {
     } finally {
       client.release();
     }
-  }
-
-  // Método auxiliar para mapear fase -> role
-  private getRoleFromPhase(phaseNumber: number): string {
-    const roleMap: Record<number, string> = {
-      1: 'consultant',
-      2: 'master_consultant',
-      3: 'director',
-      4: 'regional_director',
-      5: 'admin',
-    };
-    return roleMap[phaseNumber] || 'consultant';
   }
 }
 

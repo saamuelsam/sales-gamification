@@ -3,8 +3,8 @@
     "target": "ES2020",
     "module": "commonjs",
     "lib": ["ES2020"],
-    "outDir": "./dist",
-    "rootDir": "./src",
+    "outDir": "dist",
+    "rootDir": "src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -12,15 +12,15 @@
     "types": ["node", "express"],
     "resolveJsonModule": true,
     "moduleResolution": "node",
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
-      "@config/*": ["config/*"],
-      "@modules/*": ["modules/*"],
-      "@middleware/*": ["middleware/*"],
-      "@utils/*": ["utils/*"],
-      "@types/*": ["types/*"]
+      "@config/*": ["src/config/*"],
+      "@modules/*": ["src/modules/*"],
+      "@middleware/*": ["src/middleware/*"],
+      "@utils/*": ["src/utils/*"],
+      "@types/*": ["src/types/*"]
     }
   },
-  "include": ["src/**/*", "src/types/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.test.ts"]
 }

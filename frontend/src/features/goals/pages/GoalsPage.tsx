@@ -34,9 +34,48 @@ export const GoalsPage = () => {
     const [goals, setGoals] = useState<GoalsData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    
+    // ✅ NOVO - Estados para o Modal de Meta
+    const [showGoalModal, setShowGoalModal] = useState(false);
+    const [goalNotification, setGoalNotification] = useState<{
+        title: string;
+        message: string;
+        reward?: string;
+    } | null>(null);
 
     useEffect(() => {
         fetchGoals();
+
+        // ✅ NOVO - Verificar notificações de meta a cada 10 segundos
+        const checkGoalNotifications = async () => {
+            try {
+                const response = await api.get('/notifications?limit=5');
+                const goalNotif = response.data?.data?.find((n: any) => n.type === 'goal' && !n.is_read);
+
+                if (goalNotif) {
+                    // Marcar como lida
+                    await api.put(`/notifications/${goalNotif.id}/read`);
+
+                    // Mostrar modal
+                    setShowGoalModal(true);
+                    setGoalNotification({
+                        title: goalNotif.title,
+                        message: goalNotif.message,
+                        reward: goalNotif.metadata?.reward,
+                    });
+
+                    // Recarregar metas após 2 segundos
+                    setTimeout(() => {
+                        fetchGoals();
+                    }, 2000);
+                }
+            } catch (error) {
+                console.error('Erro ao verificar notificações de meta:', error);
+            }
+        };
+
+        checkGoalNotifications();
+        const notifInterval = setInterval(checkGoalNotifications, 10000);
 
         // Atualizar APENAS quando o usuário volta para a aba
         const handleVisibilityChange = () => {
@@ -49,6 +88,7 @@ export const GoalsPage = () => {
 
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
+            clearInterval(notifInterval); // ✅ NOVO
         };
     }, []);
 
@@ -305,6 +345,44 @@ export const GoalsPage = () => {
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    </div>
+                )}
+
+                {/* ✅ MODAL DE META */}
+                {showGoalModal && goalNotification && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full animate-bounce">
+                            {/* Icon */}
+                            <div className="text-6xl text-center mb-4">🏆</div>
+
+                            {/* Title */}
+                            <h2 className="text-2xl font-bold text-center text-gray-900 mb-3">
+                                {goalNotification.title}
+                            </h2>
+
+                            {/* Message */}
+                            <p className="text-center text-gray-600 mb-6 leading-relaxed">
+                                {goalNotification.message}
+                            </p>
+
+                            {/* Reward Badge */}
+                            {goalNotification.reward && (
+                                <div className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white rounded-lg p-4 text-center mb-6 font-bold text-lg">
+                                    🎁 {goalNotification.reward}
+                                </div>
+                            )}
+
+                            {/* Button */}
+                            <button
+                                onClick={() => {
+                                    setShowGoalModal(false);
+                                    setGoalNotification(null);
+                                }}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors"
+                            >
+                                Fechar
+                            </button>
                         </div>
                     </div>
                 )}

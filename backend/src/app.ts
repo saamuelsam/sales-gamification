@@ -1,4 +1,5 @@
-import express from 'express';
+// backend/src/app.ts
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './modules/auth/auth.routes';
@@ -8,44 +9,84 @@ import clientsRoutes from './modules/clients/clients.routes';
 import notificationsRoutes from './modules/notifications/notifications.routes';
 import levelRoutes from './modules/levels/level.routes';
 import userRoutes from './modules/users/user.routes';
-
+import teamRoutes from './modules/team/team.routes';
+import commissionRoutes from './modules/commissions/commission.routes';
+import networkRoutes from './modules/network/network.routes';
 
 dotenv.config();
 
 const app = express();
 
-// Middlewares - CORS atualizado
+// ✅ CORS COMPLETO - Permitir headers customizados
 app.use(cors({
   origin: function(origin, callback) {
-    // Lista de origens permitidas
     const allowedOrigins = [
       'http://localhost:5173',
+      'http://127.0.0.1:5173',
+      'http://localhost:3000',
       'http://localhost:4000',
       'https://sales-gamification-indol.vercel.app',
       process.env.FRONTEND_URL
-    ].filter(Boolean); // Remove undefined se FRONTEND_URL não existir
+    ].filter(Boolean);
     
-    // Aceita qualquer subdomínio da Vercel ou origens na lista
-    if (!origin || allowedOrigins.includes(origin) || origin.includes('.vercel.app')) {
+    // Se não tiver origin (requests diretas, mobile, etc), liberar
+    if (!origin || allowedOrigins.includes(origin) || (origin && origin.includes('.vercel.app'))) {
       callback(null, true);
     } else {
+      console.warn(`❌ CORS bloqueado: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'Cache-Control',
+    'Pragma',
+    'Expires',
+    'X-Requested-With',
+    'X-Custom-Header'
+  ],
+  maxAge: 86400, // 24 horas cache do preflight
+  optionsSuccessStatus: 200
 }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Server is running' });
+// ✅ Middleware de Cache Control (aplicado em todas as respostas)
+app.use((req: Request, res: Response, next: NextFunction) => {
+  // Para requisições GET, permitir cache apenas no navegador, não em proxies
+  if (req.method === 'GET' && !req.path.includes('/api/')) {
+    res.set('Cache-Control', 'private, max-age=3600'); // 1 hora
+  } else {
+    // Para API, nunca cachear
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate, private');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+  }
+  
+  // Headers de segurança
+  res.set('X-Content-Type-Options', 'nosniff');
+  res.set('X-Frame-Options', 'DENY');
+  res.set('X-XSS-Protection', '1; mode=block');
+  
+  next();
 });
 
-// Rotas da API
+// Health check
+app.get('/health', (req: Request, res: Response) => {
+  res.json({ 
+    status: 'ok', 
+    message: 'Server is running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// ✅ Rotas da API
+app.use('/api/team', teamRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/sales', salesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
@@ -53,10 +94,34 @@ app.use('/api/clients', clientsRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/levels', levelRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/commissions', commissionRoutes);
+app.use('/api/network', networkRoutes);
 
-// Rota 404
-app.use((req, res) => {
-  res.status(404).json({ message: 'Route not found' });
+// ✅ Middleware de erro global
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error('❌ Erro não tratado:', {
+    message: err.message,
+    status: err.status || 500,
+    path: req.path,
+    method: req.method
+  });
+
+  res.status(err.status || 500).json({
+    error: process.env.NODE_ENV === 'production' 
+      ? 'Internal Server Error'
+      : err.message,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// ✅ Rota 404
+app.use((req: Request, res: Response) => {
+  console.warn(`⚠️ Rota não encontrada: ${req.method} ${req.path}`);
+  res.status(404).json({ 
+    error: 'Route not found',
+    path: req.path,
+    method: req.method
+  });
 });
 
 export default app;

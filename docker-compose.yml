@@ -1,8 +1,6 @@
-# docker-compose.yml
 version: '3.9'
 
 services:
-  # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
     container_name: sales_postgres
@@ -23,7 +21,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # Redis Cache
   redis:
     image: redis:alpine
     container_name: sales_redis
@@ -40,9 +37,10 @@ services:
       timeout: 5s
       retries: 5
 
-  # Backend API
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: sales_backend
     restart: always
     ports:
@@ -53,7 +51,7 @@ services:
       redis:
         condition: service_healthy
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
       PORT: 4000
       DB_HOST: postgres
       DB_PORT: 5432
@@ -64,12 +62,9 @@ services:
       REDIS_PORT: 6379
       JWT_SECRET: your-super-secret-jwt-key-change-this
       JWT_EXPIRES_IN: 7d
-    volumes:
-      - ./backend:/usr/src/app
-      - /usr/src/app/node_modules
     networks:
       - app_network
-    command: npm run dev
+    # remove os volumes e o comando npm run dev — não é necessário em produção
 
 networks:
   app_network:

@@ -1,6 +1,5 @@
-// frontend/src/features/dashboard/hooks/useDashboard.ts
-import { useQuery } from '@tanstack/react-query';
-import api from '@/services/api'; // ✅ CORRIGIDO: import default ao invés de { api }
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import api from '@/services/api';
 
 export interface DashboardPersonal {
   sales: {
@@ -26,15 +25,17 @@ export interface DashboardPersonal {
   team_members?: number;
 }
 
+// ✅ Chave única para identificar esta query
+export const DASHBOARD_QUERY_KEY = ['dashboard', 'personal'] as const;
+
 export const useDashboard = () => {
   return useQuery<DashboardPersonal>({
-    queryKey: ['dashboard', 'personal'],
+    queryKey: DASHBOARD_QUERY_KEY,
     queryFn: async () => {
       try {
         const { data } = await api.get('/dashboard/personal');
         console.log('Dashboard data:', data);
         
-        // Garantir que os valores são números
         return {
           ...data,
           sales: {
@@ -58,7 +59,19 @@ export const useDashboard = () => {
         throw error;
       }
     },
-    staleTime: 1000 * 60 * 5, // 5 minutos
-    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 2, // 2 minutos (abaixa pra mais curto)
+    gcTime: 1000 * 60 * 5,    // 5 minutos
+    refetchOnWindowFocus: true,
   });
+};
+
+// ✅ Hook para invalidar o cache (NOVO!)
+export const useInvalidateDashboard = () => {
+  const queryClient = useQueryClient();
+  
+  return () => {
+    queryClient.invalidateQueries({
+      queryKey: DASHBOARD_QUERY_KEY,
+    });
+  };
 };

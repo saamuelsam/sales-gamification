@@ -4,6 +4,10 @@ import { Button } from '@/components/ui/Button';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
 import { CurrencyInput } from '@/components/ui/CurrencyInput';
+import { useInvalidateDashboard } from '@/features/dashboard/hooks/useDashboard'; // ✅ ADICIONE ISTO
+
+type SaleStatus = 'negotiation' | 'pending' | 'approved' | 'financingdenied' | 'cancelled' | 'delivered';
+type SaleType = 'direct' | 'consortium' | 'cash' | 'card';
 
 interface Sale {
   id: string;
@@ -11,21 +15,32 @@ interface Sale {
   value: number;
   kilowatts: number;
   insurance_value?: number;
-  sale_type?: string;
+  sale_type?: SaleType;
   consortium_value?: number;
   consortium_term?: number;
   consortium_monthly_payment?: number;
   consortium_admin_fee?: number;
-  status: string;
+  status: SaleStatus;
   created_at: string;
   notes?: string;
+  points?: number;
+  cpf?: string;
+  phone?: string;
+  email?: string;
+  street?: string;
+  number?: string;
+  city?: string;
+  state?: string;
+  cep?: string;
+  client_full_name?: string;
+  neighborhood?: string;
 }
 
-const statusConfig = {
+const statusConfig: Record<SaleStatus, { label: string; color: string }> = {
   negotiation: { label: 'Negociação', color: 'bg-blue-100 text-blue-800' },
   pending: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800' },
   approved: { label: 'Aprovado', color: 'bg-green-100 text-green-800' },
-  financing_denied: { label: 'Negado', color: 'bg-red-100 text-red-800' },
+  financingdenied: { label: 'Negado', color: 'bg-red-100 text-red-800' },
   cancelled: { label: 'Cancelado', color: 'bg-gray-100 text-gray-800' },
   delivered: { label: 'Entregue', color: 'bg-purple-100 text-purple-800' },
 };
@@ -34,10 +49,13 @@ export const SalesPage = () => {
   const [sales, setSales] = useState<Sale[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterStatus, setFilterStatus] = useState<'all' | SaleStatus>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [saleDetails, setSaleDetails] = useState<any>(null);
+  const [saleDetails, setSaleDetails] = useState<Sale | null>(null);
+
+  // ✅ ADICIONE ISTO
+  const invalidateDashboard = useInvalidateDashboard();
 
   useEffect(() => {
     fetchSales();
@@ -53,7 +71,6 @@ export const SalesPage = () => {
       document.body.style.position = '';
       document.body.style.width = '';
     }
-
     return () => {
       document.body.style.overflow = '';
       document.body.style.position = '';
@@ -66,7 +83,7 @@ export const SalesPage = () => {
       setLoading(true);
       const { data } = await api.get('/sales');
       setSales(data.data || []);
-    } catch (error: any) {
+    } catch {
       toast.error('Erro ao carregar vendas');
     } finally {
       setLoading(false);
@@ -78,26 +95,30 @@ export const SalesPage = () => {
       const { data } = await api.get(`/sales/${sale.id}/with-client`);
       setSaleDetails(data.data);
       setShowDetailsModal(true);
-    } catch (error: any) {
+    } catch {
       toast.error('Erro ao carregar detalhes');
     }
   };
 
+  // ✅ ATUALIZADO: handleDelete agora invalida o dashboard
   const handleDelete = async (id: string) => {
     if (!confirm('Excluir esta venda?')) return;
-
     try {
       await api.delete(`/sales/${id}`);
       toast.success('Venda excluída');
+      
+      // ✅ INVALIDAR DASHBOARD
+      invalidateDashboard();
+      
       fetchSales();
-    } catch (error: any) {
+    } catch {
       toast.error('Erro ao excluir');
     }
   };
 
-  const filteredSales = sales.filter(sale => {
+  const filteredSales = sales.filter((sale) => {
     const matchStatus = filterStatus === 'all' || sale.status === filterStatus;
-    const matchSearch = sale.client_name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchSearch = (sale.client_name || '').toLowerCase().includes(searchTerm.toLowerCase());
     return matchStatus && matchSearch;
   });
 
@@ -121,12 +142,14 @@ export const SalesPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <select
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
+              onChange={(e) => setFilterStatus(e.target.value as any)}
               className="w-full px-3 py-2 text-sm border rounded-lg"
             >
               <option value="all">Todos Status</option>
               {Object.entries(statusConfig).map(([key, config]) => (
-                <option key={key} value={key}>{config.label}</option>
+                <option key={key} value={key}>
+                  {config.label}
+                </option>
               ))}
             </select>
 
@@ -159,23 +182,33 @@ export const SalesPage = () => {
                       {sale.client_name}
                     </h3>
                     <div className="flex gap-1 mt-1">
-                      <span className={`text-xs px-2 py-0.5 rounded-full ${
-                        sale.sale_type === 'consortium' ? 'bg-purple-100 text-purple-800' :
-                        sale.sale_type === 'cash' ? 'bg-green-100 text-green-800' :
-                        sale.sale_type === 'card' ? 'bg-orange-100 text-orange-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
-                        {sale.sale_type === 'consortium' ? '🏦 Consórcio' :
-                         sale.sale_type === 'cash' ? '💵 À Vista' :
-                         sale.sale_type === 'card' ? '💳 Cartão' :
-                         '💳 Financ.'}
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${
+                          sale.sale_type === 'consortium'
+                            ? 'bg-purple-100 text-purple-800'
+                            : sale.sale_type === 'cash'
+                            ? 'bg-green-100 text-green-800'
+                            : sale.sale_type === 'card'
+                            ? 'bg-orange-100 text-orange-800'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}
+                      >
+                        {sale.sale_type === 'consortium'
+                          ? '🏦 Consórcio'
+                          : sale.sale_type === 'cash'
+                          ? '💵 À Vista'
+                          : sale.sale_type === 'card'
+                          ? '💳 Cartão'
+                          : '💳 Financ.'}
                       </span>
                     </div>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    statusConfig[sale.status as keyof typeof statusConfig]?.color
-                  }`}>
-                    {statusConfig[sale.status as keyof typeof statusConfig]?.label}
+                  <span
+                    className={`text-xs px-2 py-1 rounded-full ${
+                      statusConfig[sale.status]?.color
+                    }`}
+                  >
+                    {statusConfig[sale.status]?.label}
                   </span>
                 </div>
 
@@ -187,7 +220,7 @@ export const SalesPage = () => {
                         style: 'currency',
                         currency: 'BRL',
                         minimumFractionDigits: 0,
-                        maximumFractionDigits: 0
+                        maximumFractionDigits: 0,
                       }).format(sale.value)}
                     </p>
                   </div>
@@ -200,7 +233,7 @@ export const SalesPage = () => {
                           style: 'currency',
                           currency: 'BRL',
                           minimumFractionDigits: 0,
-                          maximumFractionDigits: 0
+                          maximumFractionDigits: 0,
                         }).format(sale.consortium_value)}
                       </p>
                     </div>
@@ -216,7 +249,7 @@ export const SalesPage = () => {
                     <p className="text-gray-900">
                       {new Date(sale.created_at).toLocaleDateString('pt-BR', {
                         day: '2-digit',
-                        month: '2-digit'
+                        month: '2-digit',
                       })}
                     </p>
                   </div>
@@ -281,8 +314,11 @@ interface CreateSaleModalProps {
 
 const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
   const [step, setStep] = useState<'client' | 'sale'>('client');
-  const [saleType, setSaleType] = useState<'direct' | 'consortium' | 'cash' | 'card'>('direct');
+  const [saleType, setSaleType] = useState<SaleType>('direct');
   const [loading, setLoading] = useState(false);
+
+  // ✅ ADICIONE ISTO
+  const invalidateDashboard = useInvalidateDashboard();
 
   const [clientData, setClientData] = useState({
     name: '',
@@ -312,10 +348,10 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
     setStep('sale');
   };
 
+  // ✅ ATUALIZADO: handleSubmit agora invalida o dashboard
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       const clientResponse = await api.post('/clients', clientData);
       const clientId = clientResponse.data.data.id;
@@ -332,22 +368,29 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
       if (saleType === 'consortium') {
         payload.consortium_value = parseFloat(saleData.consortium_value);
         payload.consortium_term = parseInt(saleData.consortium_term);
-
         if (saleData.consortium_monthly_payment) {
           payload.consortium_monthly_payment = parseFloat(saleData.consortium_monthly_payment);
         }
         if (saleData.consortium_admin_fee) {
           payload.consortium_admin_fee = parseFloat(saleData.consortium_admin_fee);
         }
-      } else {
-        if (saleData.insurance_value) {
-          payload.insurance_value = parseFloat(saleData.insurance_value);
-        }
+      } else if (saleData.insurance_value) {
+        payload.insurance_value = parseFloat(saleData.insurance_value);
       }
 
       await api.post('/sales', payload);
-
       toast.success('Venda cadastrada!');
+
+      // ✅ INVALIDAR DASHBOARD
+      invalidateDashboard();
+
+      // Remover o event customizado (não é mais necessário)
+      // window.dispatchEvent(
+      //   new CustomEvent('refreshDashboard', {
+      //     detail: { timestamp: Date.now() },
+      //   }),
+      // );
+
       onSuccess();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erro ao cadastrar');
@@ -359,8 +402,10 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
   return (
     <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ zIndex: 9999 }}>
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-
-      <div className="relative bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg flex flex-col shadow-2xl" style={{ maxHeight: '90vh', height: 'auto' }}>
+      <div
+        className="relative bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg flex flex-col shadow-2xl"
+        style={{ maxHeight: '90vh', height: 'auto' }}
+      >
         <div className="flex justify-between items-center px-4 py-3 border-b bg-white rounded-t-2xl shrink-0">
           <h2 className="text-base font-bold">
             {step === 'client' ? '👤 Dados do Cliente' : '📊 Dados da Venda'}
@@ -375,7 +420,10 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
           <div className={`flex-1 h-1.5 rounded-full transition-all ${step === 'sale' ? 'bg-blue-600' : 'bg-gray-300'}`} />
         </div>
 
-        <div className="flex-1 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch', maxHeight: 'calc(90vh - 140px)' }}>
+        <div
+          className="flex-1 overflow-y-auto overscroll-contain"
+          style={{ WebkitOverflowScrolling: 'touch', maxHeight: 'calc(90vh - 140px)' }}
+        >
           {step === 'client' ? (
             <form onSubmit={handleNext} className="p-4 space-y-3">
               <div>
@@ -402,7 +450,6 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                     placeholder="000.000.000-00"
                   />
                 </div>
-
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1.5">Telefone</label>
                   <input
@@ -437,7 +484,6 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                     placeholder="00000-000"
                   />
                 </div>
-
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1.5">Cidade</label>
                   <input
@@ -472,7 +518,6 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                     placeholder="123"
                   />
                 </div>
-
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1.5">Estado</label>
                   <input
@@ -507,7 +552,6 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                   >
                     💳 Financiamento
                   </button>
-
                   <button
                     type="button"
                     onClick={() => setSaleType('consortium')}
@@ -517,7 +561,6 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                   >
                     🏦 Consórcio
                   </button>
-
                   <button
                     type="button"
                     onClick={() => setSaleType('cash')}
@@ -527,7 +570,6 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                   >
                     💵 À Vista
                   </button>
-
                   <button
                     type="button"
                     onClick={() => setSaleType('card')}
@@ -550,7 +592,6 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                       placeholder="50.000,00"
                       required
                     />
-
                     <CurrencyInput
                       label="Valor do Consórcio (R$) *"
                       value={saleData.consortium_value}
@@ -573,7 +614,6 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                         required
                       />
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Prazo (meses) *</label>
                       <input
@@ -594,7 +634,6 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                       onValueChange={(val) => setSaleData({ ...saleData, consortium_monthly_payment: val })}
                       placeholder="1.200,00"
                     />
-
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Taxa Admin (%)</label>
                       <input
@@ -611,7 +650,12 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                   {saleData.consortium_value && (
                     <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                       <p className="text-sm text-purple-800">
-                        <strong>Comissão prevista:</strong> R$ {(parseFloat(saleData.consortium_value) * 0.05).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (5%)
+                        <strong>Comissão prevista:</strong>{' '}
+                        R{' '}
+                        {(parseFloat(saleData.consortium_value) * 0.05).toLocaleString('pt-BR', {
+                          minimumFractionDigits: 2,
+                        })}{' '}
+                        (5%)
                       </p>
                     </div>
                   )}
@@ -625,7 +669,6 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                     placeholder="50.000,00"
                     required
                   />
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Potência (kW) *</label>
                     <input
@@ -638,7 +681,6 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                       required
                     />
                   </div>
-
                   <CurrencyInput
                     label="Valor do Seguro (R$)"
                     value={saleData.insurance_value}
@@ -709,31 +751,37 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
 };
 
 interface SaleDetailsModalProps {
-  sale: any;
+  sale: Sale;
   onClose: () => void;
   onUpdate: () => void;
 }
 
 const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) => {
   const [isEditingStatus, setIsEditingStatus] = useState(false);
-  const [newStatus, setNewStatus] = useState(sale.status);
+  const [newStatus, setNewStatus] = useState<SaleStatus>(sale.status);
   const [loading, setLoading] = useState(false);
 
+  // ✅ ADICIONE ISTO
+  const invalidateDashboard = useInvalidateDashboard();
+
+  // ✅ ATUALIZADO: handleUpdateStatus agora invalida o dashboard
   const handleUpdateStatus = async () => {
     if (newStatus === sale.status) {
       setIsEditingStatus(false);
       return;
     }
-
     setLoading(true);
     try {
-      await api.put(`/sales/${sale.id}`, { status: newStatus });
+      await api.patch(`/sales/${sale.id}/status`, { status: newStatus });
       toast.success('Status atualizado!');
-      sale.status = newStatus;
       setIsEditingStatus(false);
+      
+      // ✅ INVALIDAR DASHBOARD
+      invalidateDashboard();
+      
       onUpdate();
     } catch (error: any) {
-      toast.error('Erro ao atualizar status');
+      toast.error(error.response?.data?.message || 'Erro ao atualizar status');
     } finally {
       setLoading(false);
     }
@@ -742,7 +790,6 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
   return (
     <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ zIndex: 9999 }}>
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-
       <div className="relative bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl flex flex-col shadow-2xl" style={{ maxHeight: '90vh' }}>
         <div className="flex justify-between items-center px-4 py-3 border-b bg-white rounded-t-2xl shrink-0">
           <h2 className="text-base font-bold">Detalhes da Venda</h2>
@@ -752,7 +799,6 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
         </div>
 
         <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3" style={{ WebkitOverflowScrolling: 'touch' }}>
-          {/* STATUS COM EDIÇÃO */}
           <div className="bg-gray-50 rounded-lg p-3 border">
             <div className="flex justify-between items-start mb-2">
               <p className="text-xs text-gray-600 font-semibold">Status da Venda</p>
@@ -770,13 +816,13 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
               <div className="space-y-2">
                 <select
                   value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value)}
+                  onChange={(e) => setNewStatus(e.target.value as SaleStatus)}
                   className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="negotiation">🔵 Negociação</option>
                   <option value="pending">🟡 Pendente</option>
                   <option value="approved">🟢 Aprovado</option>
-                  <option value="financing_denied">🔴 Financiamento Negado</option>
+                  <option value="financingdenied">🔴 Financiamento Negado</option>
                   <option value="cancelled">⚫ Cancelado</option>
                   <option value="delivered">🟣 Entregue</option>
                 </select>
@@ -798,33 +844,41 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
                 </div>
               </div>
             ) : (
-              <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold ${
-                statusConfig[sale.status as keyof typeof statusConfig]?.color || 'bg-gray-100 text-gray-800'
-              }`}>
-                {statusConfig[sale.status as keyof typeof statusConfig]?.label || sale.status}
+              <span
+                className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold ${
+                  statusConfig[sale.status]?.color || 'bg-gray-100 text-gray-800'
+                }`}
+              >
+                {statusConfig[sale.status]?.label || sale.status}
               </span>
             )}
           </div>
 
-          {/* TIPO DE VENDA */}
           {sale.sale_type && (
             <div className="bg-gray-50 rounded-lg p-2.5">
               <p className="text-xs text-gray-600 mb-1.5">Tipo de Venda</p>
-              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                sale.sale_type === 'consortium' ? 'bg-purple-100 text-purple-800' :
-                sale.sale_type === 'cash' ? 'bg-green-100 text-green-800' :
-                sale.sale_type === 'card' ? 'bg-orange-100 text-orange-800' :
-                'bg-blue-100 text-blue-800'
-              }`}>
-                {sale.sale_type === 'consortium' ? '🏦 Consórcio' :
-                 sale.sale_type === 'cash' ? '💵 À Vista' :
-                 sale.sale_type === 'card' ? '💳 Cartão' :
-                 '💳 Financiamento'}
+              <span
+                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                  sale.sale_type === 'consortium'
+                    ? 'bg-purple-100 text-purple-800'
+                    : sale.sale_type === 'cash'
+                    ? 'bg-green-100 text-green-800'
+                    : sale.sale_type === 'card'
+                    ? 'bg-orange-100 text-orange-800'
+                    : 'bg-blue-100 text-blue-800'
+                }`}
+              >
+                {sale.sale_type === 'consortium'
+                  ? '🏦 Consórcio'
+                  : sale.sale_type === 'cash'
+                  ? '💵 À Vista'
+                  : sale.sale_type === 'card'
+                  ? '💳 Cartão'
+                  : '💳 Financiamento'}
               </span>
             </div>
           )}
 
-          {/* VALORES */}
           <div className="grid grid-cols-2 gap-2">
             <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
               <p className="text-xs text-blue-600 mb-1">Valor Total</p>
@@ -847,7 +901,7 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
               <p className="text-base font-semibold">{sale.kilowatts} kW</p>
             </div>
 
-            {sale.points && (
+            {typeof sale.points === 'number' && (
               <div className="bg-green-50 rounded-lg p-3 border border-green-200">
                 <p className="text-xs text-green-600 mb-1">Pontos</p>
                 <p className="text-base font-semibold text-green-700">{sale.points} pts</p>
@@ -855,7 +909,6 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
             )}
           </div>
 
-          {/* INFORMAÇÕES DO CLIENTE */}
           <div>
             <h3 className="text-sm font-semibold mb-2">Informações do Cliente</h3>
             <div className="grid grid-cols-2 gap-2">
@@ -884,7 +937,6 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
             </div>
           </div>
 
-          {/* ENDEREÇO */}
           {sale.street && (
             <div className="bg-gray-50 rounded-lg p-3">
               <h3 className="text-sm font-semibold mb-1.5">Endereço</h3>
@@ -898,7 +950,6 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
             </div>
           )}
 
-          {/* OBSERVAÇÕES */}
           {sale.notes && (
             <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
               <h3 className="text-sm font-semibold mb-1.5">Observações</h3>

@@ -22,10 +22,10 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Índices para performance
-CREATE INDEX idx_users_path ON users USING GIST (path);
-CREATE INDEX idx_users_parent ON users(parent_id);
-CREATE INDEX idx_users_email ON users(email);
-CREATE INDEX idx_users_role ON users(role);
+CREATE INDEX IF NOT EXISTS idx_users_path ON users USING GIST (path);
+CREATE INDEX IF NOT EXISTS idx_users_parent ON users(parent_id);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 
 -- Comentários
 COMMENT ON TABLE users IS 'Tabela de usuários com hierarquia MLM';

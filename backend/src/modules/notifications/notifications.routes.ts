@@ -6,10 +6,22 @@ const router = Router();
 
 router.use(authMiddleware);
 
-router.get('/', notificationsController.list.bind(notificationsController));
-router.get('/unread-count', notificationsController.getUnreadCount.bind(notificationsController));
-router.put('/:id/read', notificationsController.markAsRead.bind(notificationsController));
-router.put('/mark-all-read', notificationsController.markAllAsRead.bind(notificationsController));
-router.delete('/:id', notificationsController.delete.bind(notificationsController));
+// ✅ GET - Listar notificações
+router.get('/', (req, res) => notificationsController.list(req, res));
+
+// ✅ GET - Contar não lidas
+router.get('/unread-count', (req, res) => notificationsController.getUnreadCount(req, res));
+
+// ✅ POST - CRIAR notificação (NOVO!)
+router.post('/', (req, res) => notificationsController.create?.(req, res));
+
+// ✅ PUT - Marcar como lida
+router.put('/:id/read', (req, res) => notificationsController.markAsRead(req, res));
+
+// ✅ PUT - Marcar todas como lidas
+router.put('/mark-all-read', (req, res) => notificationsController.markAllAsRead(req, res));
+
+// ✅ DELETE - Deletar notificação
+router.delete('/:id', (req, res) => notificationsController.delete(req, res));
 
 export default router;

@@ -277,75 +277,93 @@ export class SalesController {
   }
 
   async deleteSale(req: Request, res: Response) {
-    const client = await pool.connect();
-    try {
-      const { id } = req.params;
-      const userId = req.user?.userId;
+  const client = await pool.connect();
+  try {
+    const { id } = req.params;
+    const userId = req.user?.userId;
 
-      if (!id || !userId) {
-        return ApiResponse.error(res, 'ID e usuário são obrigatórios', 400);
-      }
+    if (!id || !userId) {
+      return ApiResponse.error(res, 'ID e usuário são obrigatórios', 400);
+    }
 
-      await client.query('BEGIN');
+    await client.query('BEGIN');
 
-      const saleResult = await client.query(
-        `SELECT kilowatts FROM sales WHERE id = $1 AND user_id = $2`,
-        [id, userId]
-      );
+    // 1️⃣ BUSCAR A VENDA
+    const saleResult = await client.query(
+      `SELECT kilowatts FROM sales WHERE id = $1 AND user_id = $2`,
+      [id, userId]
+    );
 
-      const saleData = saleResult.rows[0]; // ✅ RENOMEADO DE 'sale' para 'saleData'
-      if (!saleData) {
-        await client.query('ROLLBACK');
-        await client.release();
-        return ApiResponse.error(res, 'Venda não encontrada', 404);
-      }
+    const saleData = saleResult.rows[0];
+    if (!saleData) {
+      await client.query('ROLLBACK');
+      await client.release();
+      return ApiResponse.error(res, 'Venda não encontrada', 404);
+    }
 
-      const pointsToRemove = Math.floor(parseFloat(saleData.kilowatts));
+    const pointsToRemove = Math.floor(parseFloat(saleData.kilowatts));
 
+    // ✅ 2️⃣ DELETAR PONTOS DESSA VENDA
+    await client.query(
+      `DELETE FROM points WHERE sale_id = $1`,
+      [id]
+    );
+
+    // ✅ 3️⃣ DELETAR COMISSÕES DESSA VENDA
+    await client.query(
+      `DELETE FROM commissions WHERE sale_id = $1`,
+      [id]
+    );
+
+    // 4️⃣ DELETAR A VENDA
+    await client.query(
+      `DELETE FROM sales WHERE id = $1 AND user_id = $2`,
+      [id, userId]
+    );
+
+    // 5️⃣ REMOVER PONTOS DO USUÁRIO
+    await client.query(
+      `UPDATE users 
+       SET points = GREATEST(0, points - $1) 
+       WHERE id = $2`,
+      [pointsToRemove, userId]
+    );
+
+    console.log(`🗑️ Venda ${id} deletada! ${pointsToRemove} pontos removidos`);
+
+    // 6️⃣ BUSCAR NOVO TOTAL DE PONTOS
+    const userPointsResult = await client.query(
+      `SELECT points FROM users WHERE id = $1`,
+      [userId]
+    );
+
+    const newTotalPoints = parseFloat(userPointsResult.rows[0].points);
+
+    // 7️⃣ VOLTAR PARA ELITE SE CAIU MUITO
+    if (newTotalPoints < 1000) {
       await client.query(
-        `DELETE FROM sales WHERE id = $1 AND user_id = $2`,
-        [id, userId]
-      );
-
-      await client.query(
-        `UPDATE users 
-         SET points = GREATEST(0, points - $1) 
-         WHERE id = $2`,
-        [pointsToRemove, userId]
-      );
-
-      console.log(`🗑️ Venda ${id} deletada! ${pointsToRemove} pontos removidos`);
-
-      const userPointsResult = await client.query(
-        `SELECT points FROM users WHERE id = $1`,
+        `UPDATE users SET role = 'consultant' WHERE id = $1`,
         [userId]
       );
-
-      const newTotalPoints = parseFloat(userPointsResult.rows[0].points);
-
-      if (newTotalPoints < 1000) {
-        await client.query(
-          `UPDATE users SET role = 'consultant' WHERE id = $1`,
-          [userId]
-        );
-        console.log(`⬇️ Usuário ${userId} voltou para Consultant (${newTotalPoints} pontos)`);
-      }
-
-      await client.query('COMMIT');
-
-      return ApiResponse.success(res, { 
-        id, 
-        pointsRemoved: pointsToRemove,
-        newPoints: newTotalPoints 
-      }, 'Venda deletada com sucesso');
-    } catch (error: any) {
-      await client.query('ROLLBACK');
-      console.error('Erro ao deletar venda:', error);
-      return ApiResponse.error(res, error.message || 'Erro ao deletar venda', 500);
-    } finally {
-      await client.release();
+      console.log(`⬇️ Usuário ${userId} voltou para Consultant (${newTotalPoints} pontos)`);
     }
+
+    await client.query('COMMIT');
+
+    return ApiResponse.success(res, { 
+      id, 
+      pointsRemoved: pointsToRemove,
+      newPoints: newTotalPoints 
+    }, 'Venda deletada com sucesso');
+  } catch (error: any) {
+    await client.query('ROLLBACK');
+    console.error('Erro ao deletar venda:', error);
+    return ApiResponse.error(res, error.message || 'Erro ao deletar venda', 500);
+  } finally {
+    await client.release();
   }
+}
+
 
   async getStats(req: Request, res: Response) {
     try {

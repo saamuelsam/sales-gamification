@@ -9,6 +9,7 @@ import { TeamPage } from './features/team/pages/TeamPage';
 import { BenefitsPage } from './features/benefits/pages/BenefitsPage';
 import { GoalsPage } from '@/features/goals/pages/GoalsPage';
 
+
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   
