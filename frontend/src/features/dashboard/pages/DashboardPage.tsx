@@ -11,7 +11,7 @@ import {
   Target,
   ArrowRight,
   Zap,
-  RefreshCw
+  RefreshCw,
 } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import {
@@ -24,12 +24,13 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell
+  Cell,
 } from 'recharts';
 import { useState, useEffect } from 'react';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
 
+// --- Funções de utilidade ---
 const parseNumberFromAny = (v: any): number => {
   if (v === null || v === undefined || v === '') return 0;
   if (typeof v === 'number') return v;
@@ -50,16 +51,6 @@ const parseNumberFromAny = (v: any): number => {
   return isNaN(n) ? 0 : n;
 };
 
-/* const formatCurrency = (value: number): string => {
-  const num = Number(value) || 0;
-  return num.toLocaleString('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-}; */
-
 const formatNumberFull = (value: number): string => {
   const num = Number(value) || 0;
   return num.toLocaleString('pt-BR');
@@ -77,6 +68,72 @@ const formatKilowatts = (value: number): string => {
   return `${num.toLocaleString('pt-BR')} kW`;
 };
 
+// --- Estrutura dos níveis ---
+const LEVEL_THRESHOLDS = {
+  elite: { display: 'Consultor Elite', points: 0 },
+  master: { display: 'Master', points: 1_000 },
+  seniorConsultant: { display: 'Consultor Sênior', points: 10_000 },
+  consultorPrime: { display: 'Consultor Prime', points: 800_000 },
+  executive: { display: 'Executivo', points: 2_000_000 },
+};
+const levelColors: Record<string, string> = {
+  elite: 'from-blue-400 via-blue-500 to-blue-600',
+  master: 'from-green-400 via-green-500 to-green-600',
+  seniorConsultant: 'from-purple-400 via-purple-500 to-purple-600',
+  consultorPrime: 'from-orange-400 via-orange-500 to-orange-600',
+  executive: 'from-red-400 via-red-500 to-red-600',
+};
+const getNextLevel = (currentLevel: string): string => {
+  const levelOrder = [
+    'elite',
+    'master',
+    'seniorConsultant',
+    'consultorPrime',
+    'executive',
+  ];
+  const currentIndex = levelOrder.indexOf(currentLevel);
+  if (currentIndex === -1 || currentIndex === levelOrder.length - 1)
+    return 'executive';
+  return levelOrder[currentIndex + 1];
+};
+const calculateProgressPercentage = (currentPoints: number, levelName: string): number => {
+  const levelOrder = [
+    'elite',
+    'master',
+    'seniorConsultant',
+    'consultorPrime',
+    'executive',
+  ];
+  const currentIndex = levelOrder.indexOf(levelName);
+  if (currentIndex === -1) return 0;
+  if (currentIndex === levelOrder.length - 1) return 100;
+
+  const currentThreshold = LEVEL_THRESHOLDS[levelName as keyof typeof LEVEL_THRESHOLDS]?.points ?? 0;
+  const nextLevel = levelOrder[currentIndex + 1];
+  const nextThreshold = LEVEL_THRESHOLDS[nextLevel as keyof typeof LEVEL_THRESHOLDS]?.points ?? 0;
+  const range = Math.max(nextThreshold - currentThreshold, 1);
+  let progress = ((currentPoints - currentThreshold) / range) * 100;
+
+  if (currentPoints >= currentThreshold && progress < 1) progress = 1;
+  progress = Math.min(progress, 100);
+  return progress;
+};
+const calculatePointsToNextLevel = (currentPoints: number, levelName: string): number => {
+  const levelOrder = [
+    'elite',
+    'master',
+    'seniorConsultant',
+    'consultorPrime',
+    'executive',
+  ];
+  const currentIndex = levelOrder.indexOf(levelName);
+  if (currentIndex === -1 || currentIndex === levelOrder.length - 1) return 0;
+  const nextLevel = levelOrder[currentIndex + 1];
+  const nextThreshold = LEVEL_THRESHOLDS[nextLevel as keyof typeof LEVEL_THRESHOLDS]?.points || 0;
+  return Math.max(0, nextThreshold - currentPoints);
+};
+
+// --- Tooltip customizado para charts ---
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     const rawValue = payload[0].value;
@@ -91,46 +148,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-const LEVEL_THRESHOLDS = {
-  elite: { display: 'Consultor Elite', points: 0 },
-  master: { display: 'Master', points: 1_000 },
-  seniorConsultant: { display: 'Consultor Sênior', points: 10_000 },
-  consultorPrime: { display: 'Consultor Prime', points: 800_000 },
-  executive: { display: 'Executivo', points: 2_000_000 }
-};
-
-const getNextLevel = (currentLevel: string): string => {
-  const levelOrder = ['elite', 'master', 'seniorConsultant', 'consultorPrime', 'executive'];
-  const currentIndex = levelOrder.indexOf(currentLevel);
-  if (currentIndex === -1 || currentIndex === levelOrder.length - 1) return 'executive';
-  return levelOrder[currentIndex + 1];
-};
-
-const calculateProgressPercentage = (currentPoints: number, levelName: string): number => {
-  const levelOrder = ['elite', 'master', 'seniorConsultant', 'consultorPrime', 'executive'];
-  const currentIndex = levelOrder.indexOf(levelName);
-
-  if (currentIndex === -1 || currentIndex === levelOrder.length - 1) return 100;
-
-  const currentThreshold = LEVEL_THRESHOLDS[levelName as keyof typeof LEVEL_THRESHOLDS]?.points || 0;
-  const nextLevel = levelOrder[currentIndex + 1];
-  const nextThreshold = LEVEL_THRESHOLDS[nextLevel as keyof typeof LEVEL_THRESHOLDS]?.points || 0;
-
-  const progress = ((currentPoints - currentThreshold) / (nextThreshold - currentThreshold)) * 100;
-  return Math.min(Math.max(progress, 0), 100);
-};
-
-const calculatePointsToNextLevel = (currentPoints: number, levelName: string): number => {
-  const levelOrder = ['elite', 'master', 'seniorConsultant', 'consultorPrime', 'executive'];
-  const currentIndex = levelOrder.indexOf(levelName);
-
-  if (currentIndex === -1 || currentIndex === levelOrder.length - 1) return 0;
-
-  const nextLevel = levelOrder[currentIndex + 1];
-  const nextThreshold = LEVEL_THRESHOLDS[nextLevel as keyof typeof LEVEL_THRESHOLDS]?.points || 0;
-  return Math.max(0, nextThreshold - currentPoints);
-};
-
 export function DashboardPage() {
   const { user } = useAuthStore();
   const location = useLocation();
@@ -143,18 +160,14 @@ export function DashboardPage() {
     const handleRefresh = () => {
       fetchDashboardData();
     };
-
     window.addEventListener('refreshDashboard', handleRefresh as EventListener);
-
     return () => {
       window.removeEventListener('refreshDashboard', handleRefresh as EventListener);
     };
   }, []);
-
   useEffect(() => {
     fetchDashboardData();
   }, [location.pathname]);
-
   useEffect(() => {
     const interval = setInterval(fetchDashboardData, 30000);
     return () => clearInterval(interval);
@@ -163,11 +176,9 @@ export function DashboardPage() {
   const fetchDashboardData = async () => {
     try {
       if (!loading) setIsRefreshing(true);
-
       const timestamp = Date.now();
       const dashResponse = await api.get(`/users/dashboard?_t=${timestamp}`);
       const dashData = dashResponse.data?.data || {};
-
       setDashboardData(dashData);
     } catch (error: any) {
       toast.error('Erro ao carregar dashboard');
@@ -184,7 +195,8 @@ export function DashboardPage() {
 
   if (loading && !dashboardData) return <Loading />;
 
-  const totalRevenueRaw = dashboardData?.total_revenue ?? dashboardData?.totalRevenue ?? 0;
+  const totalRevenueRaw =
+    dashboardData?.total_revenue ?? dashboardData?.totalRevenue ?? 0;
   let totalRevenue = parseNumberFromAny(totalRevenueRaw);
 
   if (totalRevenue > 0 && totalRevenue < 1000) {
@@ -194,27 +206,23 @@ export function DashboardPage() {
   const totalSales = Math.round(
     parseNumberFromAny(dashboardData?.total_sales ?? dashboardData?.totalSales ?? 0)
   );
-
   const currentPoints = Math.round(
     parseNumberFromAny(dashboardData?.total_points ?? dashboardData?.totalPoints ?? 0)
   );
-
   const totalKilowatts = parseNumberFromAny(
     dashboardData?.total_kilowatts ?? dashboardData?.totalKilowatts ?? 0
   );
-
-  let currentLevel = String(dashboardData?.level ?? 'elite').toLowerCase().trim();
-  const levelMap: any = {
-    'consultorelit': 'elite',
+  let currentLevel = String(dashboardData?.level ?? '').toLowerCase().trim();
+  const levelMap: Record<string, keyof typeof LEVEL_THRESHOLDS> = {
     'consultor elite': 'elite',
-    'elite': 'elite',
-    'master': 'master',
+    elite: 'elite',
+    master: 'master',
     'consultor sênior': 'seniorConsultant',
-    'sênior': 'seniorConsultant',
+    sênior: 'seniorConsultant',
     'consultor prime': 'consultorPrime',
-    'prime': 'consultorPrime',
-    'executivo': 'executive',
-    'exec': 'executive',
+    prime: 'consultorPrime',
+    executivo: 'executive',
+    exec: 'executive',
   };
   currentLevel = levelMap[currentLevel] || 'elite';
 
@@ -225,16 +233,17 @@ export function DashboardPage() {
   const progressPercentage = calculateProgressPercentage(currentPoints, currentLevel);
   const pointsToNext = calculatePointsToNextLevel(currentPoints, currentLevel);
   const nextLevel = getNextLevel(currentLevel);
-
   const barChartData = dashboardData?.charts?.monthly || [];
   const pieChartData = dashboardData?.charts?.byStatus || [];
-
-  const currentLevelDisplay = LEVEL_THRESHOLDS[currentLevel as keyof typeof LEVEL_THRESHOLDS]?.display || 'Elite';
-  const nextLevelDisplay = LEVEL_THRESHOLDS[nextLevel as keyof typeof LEVEL_THRESHOLDS]?.display || 'Executivo';
+  const currentLevelDisplay =
+    LEVEL_THRESHOLDS[currentLevel as keyof typeof LEVEL_THRESHOLDS]?.display || 'Elite';
+  const nextLevelDisplay =
+    LEVEL_THRESHOLDS[nextLevel as keyof typeof LEVEL_THRESHOLDS]?.display || 'Executivo';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-3 sm:p-4 md:p-6 lg:p-8 pb-24 sm:pb-8">
       <div className="max-w-7xl mx-auto">
+
         <div className="mb-6 sm:mb-8 flex items-center justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 truncate">Dashboard</h1>
@@ -256,20 +265,17 @@ export function DashboardPage() {
             title="Receita Total"
             value={totalRevenue}
           />
-
           <StatsCard
             icon={<TrendingUp className="w-6 h-6" />}
             title="Vendas"
             value={totalSales}
           />
-
           <StatsCard
             icon={<Zap className="w-6 h-6" />}
             title="Pontos"
             value={currentPoints}
             compact={false}
           />
-
           <StatsCard
             icon={<Users className="w-6 h-6" />}
             title="Equipe"
@@ -278,6 +284,7 @@ export function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+          {/* Card de progresso com animação premium */}
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:col-span-2">
             <div className="flex items-start sm:items-center justify-between mb-4 sm:mb-6 gap-2">
               <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2 min-w-0">
@@ -302,16 +309,30 @@ export function DashboardPage() {
                 </span>
               </div>
 
-              <div className="relative">
-                <div className="w-full bg-gray-200 rounded-full h-3 sm:h-4 overflow-hidden shadow-sm">
+              {/* Barra de progresso ANIMADA premium */}
+              <div className="relative pt-6">
+                {progressPercentage > 0 && (
                   <div
-                    className="bg-gradient-to-r from-yellow-400 via-yellow-500 to-yellow-600 h-full rounded-full transition-all duration-700 ease-out shadow-md"
+                    className="absolute -top-1 transition-all duration-700 ease-out z-10"
+                    style={{
+                      left: `calc(${Math.min(progressPercentage, 95)}% - 20px)`,
+                    }}
+                  >
+                    <div className="bg-white border-2 border-yellow-400 shadow-lg px-3 py-1 rounded-full text-xs font-bold text-gray-800">
+                      {Math.round(progressPercentage)}%
+                    </div>
+                  </div>
+                )}
+
+                <div className="w-full bg-gray-200 rounded-full h-3 sm:h-4 overflow-hidden shadow-inner">
+                  <div
+                    className={`h-full rounded-full shadow-md transition-[width] duration-1000 ease-in-out bg-gradient-to-r ${levelColors[currentLevel]} ${progressPercentage > 0 ? 'animate-pulse-smooth' : ''}`}
                     style={{ width: `${progressPercentage}%` }}
                   />
                 </div>
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                <div className="flex justify-between text-xs text-gray-500 mt-1.5 px-1">
                   <span>0%</span>
-                  <span>{Math.round(progressPercentage)}%</span>
+                  <span className="font-semibold text-gray-700">{Math.round(progressPercentage)}%</span>
                   <span>100%</span>
                 </div>
               </div>
@@ -324,26 +345,27 @@ export function DashboardPage() {
                 <p className="text-xs text-gray-500 mt-1">⚡ Complete mais vendas!</p>
               </div>
 
+              {/* Estrutura de níveis visual */}
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <p className="text-xs font-semibold text-gray-700 mb-2">Estrutura de Níveis:</p>
                 <div className="grid grid-cols-5 gap-1">
-                  <div className="bg-blue-50 rounded p-1 sm:p-2 text-center">
+                  <div className="bg-blue-50 rounded p-1 sm:p-2 text-center border-2 border-blue-200">
                     <p className="text-xs font-bold text-blue-900">Elite</p>
                     <p className="text-xs text-blue-600">0</p>
                   </div>
-                  <div className="bg-green-50 rounded p-1 sm:p-2 text-center">
+                  <div className="bg-green-50 rounded p-1 sm:p-2 text-center border-2 border-green-200">
                     <p className="text-xs font-bold text-green-900">Master</p>
                     <p className="text-xs text-green-600">1K</p>
                   </div>
-                  <div className="bg-purple-50 rounded p-1 sm:p-2 text-center">
+                  <div className="bg-purple-50 rounded p-1 sm:p-2 text-center border-2 border-purple-200">
                     <p className="text-xs font-bold text-purple-900">Sênior</p>
                     <p className="text-xs text-purple-600">10K</p>
                   </div>
-                  <div className="bg-orange-50 rounded p-1 sm:p-2 text-center">
+                  <div className="bg-orange-50 rounded p-1 sm:p-2 text-center border-2 border-orange-200">
                     <p className="text-xs font-bold text-orange-900">Prime</p>
                     <p className="text-xs text-orange-600">800K</p>
                   </div>
-                  <div className="bg-red-50 rounded p-1 sm:p-2 text-center">
+                  <div className="bg-red-50 rounded p-1 sm:p-2 text-center border-2 border-red-200">
                     <p className="text-xs font-bold text-red-900">Exec</p>
                     <p className="text-xs text-red-600">2M</p>
                   </div>
@@ -352,28 +374,25 @@ export function DashboardPage() {
             </div>
           </div>
 
+          {/* Card lateral do nível */}
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 text-white">
             <div className="flex items-center gap-2 mb-4">
               <Award className="w-5 h-5 sm:w-6 h-6" />
               <h3 className="text-base sm:text-lg font-semibold">Seu Nível</h3>
             </div>
-
             <div className="space-y-3 sm:space-y-4">
               <div>
                 <p className="text-blue-100 text-xs sm:text-sm">Nível Atual</p>
                 <p className="text-2xl sm:text-3xl font-bold">{currentLevelDisplay}</p>
               </div>
-
               <div className="bg-white/20 rounded-lg p-2 sm:p-3">
                 <p className="text-blue-100 text-xs mb-1">Pontos Totais</p>
                 <p className="text-xl sm:text-2xl font-bold">{formatNumberFull(currentPoints)}</p>
               </div>
-
               <div className="bg-white/20 rounded-lg p-2 sm:p-3">
                 <p className="text-blue-100 text-xs mb-1">Progresso</p>
                 <p className="text-lg sm:text-xl font-bold">{Math.round(progressPercentage)}%</p>
               </div>
-
               <Link
                 to="/sales"
                 className="w-full bg-white text-blue-600 font-semibold py-2 px-3 sm:px-4 rounded-lg hover:bg-blue-50 transition-colors text-center block text-sm sm:text-base"
@@ -384,6 +403,7 @@ export function DashboardPage() {
           </div>
         </div>
 
+        {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6">
             <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Vendas Mensais</h3>
@@ -437,6 +457,7 @@ export function DashboardPage() {
           </div>
         </div>
 
+        {/* Resumo de desempenho */}
         <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6">
           <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
             <Target className="w-4 h-4 sm:w-5 h-5 text-blue-600" />
