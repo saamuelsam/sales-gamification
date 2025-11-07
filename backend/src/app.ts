@@ -20,13 +20,15 @@ const app = express();
 app.use(cors({
   origin: function(origin, callback) {
     const allowedOrigins = [
-      'http://localhost:5173',
-      'http://127.0.0.1:5173',
-      'http://localhost:3000',
-      'http://localhost:4000',
-      'https://sales-gamification-indol.vercel.app',
-      process.env.FRONTEND_URL
-    ].filter(Boolean);
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  'http://localhost:3000',
+  'http://localhost:4000',
+  'https://sales-gamification-indol.vercel.app',
+  'https://sales.sesfortal.com.br', // 👈 adiciona o domínio de produção
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
     
     // Se não tiver origin (requests diretas, mobile, etc), liberar
     if (!origin || allowedOrigins.includes(origin) || (origin && origin.includes('.vercel.app'))) {
