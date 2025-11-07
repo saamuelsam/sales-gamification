@@ -1,22 +1,27 @@
-# Etapa de build
+# Etapa 1: build do backend
 FROM node:18-alpine AS builder
 
 WORKDIR /usr/src/app
 
-COPY package*.json ./
-RUN npm install
+# Copia apenas os arquivos necessários do backend
+COPY package*.json tsconfig.json ./
+COPY src ./src
 
-COPY . .
-RUN npm run build
+# Instala dependências com devDependencies
+RUN npm ci --silent
 
-# Etapa de execução
+# Compila o backend
+RUN npx tsc -p tsconfig.json
+
+# Etapa 2: imagem final para execução
 FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
 COPY --from=builder /usr/src/app/dist ./dist
 COPY --from=builder /usr/src/app/package*.json ./
-RUN npm install --omit=dev
+
+RUN npm ci --only=production --silent
 
 ENV NODE_ENV=production
 EXPOSE 4000
