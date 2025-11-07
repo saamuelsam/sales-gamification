@@ -1,5 +1,5 @@
 // src/features/network/components/TeamSalesCard.tsx (MELHORADO)
-import { User, DollarSign, TrendingUp, Calendar, Eye, MoreVertical } from 'lucide-react';
+import { User, TrendingUp, Eye } from 'lucide-react';
 import { useState } from 'react';
 import { useTeamSales } from '../hooks/useTeamSales';
 

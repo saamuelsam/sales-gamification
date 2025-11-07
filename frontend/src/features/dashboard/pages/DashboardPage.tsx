@@ -50,7 +50,7 @@ const parseNumberFromAny = (v: any): number => {
   return isNaN(n) ? 0 : n;
 };
 
-const formatCurrency = (value: number): string => {
+/* const formatCurrency = (value: number): string => {
   const num = Number(value) || 0;
   return num.toLocaleString('pt-BR', {
     style: 'currency',
@@ -58,7 +58,7 @@ const formatCurrency = (value: number): string => {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-};
+}; */
 
 const formatNumberFull = (value: number): string => {
   const num = Number(value) || 0;

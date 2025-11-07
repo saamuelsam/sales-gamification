@@ -16,7 +16,7 @@ interface CommissionsCardProps {
   summary?: any;
 }
 
-export const CommissionsCard = ({ commissions, summary }: CommissionsCardProps) => {
+export const CommissionsCard = ({ commissions }: CommissionsCardProps) => {
   const totalCommissions = commissions.reduce((acc, c) => acc + c.amount, 0);
 
   const formatCurrency = (value: number) => {
