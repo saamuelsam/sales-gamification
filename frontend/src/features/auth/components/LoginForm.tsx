@@ -19,15 +19,36 @@ export const LoginForm = () => {
     setLoading(true);
 
     try {
-      await login(email, password);
+      // Faz a requisição de login para o backend
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Credenciais inválidas');
+      }
+
+      const data = await response.json();
+
+      // Verifica se veio user e token
+      if (!data.user || !data.token) {
+        throw new Error('Resposta inválida do servidor');
+      }
+
+      // Chama a função login do store corretamente ✅
+      login(data.user, data.token);
+
       toast.success('Login realizado com sucesso!');
       navigate('/dashboard');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erro ao fazer login');
+      toast.error(error.message || 'Erro ao fazer login');
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
