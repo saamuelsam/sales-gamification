@@ -1,10 +1,12 @@
+// frontend/src/pages/SalesPage.tsx
+
 import { useState, useEffect } from 'react';
 import { Plus, X, Eye, Trash } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
 import { CurrencyInput } from '@/components/ui/CurrencyInput';
-import { useInvalidateDashboard } from '@/features/dashboard/hooks/useDashboard'; // ✅ ADICIONE ISTO
+import { useInvalidateDashboard } from '@/features/dashboard/hooks/useDashboard';
 
 type SaleStatus = 'negotiation' | 'pending' | 'approved' | 'financingdenied' | 'cancelled' | 'delivered';
 type SaleType = 'direct' | 'consortium' | 'cash' | 'card';
@@ -37,12 +39,12 @@ interface Sale {
 }
 
 const statusConfig: Record<SaleStatus, { label: string; color: string }> = {
-  negotiation: { label: 'Negociação', color: 'bg-blue-100 text-blue-800' },
-  pending: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800' },
-  approved: { label: 'Aprovado', color: 'bg-green-100 text-green-800' },
-  financingdenied: { label: 'Negado', color: 'bg-red-100 text-red-800' },
-  cancelled: { label: 'Cancelado', color: 'bg-gray-100 text-gray-800' },
-  delivered: { label: 'Entregue', color: 'bg-purple-100 text-purple-800' },
+  negotiation: { label: 'Negociação', color: 'bg-primary/10 text-primary border-primary/30' },
+  pending: { label: 'Pendente', color: 'bg-accent/10 text-accent border-accent/30' },
+  approved: { label: 'Aprovado', color: 'bg-green-100 text-green-800 border-green-300' },
+  financingdenied: { label: 'Negado', color: 'bg-red-100 text-red-800 border-red-300' },
+  cancelled: { label: 'Cancelado', color: 'bg-gray-100 text-gray-800 border-gray-300' },
+  delivered: { label: 'Entregue', color: 'bg-highlight/10 text-highlight border-highlight/30' },
 };
 
 export const SalesPage = () => {
@@ -54,7 +56,6 @@ export const SalesPage = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [saleDetails, setSaleDetails] = useState<Sale | null>(null);
 
-  // ✅ ADICIONE ISTO
   const invalidateDashboard = useInvalidateDashboard();
 
   useEffect(() => {
@@ -100,16 +101,12 @@ export const SalesPage = () => {
     }
   };
 
-  // ✅ ATUALIZADO: handleDelete agora invalida o dashboard
   const handleDelete = async (id: string) => {
     if (!confirm('Excluir esta venda?')) return;
     try {
       await api.delete(`/sales/${id}`);
       toast.success('Venda excluída');
-      
-      // ✅ INVALIDAR DASHBOARD
       invalidateDashboard();
-      
       fetchSales();
     } catch {
       toast.error('Erro ao excluir');
@@ -123,27 +120,27 @@ export const SalesPage = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 p-2 sm:p-4 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-neutral via-neutral to-accent/5 p-2 sm:p-4 pb-20">
       <div className="max-w-7xl mx-auto space-y-3">
         <div className="flex justify-between items-center gap-2">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Vendas</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-primary">Vendas</h1>
           </div>
           <Button
             onClick={() => setShowCreateModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-lg text-sm flex items-center gap-1"
+            className="bg-primary hover:bg-highlight text-neutral px-3 py-2 rounded-lg text-sm flex items-center gap-1 shadow-md transition-all"
           >
             <Plus className="w-4 h-4" />
             Nova
           </Button>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border p-2 space-y-2">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2 space-y-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value as any)}
-              className="w-full px-3 py-2 text-sm border rounded-lg"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
             >
               <option value="all">Todos Status</option>
               {Object.entries(statusConfig).map(([key, config]) => (
@@ -158,7 +155,7 @@ export const SalesPage = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Buscar cliente..."
-              className="w-full px-3 py-2 text-sm border rounded-lg"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
             />
           </div>
         </div>
@@ -166,7 +163,7 @@ export const SalesPage = () => {
         <div className="space-y-2">
           {loading ? (
             <div className="bg-white rounded-lg p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
               <p className="text-sm text-gray-600 mt-2">Carregando...</p>
             </div>
           ) : filteredSales.length === 0 ? (
@@ -175,22 +172,22 @@ export const SalesPage = () => {
             </div>
           ) : (
             filteredSales.map((sale) => (
-              <div key={sale.id} className="bg-white rounded-lg shadow-sm border p-3">
+              <div key={sale.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 hover:shadow-md transition-shadow">
                 <div className="flex justify-between items-start mb-2 gap-2">
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm text-gray-900 truncate">
+                    <h3 className="font-semibold text-sm text-primary truncate">
                       {sale.client_name}
                     </h3>
                     <div className="flex gap-1 mt-1">
                       <span
-                        className={`text-xs px-2 py-0.5 rounded-full ${
+                        className={`text-xs px-2 py-0.5 rounded-full border ${
                           sale.sale_type === 'consortium'
-                            ? 'bg-purple-100 text-purple-800'
+                            ? 'bg-highlight/10 text-highlight border-highlight/30'
                             : sale.sale_type === 'cash'
-                            ? 'bg-green-100 text-green-800'
+                            ? 'bg-green-100 text-green-800 border-green-300'
                             : sale.sale_type === 'card'
-                            ? 'bg-orange-100 text-orange-800'
-                            : 'bg-blue-100 text-blue-800'
+                            ? 'bg-accent/10 text-accent border-accent/30'
+                            : 'bg-primary/10 text-primary border-primary/30'
                         }`}
                       >
                         {sale.sale_type === 'consortium'
@@ -204,7 +201,7 @@ export const SalesPage = () => {
                     </div>
                   </div>
                   <span
-                    className={`text-xs px-2 py-1 rounded-full ${
+                    className={`text-xs px-2 py-1 rounded-full border ${
                       statusConfig[sale.status]?.color
                     }`}
                   >
@@ -215,7 +212,7 @@ export const SalesPage = () => {
                 <div className="grid grid-cols-2 gap-2 mb-2 text-xs">
                   <div>
                     <p className="text-gray-600">Valor</p>
-                    <p className="font-semibold text-gray-900">
+                    <p className="font-semibold text-primary">
                       {new Intl.NumberFormat('pt-BR', {
                         style: 'currency',
                         currency: 'BRL',
@@ -227,8 +224,8 @@ export const SalesPage = () => {
 
                   {sale.sale_type === 'consortium' && sale.consortium_value ? (
                     <div>
-                      <p className="text-purple-600">Consórcio</p>
-                      <p className="font-semibold text-purple-700">
+                      <p className="text-highlight">Consórcio</p>
+                      <p className="font-semibold text-highlight">
                         {new Intl.NumberFormat('pt-BR', {
                           style: 'currency',
                           currency: 'BRL',
@@ -265,14 +262,14 @@ export const SalesPage = () => {
                 <div className="flex gap-1 pt-2 border-t">
                   <button
                     onClick={() => handleViewDetails(sale)}
-                    className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-blue-50 text-blue-700 rounded text-xs font-medium"
+                    className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded text-xs font-medium transition-colors"
                   >
                     <Eye className="w-3 h-3" />
                     Ver
                   </button>
                   <button
                     onClick={() => handleDelete(sale.id)}
-                    className="px-3 py-2 bg-red-50 text-red-700 rounded"
+                    className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded transition-colors"
                   >
                     <Trash className="w-3 h-3" />
                   </button>
@@ -317,7 +314,6 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
   const [saleType, setSaleType] = useState<SaleType>('direct');
   const [loading, setLoading] = useState(false);
 
-  // ✅ ADICIONE ISTO
   const invalidateDashboard = useInvalidateDashboard();
 
   const [clientData, setClientData] = useState({
@@ -348,7 +344,6 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
     setStep('sale');
   };
 
-  // ✅ ATUALIZADO: handleSubmit agora invalida o dashboard
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -380,17 +375,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
 
       await api.post('/sales', payload);
       toast.success('Venda cadastrada!');
-
-      // ✅ INVALIDAR DASHBOARD
       invalidateDashboard();
-
-      // Remover o event customizado (não é mais necessário)
-      // window.dispatchEvent(
-      //   new CustomEvent('refreshDashboard', {
-      //     detail: { timestamp: Date.now() },
-      //   }),
-      // );
-
       onSuccess();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erro ao cadastrar');
@@ -407,7 +392,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
         style={{ maxHeight: '90vh', height: 'auto' }}
       >
         <div className="flex justify-between items-center px-4 py-3 border-b bg-white rounded-t-2xl shrink-0">
-          <h2 className="text-base font-bold">
+          <h2 className="text-base font-bold text-primary">
             {step === 'client' ? '👤 Dados do Cliente' : '📊 Dados da Venda'}
           </h2>
           <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-full transition-colors">
@@ -416,8 +401,8 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
         </div>
 
         <div className="flex gap-2 px-4 py-2 bg-gray-50 shrink-0">
-          <div className={`flex-1 h-1.5 rounded-full transition-all ${step === 'client' ? 'bg-blue-600' : 'bg-green-600'}`} />
-          <div className={`flex-1 h-1.5 rounded-full transition-all ${step === 'sale' ? 'bg-blue-600' : 'bg-gray-300'}`} />
+          <div className={`flex-1 h-1.5 rounded-full transition-all ${step === 'client' ? 'bg-primary' : 'bg-accent'}`} />
+          <div className={`flex-1 h-1.5 rounded-full transition-all ${step === 'sale' ? 'bg-primary' : 'bg-gray-300'}`} />
         </div>
 
         <div
@@ -432,7 +417,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                   type="text"
                   value={clientData.name}
                   onChange={(e) => setClientData({ ...clientData, name: e.target.value })}
-                  className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                   placeholder="João Silva"
                   required
                   autoFocus
@@ -446,7 +431,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                     type="text"
                     value={clientData.cpf}
                     onChange={(e) => setClientData({ ...clientData, cpf: e.target.value })}
-                    className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-primary"
                     placeholder="000.000.000-00"
                   />
                 </div>
@@ -456,7 +441,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                     type="tel"
                     value={clientData.phone}
                     onChange={(e) => setClientData({ ...clientData, phone: e.target.value })}
-                    className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-primary"
                     placeholder="(00) 00000-0000"
                   />
                 </div>
@@ -468,7 +453,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                   type="email"
                   value={clientData.email}
                   onChange={(e) => setClientData({ ...clientData, email: e.target.value })}
-                  className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-primary"
                   placeholder="cliente@email.com"
                 />
               </div>
@@ -480,7 +465,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                     type="text"
                     value={clientData.cep}
                     onChange={(e) => setClientData({ ...clientData, cep: e.target.value })}
-                    className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-primary"
                     placeholder="00000-000"
                   />
                 </div>
@@ -490,7 +475,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                     type="text"
                     value={clientData.city}
                     onChange={(e) => setClientData({ ...clientData, city: e.target.value })}
-                    className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-primary"
                     placeholder="São Paulo"
                   />
                 </div>
@@ -502,7 +487,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                   type="text"
                   value={clientData.street}
                   onChange={(e) => setClientData({ ...clientData, street: e.target.value })}
-                  className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-primary"
                   placeholder="Rua Exemplo"
                 />
               </div>
@@ -514,7 +499,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                     type="text"
                     value={clientData.number}
                     onChange={(e) => setClientData({ ...clientData, number: e.target.value })}
-                    className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-primary"
                     placeholder="123"
                   />
                 </div>
@@ -524,7 +509,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                     type="text"
                     value={clientData.state}
                     onChange={(e) => setClientData({ ...clientData, state: e.target.value.toUpperCase() })}
-                    className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-primary"
                     placeholder="SP"
                     maxLength={2}
                   />
@@ -535,9 +520,9 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
             </form>
           ) : (
             <form onSubmit={handleSubmit} className="p-4 space-y-3">
-              <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-3 border border-blue-200">
-                <p className="text-xs text-blue-600 font-medium mb-0.5">Cliente Selecionado</p>
-                <p className="font-bold text-sm text-gray-900">{clientData.name}</p>
+              <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg p-3 border border-primary/20">
+                <p className="text-xs text-primary font-medium mb-0.5">Cliente Selecionado</p>
+                <p className="font-bold text-sm text-primary">{clientData.name}</p>
               </div>
 
               <div>
@@ -547,7 +532,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                     type="button"
                     onClick={() => setSaleType('direct')}
                     className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${
-                      saleType === 'direct' ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-300 text-gray-700'
+                      saleType === 'direct' ? 'border-primary bg-primary/10 text-primary' : 'border-gray-300 text-gray-700'
                     }`}
                   >
                     💳 Financiamento
@@ -556,7 +541,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                     type="button"
                     onClick={() => setSaleType('consortium')}
                     className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${
-                      saleType === 'consortium' ? 'border-purple-600 bg-purple-50 text-purple-700' : 'border-gray-300 text-gray-700'
+                      saleType === 'consortium' ? 'border-highlight bg-highlight/10 text-highlight' : 'border-gray-300 text-gray-700'
                     }`}
                   >
                     🏦 Consórcio
@@ -574,7 +559,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                     type="button"
                     onClick={() => setSaleType('card')}
                     className={`px-3 py-3 rounded-lg border-2 text-xs font-medium transition-all ${
-                      saleType === 'card' ? 'border-orange-600 bg-orange-50 text-orange-700' : 'border-gray-300 text-gray-700'
+                      saleType === 'card' ? 'border-accent bg-accent/10 text-accent' : 'border-gray-300 text-gray-700'
                     }`}
                   >
                     💳 Cartão
@@ -609,7 +594,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                         step="0.01"
                         value={saleData.kilowatts}
                         onChange={(e) => setSaleData({ ...saleData, kilowatts: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-base"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-highlight text-base"
                         placeholder="10.5"
                         required
                       />
@@ -620,7 +605,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                         type="number"
                         value={saleData.consortium_term}
                         onChange={(e) => setSaleData({ ...saleData, consortium_term: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-base"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-highlight text-base"
                         placeholder="84"
                         required
                       />
@@ -641,15 +626,15 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                         step="0.01"
                         value={saleData.consortium_admin_fee}
                         onChange={(e) => setSaleData({ ...saleData, consortium_admin_fee: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 text-base"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-highlight text-base"
                         placeholder="15"
                       />
                     </div>
                   </div>
 
                   {saleData.consortium_value && (
-                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                      <p className="text-sm text-purple-800">
+                    <div className="bg-highlight/10 border border-highlight/30 rounded-lg p-4">
+                      <p className="text-sm text-highlight">
                         <strong>Comissão prevista:</strong>{' '}
                         R{' '}
                         {(parseFloat(saleData.consortium_value) * 0.05).toLocaleString('pt-BR', {
@@ -676,7 +661,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                       step="0.01"
                       value={saleData.kilowatts}
                       onChange={(e) => setSaleData({ ...saleData, kilowatts: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-base"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary text-base"
                       placeholder="10.5"
                       required
                     />
@@ -695,7 +680,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                 <textarea
                   value={saleData.notes}
                   onChange={(e) => setSaleData({ ...saleData, notes: e.target.value })}
-                  className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500 resize-none"
+                  className="w-full px-3 py-2.5 text-sm border rounded-lg focus:ring-2 focus:ring-primary resize-none"
                   placeholder="Informações adicionais..."
                   rows={2}
                 />
@@ -722,7 +707,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
               <button
                 type="submit"
                 onClick={handleNext}
-                className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-sm shadow-lg transition-colors"
+                className="flex-1 px-4 py-3 bg-primary hover:bg-highlight text-white rounded-lg font-medium text-sm shadow-lg transition-colors"
               >
                 Próximo →
               </button>
@@ -731,7 +716,7 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
                 type="submit"
                 onClick={handleSubmit}
                 disabled={loading}
-                className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm shadow-lg transition-colors"
+                className="flex-1 px-4 py-3 bg-primary hover:bg-highlight text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed text-sm shadow-lg transition-colors"
               >
                 {loading ? (
                   <span className="flex items-center justify-center gap-2">
@@ -761,10 +746,8 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
   const [newStatus, setNewStatus] = useState<SaleStatus>(sale.status);
   const [loading, setLoading] = useState(false);
 
-  // ✅ ADICIONE ISTO
   const invalidateDashboard = useInvalidateDashboard();
 
-  // ✅ ATUALIZADO: handleUpdateStatus agora invalida o dashboard
   const handleUpdateStatus = async () => {
     if (newStatus === sale.status) {
       setIsEditingStatus(false);
@@ -775,10 +758,7 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
       await api.patch(`/sales/${sale.id}/status`, { status: newStatus });
       toast.success('Status atualizado!');
       setIsEditingStatus(false);
-      
-      // ✅ INVALIDAR DASHBOARD
       invalidateDashboard();
-      
       onUpdate();
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erro ao atualizar status');
@@ -792,7 +772,7 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
       <div className="relative bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl flex flex-col shadow-2xl" style={{ maxHeight: '90vh' }}>
         <div className="flex justify-between items-center px-4 py-3 border-b bg-white rounded-t-2xl shrink-0">
-          <h2 className="text-base font-bold">Detalhes da Venda</h2>
+          <h2 className="text-base font-bold text-primary">Detalhes da Venda</h2>
           <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-full transition-colors">
             <X className="w-5 h-5" />
           </button>
@@ -805,7 +785,7 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
               {!isEditingStatus && (
                 <button
                   onClick={() => setIsEditingStatus(true)}
-                  className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-xs text-primary hover:text-highlight font-medium"
                 >
                   ✏️ Editar
                 </button>
@@ -817,7 +797,7 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
                 <select
                   value={newStatus}
                   onChange={(e) => setNewStatus(e.target.value as SaleStatus)}
-                  className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-primary"
                 >
                   <option value="negotiation">🔵 Negociação</option>
                   <option value="pending">🟡 Pendente</option>
@@ -837,7 +817,7 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
                   <button
                     onClick={handleUpdateStatus}
                     disabled={loading}
-                    className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+                    className="flex-1 px-3 py-2 bg-primary hover:bg-highlight text-white rounded-lg text-sm font-medium disabled:opacity-50"
                   >
                     {loading ? 'Salvando...' : 'Salvar'}
                   </button>
@@ -845,7 +825,7 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
               </div>
             ) : (
               <span
-                className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold ${
+                className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold border ${
                   statusConfig[sale.status]?.color || 'bg-gray-100 text-gray-800'
                 }`}
               >
@@ -858,14 +838,14 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
             <div className="bg-gray-50 rounded-lg p-2.5">
               <p className="text-xs text-gray-600 mb-1.5">Tipo de Venda</p>
               <span
-                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
                   sale.sale_type === 'consortium'
-                    ? 'bg-purple-100 text-purple-800'
+                    ? 'bg-highlight/10 text-highlight border-highlight/30'
                     : sale.sale_type === 'cash'
-                    ? 'bg-green-100 text-green-800'
+                    ? 'bg-green-100 text-green-800 border-green-300'
                     : sale.sale_type === 'card'
-                    ? 'bg-orange-100 text-orange-800'
-                    : 'bg-blue-100 text-blue-800'
+                    ? 'bg-accent/10 text-accent border-accent/30'
+                    : 'bg-primary/10 text-primary border-primary/30'
                 }`}
               >
                 {sale.sale_type === 'consortium'
@@ -880,17 +860,17 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
           )}
 
           <div className="grid grid-cols-2 gap-2">
-            <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-              <p className="text-xs text-blue-600 mb-1">Valor Total</p>
-              <p className="text-lg font-bold text-blue-900">
+            <div className="bg-primary/10 rounded-lg p-3 border border-primary/20">
+              <p className="text-xs text-primary mb-1">Valor Total</p>
+              <p className="text-lg font-bold text-primary">
                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sale.value)}
               </p>
             </div>
 
             {sale.sale_type === 'consortium' && sale.consortium_value && (
-              <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
-                <p className="text-xs text-purple-600 mb-1">Consórcio</p>
-                <p className="text-lg font-bold text-purple-900">
+              <div className="bg-highlight/10 rounded-lg p-3 border border-highlight/20">
+                <p className="text-xs text-highlight mb-1">Consórcio</p>
+                <p className="text-lg font-bold text-highlight">
                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sale.consortium_value)}
                 </p>
               </div>
@@ -902,15 +882,15 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
             </div>
 
             {typeof sale.points === 'number' && (
-              <div className="bg-green-50 rounded-lg p-3 border border-green-200">
-                <p className="text-xs text-green-600 mb-1">Pontos</p>
-                <p className="text-base font-semibold text-green-700">{sale.points} pts</p>
+              <div className="bg-accent/10 rounded-lg p-3 border border-accent/30">
+                <p className="text-xs text-accent mb-1">Pontos</p>
+                <p className="text-base font-semibold text-accent">{sale.points} pts</p>
               </div>
             )}
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold mb-2">Informações do Cliente</h3>
+            <h3 className="text-sm font-semibold mb-2 text-primary">Informações do Cliente</h3>
             <div className="grid grid-cols-2 gap-2">
               <div className="bg-gray-50 rounded p-2.5">
                 <p className="text-xs text-gray-600 mb-0.5">Nome</p>
@@ -939,7 +919,7 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
 
           {sale.street && (
             <div className="bg-gray-50 rounded-lg p-3">
-              <h3 className="text-sm font-semibold mb-1.5">Endereço</h3>
+              <h3 className="text-sm font-semibold mb-1.5 text-primary">Endereço</h3>
               <p className="text-xs text-gray-700 leading-relaxed">
                 {sale.street}, {sale.number || 'S/N'}
                 {sale.neighborhood && ` - ${sale.neighborhood}`}
@@ -951,8 +931,8 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
           )}
 
           {sale.notes && (
-            <div className="bg-yellow-50 rounded-lg p-3 border border-yellow-200">
-              <h3 className="text-sm font-semibold mb-1.5">Observações</h3>
+            <div className="bg-accent/10 rounded-lg p-3 border border-accent/30">
+              <h3 className="text-sm font-semibold mb-1.5 text-accent">Observações</h3>
               <p className="text-xs text-gray-700 whitespace-pre-wrap">{sale.notes}</p>
             </div>
           )}
@@ -961,7 +941,7 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
         </div>
 
         <div className="px-4 py-3 border-t bg-white shrink-0 rounded-b-2xl">
-          <button onClick={onClose} className="w-full bg-gray-600 hover:bg-gray-700 text-white py-3 rounded-lg font-medium transition-colors">
+          <button onClick={onClose} className="w-full bg-primary hover:bg-highlight text-white py-3 rounded-lg font-medium transition-colors shadow-md">
             Fechar
           </button>
         </div>

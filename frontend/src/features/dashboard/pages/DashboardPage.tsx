@@ -76,13 +76,7 @@ const LEVEL_THRESHOLDS = {
   consultorPrime: { display: 'Consultor Prime', points: 800_000 },
   executive: { display: 'Executivo', points: 2_000_000 },
 };
-const levelColors: Record<string, string> = {
-  elite: 'from-blue-400 via-blue-500 to-blue-600',
-  master: 'from-green-400 via-green-500 to-green-600',
-  seniorConsultant: 'from-purple-400 via-purple-500 to-purple-600',
-  consultorPrime: 'from-orange-400 via-orange-500 to-orange-600',
-  executive: 'from-red-400 via-red-500 to-red-600',
-};
+
 const getNextLevel = (currentLevel: string): string => {
   const levelOrder = [
     'elite',
@@ -96,6 +90,7 @@ const getNextLevel = (currentLevel: string): string => {
     return 'executive';
   return levelOrder[currentIndex + 1];
 };
+
 const calculateProgressPercentage = (currentPoints: number, levelName: string): number => {
   const levelOrder = [
     'elite',
@@ -118,6 +113,7 @@ const calculateProgressPercentage = (currentPoints: number, levelName: string): 
   progress = Math.min(progress, 100);
   return progress;
 };
+
 const calculatePointsToNextLevel = (currentPoints: number, levelName: string): number => {
   const levelOrder = [
     'elite',
@@ -141,7 +137,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return (
       <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
         <p className="font-semibold text-gray-800">{label}</p>
-        <p className="text-blue-600 font-bold">{formatNumberFull(parsed)}</p>
+        <p className="text-primary font-bold">{formatNumberFull(parsed)}</p>
       </div>
     );
   }
@@ -165,9 +161,11 @@ export function DashboardPage() {
       window.removeEventListener('refreshDashboard', handleRefresh as EventListener);
     };
   }, []);
+
   useEffect(() => {
     fetchDashboardData();
   }, [location.pathname]);
+
   useEffect(() => {
     const interval = setInterval(fetchDashboardData, 30000);
     return () => clearInterval(interval);
@@ -241,59 +239,62 @@ export function DashboardPage() {
     LEVEL_THRESHOLDS[nextLevel as keyof typeof LEVEL_THRESHOLDS]?.display || 'Executivo';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-3 sm:p-4 md:p-6 lg:p-8 pb-24 sm:pb-8">
+    <div className="min-h-screen bg-gradient-to-br from-neutral via-neutral to-accent/5 p-3 sm:p-4 md:p-6 lg:p-8 pb-24 sm:pb-8">
       <div className="max-w-7xl mx-auto">
 
+        {/* Header */}
         <div className="mb-6 sm:mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 truncate">Dashboard</h1>
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-primary truncate">Dashboard</h1>
             <p className="text-gray-600 mt-1 text-sm sm:text-base truncate">Bem-vindo, {user?.name}! 👋</p>
           </div>
           <button
             onClick={handleManualRefresh}
             disabled={isRefreshing}
-            className="px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg flex items-center gap-2 text-sm transition-all"
+            className="px-3 py-2 bg-primary hover:bg-highlight disabled:bg-gray-400 text-neutral rounded-lg flex items-center gap-2 text-sm transition-all shadow-md"
           >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-accent' : 'text-neutral'}`} />
             <span className="hidden sm:inline">Atualizar</span>
           </button>
         </div>
 
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
           <StatsCard
-            icon={<DollarSign className="w-6 h-6" />}
+            icon={<DollarSign className="w-6 h-6 text-accent" />}
             title="Receita Total"
             value={totalRevenue}
           />
           <StatsCard
-            icon={<TrendingUp className="w-6 h-6" />}
+            icon={<TrendingUp className="w-6 h-6 text-highlight" />}
             title="Vendas"
             value={totalSales}
           />
           <StatsCard
-            icon={<Zap className="w-6 h-6" />}
+            icon={<Zap className="w-6 h-6 text-accent" />}
             title="Pontos"
             value={currentPoints}
             compact={false}
           />
           <StatsCard
-            icon={<Users className="w-6 h-6" />}
+            icon={<Users className="w-6 h-6 text-primary" />}
             title="Equipe"
             value={teamMembers}
           />
         </div>
 
+        {/* Progress & Level Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
-          {/* Card de progresso com animação premium */}
+          {/* Card de progresso PREMIUM */}
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6 lg:col-span-2">
             <div className="flex items-start sm:items-center justify-between mb-4 sm:mb-6 gap-2">
               <h3 className="text-base sm:text-lg font-semibold flex items-center gap-2 min-w-0">
-                <Zap className="w-4 h-4 sm:w-5 h-5 text-yellow-500 flex-shrink-0" />
+                <Zap className="w-4 h-4 sm:w-5 h-5 text-accent flex-shrink-0" />
                 <span className="truncate">Próximo: {nextLevelDisplay}</span>
               </h3>
               <Link
                 to="/goals"
-                className="text-blue-600 text-xs sm:text-sm font-medium flex items-center gap-1 hover:gap-2 transition-all flex-shrink-0 whitespace-nowrap"
+                className="text-primary text-xs sm:text-sm font-medium flex items-center gap-1 hover:gap-2 hover:text-highlight transition-all flex-shrink-0 whitespace-nowrap"
               >
                 Ver metas <ArrowRight className="w-3 h-3 sm:w-4 h-4" />
               </Link>
@@ -302,14 +303,14 @@ export function DashboardPage() {
             <div className="space-y-3 sm:space-y-4">
               <div className="flex justify-between items-center text-xs sm:text-sm">
                 <span className="font-medium text-gray-700">
-                  Nível: <strong className="text-gray-900">{currentLevelDisplay}</strong>
+                  Nível: <strong className="text-primary">{currentLevelDisplay}</strong>
                 </span>
-                <span className="font-bold text-gray-900 text-xs sm:text-sm">
+                <span className="font-bold text-primary text-xs sm:text-sm">
                   {formatNumberFull(currentPoints)} / {formatNumberFull(currentPoints + pointsToNext)}
                 </span>
               </div>
 
-              {/* Barra de progresso ANIMADA premium */}
+              {/* Barra de progresso ANIMADA com nova paleta */}
               <div className="relative pt-6">
                 {progressPercentage > 0 && (
                   <div
@@ -318,7 +319,7 @@ export function DashboardPage() {
                       left: `calc(${Math.min(progressPercentage, 95)}% - 20px)`,
                     }}
                   >
-                    <div className="bg-white border-2 border-yellow-400 shadow-lg px-3 py-1 rounded-full text-xs font-bold text-gray-800">
+                    <div className="bg-white border-2 border-accent shadow-lg px-3 py-1 rounded-full text-xs font-bold text-primary">
                       {Math.round(progressPercentage)}%
                     </div>
                   </div>
@@ -326,76 +327,76 @@ export function DashboardPage() {
 
                 <div className="w-full bg-gray-200 rounded-full h-3 sm:h-4 overflow-hidden shadow-inner">
                   <div
-                    className={`h-full rounded-full shadow-md transition-[width] duration-1000 ease-in-out bg-gradient-to-r ${levelColors[currentLevel]} ${progressPercentage > 0 ? 'animate-pulse-smooth' : ''}`}
+                    className={`h-full rounded-full shadow-md transition-[width] duration-1000 ease-in-out bg-gradient-to-r from-accent via-highlight to-primary ${progressPercentage > 0 ? 'animate-pulse-smooth' : ''}`}
                     style={{ width: `${progressPercentage}%` }}
                   />
                 </div>
                 <div className="flex justify-between text-xs text-gray-500 mt-1.5 px-1">
                   <span>0%</span>
-                  <span className="font-semibold text-gray-700">{Math.round(progressPercentage)}%</span>
+                  <span className="font-semibold text-accent">{Math.round(progressPercentage)}%</span>
                   <span>100%</span>
                 </div>
               </div>
 
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 rounded-lg p-3 sm:p-4 border border-yellow-200">
-                <p className="text-xs sm:text-sm text-gray-600">
-                  Faltam <strong className="text-yellow-700">{formatNumberFull(pointsToNext)}</strong> pontos para{' '}
-                  <strong className="text-yellow-700">{nextLevelDisplay}</strong>
+              <div className="bg-gradient-to-r from-accent/10 to-highlight/10 rounded-lg p-3 sm:p-4 border border-accent/30">
+                <p className="text-xs sm:text-sm text-gray-700">
+                  Faltam <strong className="text-highlight">{formatNumberFull(pointsToNext)}</strong> pontos para{' '}
+                  <strong className="text-highlight">{nextLevelDisplay}</strong>
                 </p>
                 <p className="text-xs text-gray-500 mt-1">⚡ Complete mais vendas!</p>
               </div>
 
-              {/* Estrutura de níveis visual */}
+              {/* Estrutura de níveis */}
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <p className="text-xs font-semibold text-gray-700 mb-2">Estrutura de Níveis:</p>
                 <div className="grid grid-cols-5 gap-1">
-                  <div className="bg-blue-50 rounded p-1 sm:p-2 text-center border-2 border-blue-200">
-                    <p className="text-xs font-bold text-blue-900">Elite</p>
-                    <p className="text-xs text-blue-600">0</p>
+                  <div className="bg-primary/10 rounded p-1 sm:p-2 text-center border-2 border-primary/30">
+                    <p className="text-xs font-bold text-primary">Elite</p>
+                    <p className="text-xs text-primary">0</p>
                   </div>
-                  <div className="bg-green-50 rounded p-1 sm:p-2 text-center border-2 border-green-200">
-                    <p className="text-xs font-bold text-green-900">Master</p>
-                    <p className="text-xs text-green-600">1K</p>
+                  <div className="bg-accent/10 rounded p-1 sm:p-2 text-center border-2 border-accent/30">
+                    <p className="text-xs font-bold text-accent">Master</p>
+                    <p className="text-xs text-accent">1K</p>
                   </div>
-                  <div className="bg-purple-50 rounded p-1 sm:p-2 text-center border-2 border-purple-200">
-                    <p className="text-xs font-bold text-purple-900">Sênior</p>
-                    <p className="text-xs text-purple-600">10K</p>
+                  <div className="bg-highlight/10 rounded p-1 sm:p-2 text-center border-2 border-highlight/30">
+                    <p className="text-xs font-bold text-highlight">Sênior</p>
+                    <p className="text-xs text-highlight">10K</p>
                   </div>
-                  <div className="bg-orange-50 rounded p-1 sm:p-2 text-center border-2 border-orange-200">
-                    <p className="text-xs font-bold text-orange-900">Prime</p>
-                    <p className="text-xs text-orange-600">800K</p>
+                  <div className="bg-accent/20 rounded p-1 sm:p-2 text-center border-2 border-accent">
+                    <p className="text-xs font-bold text-accent">Prime</p>
+                    <p className="text-xs text-accent">800K</p>
                   </div>
-                  <div className="bg-red-50 rounded p-1 sm:p-2 text-center border-2 border-red-200">
-                    <p className="text-xs font-bold text-red-900">Exec</p>
-                    <p className="text-xs text-red-600">2M</p>
+                  <div className="bg-highlight/20 rounded p-1 sm:p-2 text-center border-2 border-highlight">
+                    <p className="text-xs font-bold text-highlight">Exec</p>
+                    <p className="text-xs text-highlight">2M</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Card lateral do nível */}
-          <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 text-white">
+          {/* Card lateral do nível com nova paleta */}
+          <div className="bg-gradient-to-br from-primary to-highlight rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 text-white">
             <div className="flex items-center gap-2 mb-4">
               <Award className="w-5 h-5 sm:w-6 h-6" />
               <h3 className="text-base sm:text-lg font-semibold">Seu Nível</h3>
             </div>
             <div className="space-y-3 sm:space-y-4">
               <div>
-                <p className="text-blue-100 text-xs sm:text-sm">Nível Atual</p>
+                <p className="text-white/80 text-xs sm:text-sm">Nível Atual</p>
                 <p className="text-2xl sm:text-3xl font-bold">{currentLevelDisplay}</p>
               </div>
               <div className="bg-white/20 rounded-lg p-2 sm:p-3">
-                <p className="text-blue-100 text-xs mb-1">Pontos Totais</p>
+                <p className="text-white/80 text-xs mb-1">Pontos Totais</p>
                 <p className="text-xl sm:text-2xl font-bold">{formatNumberFull(currentPoints)}</p>
               </div>
               <div className="bg-white/20 rounded-lg p-2 sm:p-3">
-                <p className="text-blue-100 text-xs mb-1">Progresso</p>
+                <p className="text-white/80 text-xs mb-1">Progresso</p>
                 <p className="text-lg sm:text-xl font-bold">{Math.round(progressPercentage)}%</p>
               </div>
               <Link
                 to="/sales"
-                className="w-full bg-white text-blue-600 font-semibold py-2 px-3 sm:px-4 rounded-lg hover:bg-blue-50 transition-colors text-center block text-sm sm:text-base"
+                className="w-full bg-accent hover:bg-accent/90 text-primary font-semibold py-2 px-3 sm:px-4 rounded-lg transition-colors text-center block text-sm sm:text-base shadow-md"
               >
                 Registrar Venda
               </Link>
@@ -406,7 +407,7 @@ export function DashboardPage() {
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6">
-            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Vendas Mensais</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-primary">Vendas Mensais</h3>
             {barChartData && barChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={barChartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
@@ -414,7 +415,7 @@ export function DashboardPage() {
                   <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                   <YAxis tick={{ fontSize: 11 }} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="count" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="count" fill="#123450" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
@@ -425,7 +426,7 @@ export function DashboardPage() {
           </div>
 
           <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6">
-            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Status das Vendas</h3>
+            <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 text-primary">Status das Vendas</h3>
             {pieChartData && pieChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height={250}>
                 <PieChart margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
@@ -442,7 +443,7 @@ export function DashboardPage() {
                     {pieChartData.map((_: any, index: number) => (
                       <Cell
                         key={`cell-${index}`}
-                        fill={['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'][index % 5]}
+                        fill={['#123450', '#F9A60C', '#FC6E22', '#10b981', '#8b5cf6'][index % 5]}
                       />
                     ))}
                   </Pie>
@@ -460,27 +461,27 @@ export function DashboardPage() {
         {/* Resumo de desempenho */}
         <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6">
           <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4 flex items-center gap-2">
-            <Target className="w-4 h-4 sm:w-5 h-5 text-blue-600" />
-            <span>Resumo de Desempenho</span>
+            <Target className="w-4 h-4 sm:w-5 h-5 text-primary" />
+            <span className="text-primary">Resumo de Desempenho</span>
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
-            <div className="bg-blue-50 rounded-lg p-3 sm:p-4">
+            <div className="bg-primary/10 rounded-lg p-3 sm:p-4 border border-primary/20">
               <p className="text-gray-600 text-xs sm:text-sm">Meta Mensal</p>
-              <p className="text-lg sm:text-2xl font-bold text-blue-600">400 kW</p>
+              <p className="text-lg sm:text-2xl font-bold text-primary">400 kW</p>
             </div>
-            <div className="bg-green-50 rounded-lg p-3 sm:p-4">
+            <div className="bg-accent/10 rounded-lg p-3 sm:p-4 border border-accent/20">
               <p className="text-gray-600 text-xs sm:text-sm">Total kW</p>
-              <p className="text-lg sm:text-2xl font-bold text-green-600">{formatKilowatts(totalKilowatts)}</p>
+              <p className="text-lg sm:text-2xl font-bold text-accent">{formatKilowatts(totalKilowatts)}</p>
             </div>
-            <div className="bg-purple-50 rounded-lg p-3 sm:p-4">
+            <div className="bg-highlight/10 rounded-lg p-3 sm:p-4 border border-highlight/20">
               <p className="text-gray-600 text-xs sm:text-sm">Faltam</p>
-              <p className="text-lg sm:text-2xl font-bold text-purple-600">
+              <p className="text-lg sm:text-2xl font-bold text-highlight">
                 {formatNumberFull(Math.max(400 - totalKilowatts, 0))}
               </p>
             </div>
-            <div className="bg-orange-50 rounded-lg p-3 sm:p-4">
+            <div className="bg-accent/20 rounded-lg p-3 sm:p-4 border border-accent">
               <p className="text-gray-600 text-xs sm:text-sm">Pontos Próx. Nível</p>
-              <p className="text-lg sm:text-2xl font-bold text-orange-600">{formatNumberCompact(pointsToNext)}</p>
+              <p className="text-lg sm:text-2xl font-bold text-accent">{formatNumberCompact(pointsToNext)}</p>
             </div>
           </div>
         </div>
