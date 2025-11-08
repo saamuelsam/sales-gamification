@@ -30,4 +30,9 @@ router.get('/export/csv', verifyTokenMiddleware, (req, res, next) =>
   commissionController.exportCSV(req, res).catch(next)
 );
 
+
+router.get('/monthly', verifyTokenMiddleware, (req, res, next) =>
+  commissionController.getMonthlyNetworkCommissions(req, res).catch(next)
+);
+
 export default router;

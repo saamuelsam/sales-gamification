@@ -5,7 +5,7 @@ interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'director' | 'master_consultant' | 'consultant';
+  role: string;
 }
 
 interface AuthState {
@@ -22,32 +22,26 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       isAuthenticated: false,
-      
-      login: (user: User, token: string) => {
-        console.log('📝 Fazendo login no store:', { user, token: token.substring(0, 20) });
+
+      login: (user, token) => {
+        console.log('🧠 Gravando login no Zustand:', user);
         localStorage.setItem('token', token);
-        
-        set({ 
-          user, 
-          token, 
-          isAuthenticated: true 
-        });
-        
-        console.log('✅ Login concluído. Estado:', useAuthStore.getState());
+        set({ user, token, isAuthenticated: true });
       },
-      
+
       logout: () => {
-        console.log('🚪 Fazendo logout...');
+        console.log('🚪 Logout executado');
         localStorage.removeItem('token');
-        set({ 
-          user: null, 
-          token: null, 
-          isAuthenticated: false 
-        });
+        set({ user: null, token: null, isAuthenticated: false });
       },
     }),
     {
-      name: 'auth-storage',
+      name: 'auth-storage', // nome no localStorage
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token,
+        isAuthenticated: state.isAuthenticated,
+      }),
     }
   )
 );

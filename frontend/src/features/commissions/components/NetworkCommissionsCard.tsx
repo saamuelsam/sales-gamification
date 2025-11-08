@@ -2,7 +2,7 @@
 import { DollarSign, TrendingUp, CheckCircle2, Clock } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 
-interface Commission {
+interface NetworkCommission {
   id: string;
   team_member_name: string;
   commission_type: string;
@@ -13,7 +13,7 @@ interface Commission {
 }
 
 interface NetworkCommissionsCardProps {
-  commissions: Commission[];
+  commissions: NetworkCommission[];
   summary?: any;
   onMarkAsPaid?: (id: string) => void;
   loading?: boolean;

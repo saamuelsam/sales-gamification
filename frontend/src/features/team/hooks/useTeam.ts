@@ -7,6 +7,7 @@ interface TeamMember {
   id: string;
   name: string;
   email: string;
+  role?: string;  
   total_points: number;
   total_sales: number;
   sales_count?: number;

@@ -75,9 +75,10 @@ export class AuthService {
     // Remover senha do retorno
     const { password: _, ...userWithoutPassword } = user;
 
+    // ✅ Corrigido: chave padronizada para o frontend
     return {
       user: userWithoutPassword,
-      accessToken: token,
+      token,
     };
   }
 }

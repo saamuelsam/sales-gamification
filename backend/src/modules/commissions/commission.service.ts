@@ -12,7 +12,9 @@ export class CommissionService {
     'executive': 1.0,
   };
 
-  // ✅ Processar comissão de rede
+  /**
+   * ✅ Processar comissão de rede
+   */
   async processNetworkCommission(memberId: string, saleValue: number, points: number, saleId?: string) {
     try {
       logger.info(`📝 [COMISSÃO] Iniciando para membro: ${memberId}`);
@@ -44,7 +46,7 @@ export class CommissionService {
       const commissionAmount = (saleValue * commissionRate) / 100;
       logger.info(`💰 [COMISSÃO] Valor: R$${commissionAmount.toFixed(2)}`);
 
-      // 3. ✅ CORRIGIDO: Inserir com line_level
+      // 3. ✅ Inserir com line_level
       logger.info(`💾 [COMISSÃO] Inserindo no banco...`);
       const insertResult = await pool.query(
         `INSERT INTO network_commissions 
@@ -65,17 +67,27 @@ export class CommissionService {
       logger.info(`✅ [COMISSÃO] ID: ${insertResult.rows[0].id}`);
       logger.info(`✅ [COMISSÃO] Valor: R$${insertResult.rows[0].commission_amount}`);
 
+      // Notificar líder sobre nova comissão
+      await notificationsService.create(leaderId, {
+        type: 'commission',
+        title: 'Nova comissão gerada',
+        message: `Você recebeu uma nova comissão de R$${commissionAmount.toFixed(2)}.`,
+      });
+
+
     } catch (error: any) {
       logger.error(`❌ [COMISSÃO] ERRO: ${error.message}`);
       logger.error(`❌ [COMISSÃO] Stack: ${error.stack}`);
     }
   }
 
-  // ✅ Listar comissões de rede
+  /**
+   * ✅ Listar comissões de rede
+   */
   async getNetworkCommissions(leaderId: string) {
     try {
       logger.info(`📋 Buscando comissões para: ${leaderId}`);
-      
+
       const result = await pool.query(
         `SELECT 
           nc.id,
@@ -104,7 +116,9 @@ export class CommissionService {
     }
   }
 
-  // ✅ Resumo de comissões
+  /**
+   * ✅ Resumo de comissões
+   */
   async getNetworkCommissionsSummary(leaderId: string) {
     try {
       const result = await pool.query(
@@ -142,7 +156,70 @@ export class CommissionService {
     }
   }
 
-  // ✅ Resumo completo
+  /**
+   * ✅ Comissões agrupadas por mês para o gráfico
+   * Retorna os últimos 6 meses de comissões
+   */
+  async getMonthlyNetworkCommissions(leaderId: string) {
+    try {
+      logger.info(`📊 Buscando comissões mensais para líder: ${leaderId}`);
+
+      const result = await pool.query(
+        `
+        SELECT 
+          TO_CHAR(DATE_TRUNC('month', nc.created_at), 'Mon') AS month,
+          DATE_TRUNC('month', nc.created_at) AS month_date,
+          COALESCE(SUM(nc.commission_amount), 0) AS amount
+        FROM network_commissions nc
+        WHERE nc.leader_id = $1
+          AND nc.created_at >= NOW() - INTERVAL '6 months'
+        GROUP BY DATE_TRUNC('month', nc.created_at)
+        ORDER BY month_date ASC
+        `,
+        [leaderId]
+      );
+
+      // Formatar os dados
+      const formattedData = result.rows.map((r) => ({
+        month: this.formatMonthName(r.month),
+        amount: parseFloat(r.amount),
+      }));
+
+      logger.info(`✅ Encontrados ${formattedData.length} meses de comissões`);
+      return formattedData;
+    } catch (error: any) {
+      logger.error(`❌ Erro ao buscar comissões mensais: ${error.message}`);
+      throw new Error('Erro ao buscar comissões mensais');
+    }
+  }
+
+  /**
+   * Formatar nome do mês para português
+   */
+  private formatMonthName(monthAbbr: string): string {
+    const monthMap: Record<string, string> = {
+      'Jan': 'Jan',
+      'Feb': 'Fev',
+      'Mar': 'Mar',
+      'Apr': 'Abr',
+      'May': 'Mai',
+      'Jun': 'Jun',
+      'Jul': 'Jul',
+      'Aug': 'Ago',
+      'Sep': 'Set',
+      'Oct': 'Out',
+      'Nov': 'Nov',
+      'Dec': 'Dez',
+    };
+
+    // Capitalizar primeira letra
+    const capitalized = monthAbbr.charAt(0).toUpperCase() + monthAbbr.slice(1).toLowerCase();
+    return monthMap[capitalized] || capitalized;
+  }
+
+  /**
+   * ✅ Resumo completo
+   */
   async getCompleteCommissionsSummary(userId: string) {
     try {
       const networkSummary = await this.getNetworkCommissionsSummary(userId);
@@ -163,7 +240,9 @@ export class CommissionService {
     }
   }
 
-  // ✅ Marcar como paga
+  /**
+   * ✅ Marcar como paga
+   */
   async markNetworkCommissionAsPaid(commissionId: string, leaderId: string) {
     try {
       const result = await pool.query(
@@ -179,6 +258,14 @@ export class CommissionService {
       }
 
       logger.info(`✅ Comissão ${commissionId} marcada como paga`);
+
+      // Notificar sobre pagamento
+      await notificationsService.create(leaderId, {
+        type: 'commission',
+        title: 'Comissão paga!',
+        message: `A comissão de R$ ${result.rows[0].commission_amount} foi marcada como paga`,
+      });
+
       return result.rows[0];
     } catch (error: any) {
       logger.error(`❌ Erro ao marcar como paga: ${error.message}`);
@@ -186,7 +273,9 @@ export class CommissionService {
     }
   }
 
-  // ✅ Relatório consolidado
+  /**
+   * ✅ Relatório consolidado
+   */
   async getConsolidatedCommissionsReport() {
     try {
       const result = await pool.query(
@@ -194,16 +283,20 @@ export class CommissionService {
           u.id as user_id,
           u.name as user_name,
           u.email,
+          u.role,
           COALESCE(SUM(nc.commission_amount), 0) as network_total,
           COALESCE(SUM(CASE WHEN nc.paid THEN nc.commission_amount ELSE 0 END), 0) as network_paid,
-          COALESCE(SUM(CASE WHEN NOT nc.paid THEN nc.commission_amount ELSE 0 END), 0) as network_pending
+          COALESCE(SUM(CASE WHEN NOT nc.paid THEN nc.commission_amount ELSE 0 END), 0) as network_pending,
+          COUNT(nc.id)::int as commission_count
         FROM users u
         LEFT JOIN network_commissions nc ON nc.leader_id = u.id
         WHERE u.is_active = true
-        GROUP BY u.id, u.name, u.email
+        GROUP BY u.id, u.name, u.email, u.role
+        HAVING COUNT(nc.id) > 0
         ORDER BY network_total DESC`
       );
-      logger.info(`📈 Relatório: ${result.rows.length} usuários`);
+
+      logger.info(`📈 Relatório: ${result.rows.length} usuários com comissões`);
       return result.rows;
     } catch (error: any) {
       logger.error(`❌ Erro ao gerar relatório: ${error.message}`);
@@ -211,23 +304,57 @@ export class CommissionService {
     }
   }
 
-  // ✅ Exportar CSV
+  /**
+   * ✅ Exportar CSV
+   */
   async exportCommissionsCSV() {
     try {
       const report = await this.getConsolidatedCommissionsReport();
-      const headers = ['ID', 'Nome', 'Email', 'Total', 'Pagas', 'Pendentes'];
+      const headers = ['ID', 'Nome', 'Email', 'Cargo', 'Total', 'Pagas', 'Pendentes', 'Quantidade'];
       const rows = report.map((r: any) => [
         r.user_id,
         r.user_name,
         r.email,
+        r.role,
         parseFloat(r.network_total).toFixed(2),
         parseFloat(r.network_paid).toFixed(2),
         parseFloat(r.network_pending).toFixed(2),
+        r.commission_count,
       ]);
+
       logger.info(`📥 CSV exportado: ${rows.length} linhas`);
       return { headers, rows };
     } catch (error: any) {
       logger.error(`❌ Erro ao exportar: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * ✅ Estatísticas gerais do sistema de comissões
+   */
+  async getCommissionsStats() {
+    try {
+      const result = await pool.query(
+        `SELECT 
+          COUNT(*)::int as total_commissions,
+          COUNT(DISTINCT leader_id)::int as total_leaders,
+          COALESCE(SUM(commission_amount), 0) as total_amount,
+          COALESCE(SUM(CASE WHEN paid THEN commission_amount ELSE 0 END), 0) as total_paid,
+          COALESCE(AVG(commission_amount), 0) as avg_commission
+         FROM network_commissions`
+      );
+
+      const stats = result.rows[0];
+      return {
+        total_commissions: stats.total_commissions || 0,
+        total_leaders: stats.total_leaders || 0,
+        total_amount: parseFloat(stats.total_amount || 0),
+        total_paid: parseFloat(stats.total_paid || 0),
+        avg_commission: parseFloat(stats.avg_commission || 0),
+      };
+    } catch (error: any) {
+      logger.error(`❌ Erro ao buscar estatísticas: ${error.message}`);
       throw error;
     }
   }
