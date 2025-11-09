@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../config/jwt';
 import { ApiResponse } from '../utils/responses';
 
+
 export const verifyTokenMiddleware = (req: Request, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;

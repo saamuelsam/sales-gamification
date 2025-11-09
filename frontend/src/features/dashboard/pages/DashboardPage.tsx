@@ -152,6 +152,9 @@ export function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // ✅ Verificar se é admin ou CEO
+  const isAdmin = user?.role === 'admin' || user?.role === 'ceo';
+
   useEffect(() => {
     const handleRefresh = () => {
       fetchDashboardData();
@@ -485,6 +488,106 @@ export function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* ===== SEÇÃO ADMINISTRATIVA (Somente para CEO/Admin) ===== */}
+        {isAdmin && (
+          <div className="mt-6 sm:mt-8 lg:mt-10 bg-gradient-to-br from-white to-gray-50 rounded-xl sm:rounded-2xl shadow-lg border-2 border-primary/20 p-4 sm:p-6 lg:p-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3">
+              <div>
+                <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-primary flex items-center gap-2">
+                  <Users className="w-5 h-5 sm:w-6 sm:h-6 text-accent flex-shrink-0" />
+                  <span>Painel Administrativo</span>
+                </h3>
+                <p className="text-gray-600 text-xs sm:text-sm mt-1">
+                  Área exclusiva para gestão completa do sistema
+                </p>
+              </div>
+              <Link
+                to="/admin"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-primary to-highlight text-white rounded-lg text-sm font-semibold hover:shadow-xl transition-all transform hover:scale-105"
+              >
+                Acessar Painel Completo
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            <p className="text-gray-600 text-sm sm:text-base mb-4 sm:mb-6">
+              Controle total sobre usuários, comissões, configurações e logs de auditoria do sistema.
+            </p>
+
+            {/* Cards de recursos administrativos */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {/* Card 1 - Relatórios */}
+              <Link
+                to="/admin/reports"
+                className="group p-4 sm:p-5 bg-white border-2 border-gray-200 rounded-xl hover:border-primary hover:shadow-lg transition-all transform hover:-translate-y-1"
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="p-2 sm:p-3 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
+                    <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Gestão de</p>
+                    <p className="font-bold text-primary text-base sm:text-lg truncate">Relatórios</p>
+                  </div>
+                </div>
+                <p className="text-xs sm:text-sm text-gray-600">
+                  Visualize estatísticas gerais, faturamento e desempenho da rede.
+                </p>
+              </Link>
+
+              {/* Card 2 - Configurações */}
+              <Link
+                to="/admin/config"
+                className="group p-4 sm:p-5 bg-white border-2 border-gray-200 rounded-xl hover:border-accent hover:shadow-lg transition-all transform hover:-translate-y-1"
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="p-2 sm:p-3 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-colors">
+                    <Target className="w-5 h-5 sm:w-6 sm:h-6 text-accent" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Configurações</p>
+                    <p className="font-bold text-accent text-base sm:text-lg truncate">Sistema</p>
+                  </div>
+                </div>
+                <p className="text-xs sm:text-sm text-gray-600">
+                  Gerencie metas, taxas de comissão, níveis e pontuações.
+                </p>
+              </Link>
+
+              {/* Card 3 - Logs */}
+              <Link
+                to="/admin/logs"
+                className="group p-4 sm:p-5 bg-white border-2 border-gray-200 rounded-xl hover:border-highlight hover:shadow-lg transition-all transform hover:-translate-y-1"
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="p-2 sm:p-3 bg-highlight/10 rounded-lg group-hover:bg-highlight/20 transition-colors">
+                    <Award className="w-5 h-5 sm:w-6 sm:h-6 text-highlight" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500">Logs e</p>
+                    <p className="font-bold text-highlight text-base sm:text-lg truncate">Acessos</p>
+                  </div>
+                </div>
+                <p className="text-xs sm:text-sm text-gray-600">
+                  Audite ações, acessos e atividades de todos os usuários.
+                </p>
+              </Link>
+            </div>
+
+            {/* Informações adicionais */}
+            <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-gradient-to-r from-primary/5 to-accent/5 border border-primary/10 rounded-lg">
+              <p className="text-xs sm:text-sm text-gray-700 flex items-center gap-2">
+                <Zap className="w-4 h-4 text-primary flex-shrink-0" />
+                <span>
+                  <strong className="text-primary">Dica:</strong> Use o painel administrativo para 
+                  gerenciar usuários, aprovar comissões e visualizar logs de auditoria.
+                </span>
+              </p>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

@@ -21,7 +21,7 @@ const menuItems = [
   { path: '/commissions', label: 'Comissões', icon: DollarSign, roles: ['all'] },
   { path: '/benefits', label: 'Benefícios', icon: Gift, roles: ['all'] },
   { path: '/levels', label: 'Plano de Carreira', icon: Award, roles: ['all'] },
-  { path: '/reports', label: 'Relatórios', icon: BarChart3, roles: ['admin', 'director'] },
+  { path: '/reports', label: 'Relatórios', icon: BarChart3, roles: ['admin', 'director', 'ceo'] },
 ];
 
 export const Sidebar = () => {

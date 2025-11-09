@@ -13,6 +13,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - sales_network
 
   backend:
     build: ./backend
@@ -25,6 +27,8 @@ services:
       - postgres
     ports:
       - "4000:4000"
+    networks:
+      - sales_network
 
   frontend:
     build: ./frontend
@@ -34,6 +38,8 @@ services:
       - "3000:80"
     depends_on:
       - backend
+    networks:
+      - sales_network
 
   nginx:
     image: nginx:alpine
@@ -45,6 +51,12 @@ services:
     depends_on:
       - frontend
       - backend
+    networks:
+      - sales_network
 
 volumes:
   postgres_data:
+
+networks:
+  sales_network:
+    driver: bridge

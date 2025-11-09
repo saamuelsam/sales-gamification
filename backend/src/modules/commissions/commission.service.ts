@@ -1,7 +1,7 @@
 // backend/src/modules/commissions/commission.service.ts
 import { pool } from '../../config/database';
-import { notificationsService } from '../notifications/notifications.service';
 import { logger } from '../../utils/logger';
+import { logActivity, ActivityAction } from '../../utils/activityLogger'; // ✅ Import
 
 export class CommissionService {
   private readonly commissionRates: any = {
@@ -13,7 +13,7 @@ export class CommissionService {
   };
 
   /**
-   * ✅ Processar comissão de rede
+   * ✅ Processar comissão de rede (com log integrado)
    */
   async processNetworkCommission(memberId: string, saleValue: number, points: number, saleId?: string) {
     try {
@@ -21,7 +21,7 @@ export class CommissionService {
 
       // 1. Buscar o líder direto
       const leaderResult = await pool.query(
-        `SELECT u.id, u.role FROM user_hierarchy uh
+        `SELECT u.id, u.role, u.name FROM user_hierarchy uh
          JOIN users u ON uh.leader_id = u.id
          WHERE uh.subordinate_id = $1 AND uh.line_level = 1
          LIMIT 1`,
@@ -35,6 +35,7 @@ export class CommissionService {
 
       const leaderId = leaderResult.rows[0].id;
       const leaderRole = leaderResult.rows[0].role;
+      const leaderName = leaderResult.rows[0].name;
       const commissionRate = this.commissionRates[leaderRole] || 0;
 
       if (commissionRate === 0) {
@@ -46,7 +47,16 @@ export class CommissionService {
       const commissionAmount = (saleValue * commissionRate) / 100;
       logger.info(`💰 [COMISSÃO] Valor: R$${commissionAmount.toFixed(2)}`);
 
-      // 3. ✅ Inserir com line_level
+      // 3. Buscar informações do membro
+      const memberInfo = await pool.query(
+        'SELECT name, email FROM users WHERE id = $1',
+        [memberId]
+      );
+
+      const memberName = memberInfo.rows[0]?.name || 'Desconhecido';
+      const memberEmail = memberInfo.rows[0]?.email || 'Desconhecido';
+
+      // 4. Inserir comissão no banco
       logger.info(`💾 [COMISSÃO] Inserindo no banco...`);
       const insertResult = await pool.query(
         `INSERT INTO network_commissions 
@@ -63,17 +73,26 @@ export class CommissionService {
         ]
       );
 
+      const commissionId = insertResult.rows[0].id;
+
       logger.info(`✅ [COMISSÃO] Inserida com sucesso!`);
-      logger.info(`✅ [COMISSÃO] ID: ${insertResult.rows[0].id}`);
+      logger.info(`✅ [COMISSÃO] ID: ${commissionId}`);
       logger.info(`✅ [COMISSÃO] Valor: R$${insertResult.rows[0].commission_amount}`);
 
-      // Notificar líder sobre nova comissão
-      await notificationsService.create(leaderId, {
-        type: 'commission',
-        title: 'Nova comissão gerada',
-        message: `Você recebeu uma nova comissão de R$${commissionAmount.toFixed(2)}.`,
+      // ✅ REGISTRAR LOG DE ATIVIDADE - NOVA COMISSÃO
+      await logActivity(leaderId, ActivityAction.NEW_COMMISSION, {
+        commissionId,
+        memberId,
+        memberName,
+        memberEmail,
+        commissionAmount: parseFloat(commissionAmount.toFixed(2)),
+        commissionRate,
+        percentage: commissionRate,
+        saleId: saleId || null,
+        saleValue,
+        action: 'new_commission',
+        timestamp: new Date().toISOString()
       });
-
 
     } catch (error: any) {
       logger.error(`❌ [COMISSÃO] ERRO: ${error.message}`);
@@ -158,7 +177,6 @@ export class CommissionService {
 
   /**
    * ✅ Comissões agrupadas por mês para o gráfico
-   * Retorna os últimos 6 meses de comissões
    */
   async getMonthlyNetworkCommissions(leaderId: string) {
     try {
@@ -179,7 +197,6 @@ export class CommissionService {
         [leaderId]
       );
 
-      // Formatar os dados
       const formattedData = result.rows.map((r) => ({
         month: this.formatMonthName(r.month),
         amount: parseFloat(r.amount),
@@ -212,7 +229,6 @@ export class CommissionService {
       'Dec': 'Dez',
     };
 
-    // Capitalizar primeira letra
     const capitalized = monthAbbr.charAt(0).toUpperCase() + monthAbbr.slice(1).toLowerCase();
     return monthMap[capitalized] || capitalized;
   }
@@ -241,10 +257,27 @@ export class CommissionService {
   }
 
   /**
-   * ✅ Marcar como paga
+   * ✅ Marcar como paga (com log integrado)
    */
   async markNetworkCommissionAsPaid(commissionId: string, leaderId: string) {
     try {
+      // Buscar informações da comissão antes de atualizar
+      const commissionInfo = await pool.query(
+        `SELECT nc.commission_amount, u.name as member_name
+         FROM network_commissions nc
+         JOIN users u ON nc.team_member_id = u.id
+         WHERE nc.id = $1 AND nc.leader_id = $2`,
+        [commissionId, leaderId]
+      );
+
+      if (commissionInfo.rows.length === 0) {
+        throw new Error('Comissão não encontrada');
+      }
+
+      const commissionAmount = commissionInfo.rows[0].commission_amount;
+      const memberName = commissionInfo.rows[0].member_name;
+
+      // Atualizar comissão
       const result = await pool.query(
         `UPDATE network_commissions 
          SET paid = TRUE, paid_at = CURRENT_TIMESTAMP
@@ -254,16 +287,20 @@ export class CommissionService {
       );
 
       if (result.rows.length === 0) {
-        throw new Error('Comissão não encontrada');
+        throw new Error('Erro ao atualizar comissão');
       }
 
       logger.info(`✅ Comissão ${commissionId} marcada como paga`);
 
-      // Notificar sobre pagamento
-      await notificationsService.create(leaderId, {
-        type: 'commission',
-        title: 'Comissão paga!',
-        message: `A comissão de R$ ${result.rows[0].commission_amount} foi marcada como paga`,
+      // ✅ REGISTRAR LOG DE ATIVIDADE - COMISSÃO PAGA
+      await logActivity(leaderId, ActivityAction.MARK_COMMISSION_PAID, {
+        commissionId,
+        commissionAmount: parseFloat(commissionAmount),
+        amount: parseFloat(commissionAmount),
+        memberName,
+        paidAt: new Date().toISOString(),
+        action: 'mark_commission_paid',
+        timestamp: new Date().toISOString()
       });
 
       return result.rows[0];
