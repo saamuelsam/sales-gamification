@@ -796,7 +796,7 @@ export function AdminConfigPage() {
               <button
                 onClick={() => {
                   if (window.confirm('Tem certeza que deseja limpar todas as notificações? Esta ação não pode ser desfeita.')) {
-                    toast.info('Funcionalidade em desenvolvimento');
+                    toast.success('Funcionalidade em desenvolvimento');
                   }
                 }}
                 className="px-4 py-2 text-sm border border-red-600 dark:border-red-500 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
@@ -807,7 +807,7 @@ export function AdminConfigPage() {
               <button
                 onClick={() => {
                   if (window.confirm('Tem certeza que deseja recalcular todas as comissões? Esta ação pode levar alguns minutos.')) {
-                    toast.info('Funcionalidade em desenvolvimento');
+                    toast.success('Funcionalidade em desenvolvimento');
                   }
                 }}
                 className="px-4 py-2 text-sm border border-red-600 dark:border-red-500 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
