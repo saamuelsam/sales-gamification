@@ -80,11 +80,11 @@ export function AdminCommissionsPage() {
   }, [status]);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 space-y-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 space-y-6 pb-20 sm:pb-6">
       <div className="flex justify-between items-center flex-wrap gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestão de Comissões</h1>
-          <p className="text-gray-600 text-sm">Acompanhe e gerencie as comissões da rede</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Gestão de Comissões</h1>
+          <p className="text-gray-600 dark:text-gray-400 text-sm">Acompanhe e gerencie as comissões da rede</p>
         </div>
 
         <div className="flex gap-2 w-full sm:w-auto">
@@ -95,19 +95,19 @@ export function AdminCommissionsPage() {
               placeholder="Buscar líder ou consultor..."
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
-              className="w-full sm:w-64 pl-10 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+              className="w-full sm:w-64 pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
             />
           </div>
           <button
             onClick={fetchCommissions}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Atualizar
           </button>
           <button
             onClick={exportCSV}
-            className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-100"
+            className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
           >
             <FileSpreadsheet className="w-4 h-4 text-green-600" /> Exportar
           </button>
@@ -123,7 +123,7 @@ export function AdminCommissionsPage() {
             className={`px-4 py-2 rounded-lg text-sm font-medium border ${
               status === key
                 ? 'bg-blue-600 text-white border-blue-600'
-                : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
             }`}
           >
             {key === 'all'
@@ -138,10 +138,10 @@ export function AdminCommissionsPage() {
       {/* Resumo de Comissões */}
       {summary && (
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <Card className="p-4 flex items-center justify-between">
+          <Card className="p-4 flex items-center justify-between bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <div>
-              <p className="text-sm text-gray-600 font-medium">Total de Comissões</p>
-              <p className="text-xl font-bold text-gray-900 mt-1">{summary.total_commissions}</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">Total de Comissões</p>
+              <p className="text-xl font-bold text-gray-900 dark:text-gray-100 mt-1">{summary.total_commissions}</p>
             </div>
             <DollarSign className="w-6 h-6 text-gray-500" />
           </Card>
@@ -179,10 +179,10 @@ export function AdminCommissionsPage() {
       )}
 
       {/* Lista de Comissões */}
-      <Card className="p-4 sm:p-6 overflow-x-auto">
+      <Card className="p-4 sm:p-6 overflow-x-auto bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
         <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="bg-gray-100 text-gray-700 border-b">
+            <tr className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
               <th className="p-3 text-left font-semibold">Líder</th>
               <th className="p-3 text-left font-semibold">Consultor</th>
               <th className="p-3 text-center font-semibold">Valor</th>
@@ -193,7 +193,7 @@ export function AdminCommissionsPage() {
           </thead>
           <tbody>
             {commissions.map((c) => (
-              <tr key={c.id} className="border-b hover:bg-gray-50">
+              <tr key={c.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-800 dark:text-gray-200">
                 <td className="p-3">{c.leader_name}</td>
                 <td className="p-3">{c.team_member_name}</td>
                 <td className="p-3 text-center text-green-600 font-semibold">
@@ -231,7 +231,7 @@ export function AdminCommissionsPage() {
         </table>
 
         {commissions.length === 0 && (
-          <div className="text-center py-10 text-gray-500">
+          <div className="text-center py-10 text-gray-500 dark:text-gray-400">
             <DollarSign className="w-10 h-10 mx-auto mb-2 opacity-40" />
             <p>Nenhuma comissão encontrada</p>
           </div>

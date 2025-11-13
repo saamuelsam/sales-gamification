@@ -8,8 +8,11 @@ exports.teamService = void 0;
 const database_1 = require("../../config/database");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const logger_1 = require("../../utils/logger");
-const activityLogger_1 = require("../../utils/activityLogger"); // ✅ Import
+const activityLogger_1 = require("../../utils/activityLogger");
 class TeamService {
+    /**
+     * ✅ Buscar membros da equipe
+     */
     async getTeamMembers(leaderId) {
         try {
             const result = await database_1.pool.query(`SELECT 
@@ -78,8 +81,8 @@ class TeamService {
             }
             logger_1.logger.info(`🔗 [ADD_MEMBER] Criando hierarquia: Leader=${leaderId}, Member=${userId}`);
             // ✅ Adicionar à hierarquia
-            await client.query(`INSERT INTO user_hierarchy (leader_id, subordinate_id, line_level)
-         VALUES ($1, $2, 1)`, [leaderId, userId]);
+            await client.query(`INSERT INTO user_hierarchy (leader_id, subordinate_id, line_level, joined_at)
+          VALUES ($1, $2, 1, NOW())`, [leaderId, userId]);
             logger_1.logger.info(`✅ [ADD_MEMBER] Hierarquia criada com sucesso!`);
             // ✅ REGISTRAR LOG DE ATIVIDADE
             await (0, activityLogger_1.logActivity)(leaderId, activityLogger_1.ActivityAction.ADD_TEAM_MEMBER, {
@@ -106,28 +109,37 @@ class TeamService {
         }
     }
     /**
-     * ✅ Remover membro da equipe (com log integrado)
+     * ✅ Remover membro da equipe (CORRIGIDO com transaction e casting UUID)
      */
     async removeTeamMember(leaderId, memberId) {
+        const client = await database_1.pool.connect();
         try {
-            // ✅ Buscar informações do membro antes de remover
-            const memberInfo = await database_1.pool.query(`SELECT u.name, u.email 
+            await client.query('BEGIN');
+            // ✅ Debug: verificar os IDs recebidos
+            logger_1.logger.info(`🔍 [REMOVE_MEMBER] Leader ID: ${leaderId}`);
+            logger_1.logger.info(`🔍 [REMOVE_MEMBER] Member ID: ${memberId}`);
+            // ✅ Buscar informações do membro ANTES de remover (com casting explícito)
+            const memberInfo = await client.query(`SELECT u.id, u.name, u.email, uh.id as hierarchy_id
          FROM users u
          JOIN user_hierarchy uh ON uh.subordinate_id = u.id
-         WHERE uh.leader_id = $1 AND uh.subordinate_id = $2`, [leaderId, memberId]);
+         WHERE uh.leader_id = $1::uuid AND uh.subordinate_id = $2::uuid`, [leaderId, memberId]);
+            logger_1.logger.info(`🔍 [REMOVE_MEMBER] Query result: ${JSON.stringify(memberInfo.rows)}`);
             if (memberInfo.rows.length === 0) {
+                logger_1.logger.error(`❌ [REMOVE_MEMBER] Membro não encontrado! Leader: ${leaderId}, Member: ${memberId}`);
                 throw new Error('Membro não encontrado na sua equipe');
             }
             const memberName = memberInfo.rows[0].name;
             const memberEmail = memberInfo.rows[0].email;
-            // Remover da hierarquia
-            const result = await database_1.pool.query(`DELETE FROM user_hierarchy 
-         WHERE leader_id = $1 AND subordinate_id = $2
+            logger_1.logger.info(`✅ [REMOVE_MEMBER] Membro encontrado: ${memberName} (${memberEmail})`);
+            // ✅ Remover da hierarquia (com casting explícito)
+            const result = await client.query(`DELETE FROM user_hierarchy 
+         WHERE leader_id = $1::uuid AND subordinate_id = $2::uuid
          RETURNING *`, [leaderId, memberId]);
             if (result.rows.length === 0) {
+                logger_1.logger.error(`❌ [REMOVE_MEMBER] DELETE falhou! Leader: ${leaderId}, Member: ${memberId}`);
                 throw new Error('Erro ao remover membro da equipe');
             }
-            logger_1.logger.info(`✅ [REMOVE_MEMBER] Membro ${memberId} removido da equipe do líder ${leaderId}`);
+            logger_1.logger.info(`✅ [REMOVE_MEMBER] Membro ${memberId} removido com sucesso da equipe do líder ${leaderId}`);
             // ✅ REGISTRAR LOG DE ATIVIDADE
             await (0, activityLogger_1.logActivity)(leaderId, activityLogger_1.ActivityAction.REMOVE_TEAM_MEMBER, {
                 memberId,
@@ -136,13 +148,22 @@ class TeamService {
                 action: 'remove_team_member',
                 timestamp: new Date().toISOString()
             });
+            await client.query('COMMIT');
             return true;
         }
         catch (error) {
-            logger_1.logger.error('Erro ao remover membro:', error.message);
+            await client.query('ROLLBACK');
+            logger_1.logger.error(`❌ [REMOVE_MEMBER] ERRO: ${error.message}`);
+            logger_1.logger.error(`❌ [REMOVE_MEMBER] Stack: ${error.stack}`);
             throw error;
         }
+        finally {
+            client.release();
+        }
     }
+    /**
+     * ✅ Buscar estatísticas da equipe
+     */
     async getTeamStats(leaderId) {
         try {
             const result = await database_1.pool.query(`SELECT 

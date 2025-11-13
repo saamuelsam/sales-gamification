@@ -4,6 +4,7 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class', // ✅ Habilita dark mode via classe
   theme: {
     extend: {
       colors: {
@@ -14,10 +15,12 @@ export default {
         background: {
           light: '#FFFFFF',
           subtle: '#FFF8E7',    // leve tom amarelado (opcional pra fundos suaves)
+          dark: '#1a1a1a',      // Fundo escuro para dark mode
         },
       },
       boxShadow: {
         glow: '0 0 15px rgba(249, 166, 12, 0.5)',  // brilho dourado suave
+        'glow-dark': '0 0 15px rgba(249, 166, 12, 0.3)', // brilho mais suave para dark mode
       },
       animation: {
         'pulse-smooth': 'pulse-smooth 2s infinite',

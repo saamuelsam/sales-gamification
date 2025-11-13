@@ -7,7 +7,7 @@ interface TeamMember {
   id: string;
   name: string;
   email: string;
-  role?: string;  
+  role?: string;
   total_points: number;
   total_sales: number;
   sales_count?: number;
@@ -34,7 +34,7 @@ export const useTeam = () => {
       setLoading(true);
       setError(null);
 
-      const response = await api.get('/team/members');
+      const response = await api.get('/users/team/members');
       const membersData = response.data?.data || [];
 
       // Transformar dados para o formato esperado
@@ -61,13 +61,37 @@ export const useTeam = () => {
   };
 
   const fetchStats = async () => {
-    try {
-      const response = await api.get('/team/stats');
-      setStats(response.data?.data || null);
-    } catch (err: any) {
-      console.error('Erro ao buscar estatísticas:', err);
+  try {
+    const response = await api.get('/users/team/stats');
+    const data = response.data?.data;
+
+    if (data) {
+      const formattedStats = {
+        total_members: data.direct_members || 0,
+        total_team_sales: parseFloat(data.team_sales?.total_revenue || 0),
+        total_team_sales_count: parseInt(data.team_sales?.total_sales || 0),
+        total_team_points: parseFloat(data.team_points || 0),
+      };
+      setStats(formattedStats);
+    } else {
+      setStats({
+        total_members: 0,
+        total_team_sales: 0,
+        total_team_sales_count: 0,
+        total_team_points: 0,
+      });
     }
-  };
+  } catch (err: any) {
+    console.error('Erro ao buscar estatísticas:', err);
+    setStats({
+      total_members: 0,
+      total_team_sales: 0,
+      total_team_sales_count: 0,
+      total_team_points: 0,
+    });
+  }
+};
+
 
   const fetchAll = async () => {
     await Promise.all([fetchMembers(), fetchStats()]);
@@ -80,7 +104,7 @@ export const useTeam = () => {
 
   const addMember = async (name: string, email: string) => {
     try {
-      await api.post('/team/members', { name, email });
+      await api.post('/users/team/add', { name, email });
       toast.success('Membro adicionado com sucesso!');
       await fetchAll();
     } catch (err: any) {
@@ -92,7 +116,7 @@ export const useTeam = () => {
 
   const removeMember = async (memberId: string) => {
     try {
-      await api.delete(`/team/members/${memberId}`);
+      await api.delete(`/users/team/members/${memberId}`);
       toast.success('Membro removido com sucesso!');
       await fetchAll();
     } catch (err: any) {

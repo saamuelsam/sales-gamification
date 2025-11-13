@@ -55,25 +55,25 @@ export function AdminUsersPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 space-y-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 space-y-6 pb-20 sm:pb-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestão de Usuários</h1>
-          <p className="text-gray-600 text-sm">Gerencie contas, funções e status</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Gestão de Usuários</h1>
+          <p className="text-gray-600 dark:text-gray-400 text-sm">Gerencie contas, funções e status</p>
         </div>
         <button
           onClick={fetchUsers}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-50"
+          className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-50"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} /> Atualizar
         </button>
       </div>
 
-      <Card className="p-4 sm:p-6 overflow-x-auto">
+      <Card className="p-4 sm:p-6 overflow-x-auto bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
         <table className="w-full text-sm border-collapse">
           <thead>
-            <tr className="bg-gray-100 text-gray-700 border-b">
+            <tr className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-b dark:border-gray-600">
               <th className="p-3 text-left font-semibold">Nome</th>
               <th className="p-3 text-left font-semibold">Email</th>
               <th className="p-3 text-left font-semibold">Função</th>
@@ -85,7 +85,7 @@ export function AdminUsersPage() {
             {users.map((user) => (
               <tr
                 key={user.id}
-                className="border-b hover:bg-gray-50 transition-colors text-gray-800"
+                className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-gray-800 dark:text-gray-200"
               >
                 <td className="p-3 font-medium">{user.name}</td>
                 <td className="p-3">{user.email}</td>
@@ -93,7 +93,7 @@ export function AdminUsersPage() {
                   <select
                     value={user.role}
                     onChange={(e) => changeRole(user.id, e.target.value)}
-                    className="border border-gray-300 rounded-md px-2 py-1 text-sm"
+                    className="border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md px-2 py-1 text-sm"
                   >
                     <option value="consultant">Consultor</option>
                     <option value="master_consultant">Master</option>
@@ -141,7 +141,7 @@ export function AdminUsersPage() {
           </tbody>
         </table>
         {users.length === 0 && (
-          <div className="text-center py-10 text-gray-500">
+          <div className="text-center py-10 text-gray-500 dark:text-gray-400">
             <User className="w-10 h-10 mx-auto mb-2 opacity-40" />
             <p>Nenhum usuário encontrado</p>
           </div>

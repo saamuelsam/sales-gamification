@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.rewardsService = exports.RewardsService = void 0;
 const database_1 = require("../../config/database");
+const activityLogger_1 = require("../../utils/activityLogger");
 class RewardsService {
     async checkMonthlyReward(userId, client) {
         const currentMonth = new Date();
@@ -32,6 +33,13 @@ class RewardsService {
          VALUES ($1, 'reward', '🎁 Parabéns! Você ganhou uma Cesta Básica!', 
                  'Você atingiu 400 kW este mês e conquistou uma Cesta Básica! Entre em contato com a administração para retirar seu prêmio.', 
                  $2)`, [userId, JSON.stringify({ reward_type: 'cesta_basica', kw_total: totalKw, threshold: 400 })]);
+            // 📝 LOG: Recompensa conquistada
+            await (0, activityLogger_1.logActivity)(userId, 'Conquistou recompensa', {
+                reward_type: 'cesta_basica',
+                kw_total: totalKw,
+                threshold: 400,
+                description: 'Cesta Básica por atingir 400 kW no mês'
+            });
             return true;
         }
         return false;

@@ -9,9 +9,13 @@ import { SalesPage } from './features/sales/pages/SalesPage';
 import { TeamPage } from './features/team/pages/TeamPage';
 import { BenefitsPage } from './features/benefits/pages/BenefitsPage';
 import { GoalsPage } from '@/features/goals/pages/GoalsPage';
+import CommissionsPage from '@/features/commissions/pages/CommissionsPage';
+import ProfilePage from '@/features/profile/pages/ProfilePage';
 
 // ✅ Páginas de Admin
 import { AdminPage } from '@/features/admin/pages/AdminPage';
+import FinanceiroPage from '@/features/financeiro/pages/FinanceiroPage';
+import ReportsPage from '@/features/reports/pages/ReportsPage';
 
 // ✅ Rota Privada (apenas autenticado)
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -82,12 +86,25 @@ function App() {
         <Route path="team" element={<TeamPage />} />
         <Route path="benefits" element={<BenefitsPage />} />
         <Route path="goals" element={<GoalsPage />} />
+        <Route path="commissions" element={<CommissionsPage />} />
+        <Route path="reports" element={<ReportsPage />} />
+        <Route path="profile" element={<ProfilePage />} />
         
-        {/* ===== ROTAS DE ADMIN (APENAS ADMIN/CEO) ===== */}
+        {/* ===== ROTA FINANCEIRO (CEO + FINANCEIRO) ===== */}
+        <Route
+          path="financeiro"
+          element={
+            <ProtectedRoute roles={['ceo', 'financeiro']}>
+              <FinanceiroPage />
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* ===== ROTAS DE ADMIN (CEO + ADMIN) ===== */}
         <Route
           path="admin/*"
           element={
-            <ProtectedRoute roles={['admin', 'ceo']}>
+            <ProtectedRoute roles={['ceo', 'admin']}>
               <AdminPage />
             </ProtectedRoute>
           }

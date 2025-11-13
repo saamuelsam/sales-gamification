@@ -32,7 +32,7 @@ export const TeamMembersTable = ({ members, onMemberRemoved }: TeamMembersTableP
 
     try {
       setLoading(true);
-      await api.delete(`/team/members/${memberId}`);
+      await api.delete(`/users/team/members/${memberId}`);
       toast.success(`${memberName} removido da equipe`);
       onMemberRemoved?.();
     } catch (error: any) {

@@ -2,12 +2,17 @@
 
 import { pool } from '../../config/database';
 import { logger } from '../../utils/logger';
+import { levelProgressService } from '../levels/levelProgress.service';
 
 export class DashboardService {
   /**
    * Calcula o nível baseado na quantidade de pontos
    */
-  private calculateLevelFromPoints(points: number): { levelId: number; levelName: string; phaseName: string } {
+  private calculateLevelFromPoints(points: number): {
+    levelId: number;
+    levelName: string;
+    phaseName: string
+  } {
     if (points >= 2_000_000) return { levelId: 5, levelName: 'Executive', phaseName: 'executive' };
     if (points >= 800_000) return { levelId: 4, levelName: 'Consultor Prime', phaseName: 'consultorPrime' };
     if (points >= 10_000) return { levelId: 3, levelName: 'Consultor Sênior', phaseName: 'seniorConsultant' };
@@ -15,7 +20,7 @@ export class DashboardService {
     return { levelId: 1, levelName: 'Consultor Elite', phaseName: 'elite' };
   }
 
-  // Dashboard pessoal do usuário
+  // ========== DASHBOARD PESSOAL DO USUÁRIO ==========
   async getPersonalDashboard(userId: string) {
     const client = await pool.connect();
 
@@ -31,6 +36,33 @@ export class DashboardService {
         WHERE user_id = $1 AND status != 'cancelled'`,
         [userId]
       );
+
+      // 🕒 Calcula meses sem contratos (inatividade)
+      const lastSaleResult = await client.query(
+        `SELECT MAX(created_at) AS last_sale_date
+         FROM sales
+         WHERE user_id = $1
+           AND status NOT IN ('cancelled', 'rejected')`,
+        [userId]
+      );
+
+      let mesesSemContratos = 0;
+      if (lastSaleResult.rows[0]?.last_sale_date) {
+        const ultimaVenda = new Date(lastSaleResult.rows[0].last_sale_date);
+        const hoje = new Date();
+
+        const diffMeses =
+          (hoje.getFullYear() - ultimaVenda.getFullYear()) * 12 +
+          (hoje.getMonth() - ultimaVenda.getMonth());
+
+        mesesSemContratos = Math.max(0, diffMeses);
+      } else {
+        // Nunca vendeu → conta como inatividade total
+        mesesSemContratos = 3;
+      }
+
+      console.log('[DEBUG] Última venda:', lastSaleResult.rows[0]?.last_sale_date);
+      console.log('[DEBUG] Meses sem contratos:', mesesSemContratos);
 
       // Pontos acumulados
       const pointsResult = await client.query(
@@ -57,6 +89,26 @@ export class DashboardService {
         userId,
       ]);
 
+      // ✅ Busca quantidade de membros diretos (para regra de equipe)
+      const teamResult = await client.query(
+        `SELECT COUNT(*)::INT as team_members 
+         FROM users 
+         WHERE parent_id = $1 AND is_active = true`,
+        [userId]
+      );
+
+      // 🔹 Verifica e atualiza automaticamente o nível do consultor
+      const userStats = {
+        id: userId,
+        role: levelInfo.phaseName,
+        pontos: totalPoints,
+        contratos_mes: parseInt(salesResult.rows[0]?.total_sales || '0'),
+        meses_sem_contratos: mesesSemContratos,
+        tem_equipe: parseInt(teamResult.rows[0]?.team_members || 0) > 0,
+      };
+
+      await levelProgressService.calcularProximoNivel(userStats);
+
       // 💬 Mapeia nomes amigáveis pro front
       const levelDisplayMap: Record<string, string> = {
         elite: 'Consultor Elite',
@@ -70,6 +122,7 @@ export class DashboardService {
 
       // 🧠 Log de depuração
       console.log('⭐ Points:', totalPoints, '| Level calculado:', levelInfo.phaseName);
+      console.log('📊 User Stats:', userStats);
 
       // Retorna o dashboard formatado
       return {
@@ -77,8 +130,10 @@ export class DashboardService {
         total_revenue: parseFloat(salesResult.rows[0]?.total_revenue || 0),
         total_kilowatts: parseFloat(salesResult.rows[0]?.total_kilowatts || 0),
         total_points: totalPoints,
-        level: displayLevel, // ✅ agora usa o nível calculado corretamente
-        team_members: 0,
+        level: displayLevel,
+        team_members: parseInt(teamResult.rows[0]?.team_members || 0),
+        last_sale_date: lastSaleResult.rows[0]?.last_sale_date || null, // 🆕 data da última venda
+        meses_sem_contratos: mesesSemContratos, // 🆕 meses desde a última venda
         charts: {
           byStatus: [],
           monthly: [],
@@ -92,7 +147,7 @@ export class DashboardService {
     }
   }
 
-  // Dashboard da equipe (hierárquico)
+  // ========== DASHBOARD DA EQUIPE (HIERÁRQUICO) ==========
   async getTeamDashboard(userId: string) {
     const client = await pool.connect();
 
@@ -190,7 +245,7 @@ export class DashboardService {
     }
   }
 
-  // Dashboard completo (admin)
+  // ========== DASHBOARD COMPLETO (ADMIN) ==========
   async getAdminDashboard() {
     const client = await pool.connect();
 

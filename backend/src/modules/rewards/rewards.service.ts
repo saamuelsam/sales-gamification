@@ -1,4 +1,5 @@
 import { pool } from '../../config/database';
+import { logActivity } from '../../utils/activityLogger';
 
 export class RewardsService {
   async checkMonthlyReward(userId: string, client: any) {
@@ -48,6 +49,14 @@ export class RewardsService {
                  $2)`,
         [userId, JSON.stringify({ reward_type: 'cesta_basica', kw_total: totalKw, threshold: 400 })]
       );
+
+      // 📝 LOG: Recompensa conquistada
+      await logActivity(userId, 'Conquistou recompensa', {
+        reward_type: 'cesta_basica',
+        kw_total: totalKw,
+        threshold: 400,
+        description: 'Cesta Básica por atingir 400 kW no mês'
+      });
 
       return true;
     }

@@ -1,27 +1,33 @@
 import { Request, Response, NextFunction } from 'express';
-import { verifyToken } from '../config/jwt';
-import { ApiResponse } from '../utils/responses';
+import jwt from 'jsonwebtoken';
 
-
-export const verifyTokenMiddleware = (req: Request, res: Response, next: NextFunction) => {
+export const verifyTokenMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader) {
-      return ApiResponse.unauthorized(res, 'Token não fornecido');
-    }
-
-    const token = authHeader.split(' ')[1]; // Bearer <token>
-
+    const token = req.headers.authorization?.split(' ')[1];
+    
     if (!token) {
-      return ApiResponse.unauthorized(res, 'Token inválido');
+      return res.status(401).json({ message: 'Token não fornecido' });
     }
 
-    const decoded = verifyToken(token);
-    (req as any).user = decoded;
-
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as any;
+    
+    // ✅ LOGS PARA DEBUG
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🔐 [AUTH] Token decodificado:', decoded);
+    console.log('🔐 [AUTH] User ID extraído:', decoded.userId || decoded.id);
+    console.log('🔐 [AUTH] Email:', decoded.email);
+    console.log('🔐 [AUTH] Role:', decoded.role);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    req.user = {
+      userId: decoded.userId || decoded.id,
+      email: decoded.email,
+      role: decoded.role,
+    };
+    
     next();
   } catch (error) {
-    return ApiResponse.unauthorized(res, 'Token inválido ou expirado');
+    console.error('❌ [AUTH] Erro ao verificar token:', error);
+    return res.status(401).json({ message: 'Token inválido' });
   }
 };

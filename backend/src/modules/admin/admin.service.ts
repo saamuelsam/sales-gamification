@@ -449,8 +449,27 @@ class AdminService {
    */
   async getSystemConfig() {
     const result = await pool.query('SELECT key, value FROM system_settings');
-    const config: Record<string, string | number> = {};
-    result.rows.forEach((r) => (config[r.key] = isNaN(r.value) ? r.value : Number(r.value)));
+    const config: Record<string, string | number | boolean> = {};
+    
+    result.rows.forEach((r) => {
+      const value = r.value;
+      
+      // Convert boolean strings
+      if (value === 'true') {
+        config[r.key] = true;
+      } else if (value === 'false') {
+        config[r.key] = false;
+      } 
+      // Convert numbers
+      else if (!isNaN(value) && value !== '') {
+        config[r.key] = Number(value);
+      } 
+      // Keep as string
+      else {
+        config[r.key] = value;
+      }
+    });
+    
     return config;
   }
 
@@ -461,11 +480,13 @@ class AdminService {
     const changedKeys: string[] = [];
 
     for (const key in data) {
+      const value = typeof data[key] === 'boolean' ? data[key].toString() : data[key].toString();
+      
       await pool.query(
         `INSERT INTO system_settings (key, value, updated_at)
          VALUES ($1, $2, NOW())
          ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
-        [key, data[key].toString()]
+        [key, value]
       );
       changedKeys.push(key);
     }
@@ -486,10 +507,20 @@ class AdminService {
    */
   async getAllNotifications() {
     const result = await pool.query(`
-      SELECT id, user_id, title, message, type, read as is_read, created_at
-      FROM notifications
-      ORDER BY created_at DESC
-      LIMIT 100
+      SELECT 
+        n.id, 
+        n.user_id, 
+        n.title, 
+        n.message, 
+        n.type, 
+        n.is_read, 
+        n.created_at,
+        u.name as user_name,
+        u.email as user_email
+      FROM notifications n
+      LEFT JOIN users u ON n.user_id = u.id
+      ORDER BY n.created_at DESC
+      LIMIT 200
     `);
     return result.rows;
   }
@@ -504,34 +535,79 @@ class AdminService {
     target: string,
     adminId: string
   ) {
-    let usersQuery = 'SELECT id FROM users';
-    
-    if (target === 'leaders') usersQuery += " WHERE role IN ('master_consultant','senior_consultant','executive')";
-    if (target === 'consultants') usersQuery += " WHERE role = 'consultant'";
-    
-    const users = (await pool.query(usersQuery)).rows;
+    console.log('🔔 Iniciando criação de notificação global:', { title, message, type, target, adminId });
 
-    for (const user of users) {
-      await pool.query(
-        `INSERT INTO notifications (user_id, title, message, type, read, created_at)
-         VALUES ($1, $2, $3, $4, FALSE, NOW())`,
-        [user.id, title, message, type]
-      );
+    // Query base: busca apenas usuários ativos e com email válido
+    let usersQuery = `
+      SELECT id, name, email, role 
+      FROM users 
+      WHERE is_active = true 
+        AND email IS NOT NULL 
+        AND role IS NOT NULL
+    `;
+    
+    if (target === 'leaders') {
+      usersQuery += " AND role IN ('master_consultant','senior_consultant','prime_consultant','executive')";
+    } else if (target === 'consultants') {
+      usersQuery += " AND role = 'consultant'";
+    }
+    // Se target === 'all', pega todos os usuários ativos
+    
+    console.log('📊 Executando query:', usersQuery);
+    const result = await pool.query(usersQuery);
+    const users = result.rows;
+
+    console.log(`👥 Encontrados ${users.length} usuários para notificar`);
+
+    if (users.length === 0) {
+      console.warn('⚠️ Nenhum usuário encontrado com os critérios especificados');
+      throw new Error('Nenhum usuário ativo encontrado com os critérios especificados');
     }
 
-    // ✅ REGISTRAR LOG DE ATIVIDADE
-    await logActivity(adminId, ActivityAction.SEND_GLOBAL_NOTIFICATION, {
-      title,
-      message,
-      type,
-      target,
-      totalRecipients: users.length,
-      totalEnviados: users.length,
-      action: 'send_global_notification',
-      timestamp: new Date().toISOString()
-    });
+    // Criar notificações para cada usuário
+    let successCount = 0;
+    let errorCount = 0;
 
-    return { count: users.length };
+    for (const user of users) {
+      try {
+        await pool.query(
+          `INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
+           VALUES ($1, $2, $3, $4, FALSE, NOW())`,
+          [user.id, title, message, type]
+        );
+        successCount++;
+        console.log(`✅ Notificação criada para ${user.name} (${user.email})`);
+      } catch (error: any) {
+        errorCount++;
+        console.error(`❌ Erro ao criar notificação para ${user.name}:`, error.message);
+      }
+    }
+
+    console.log(`📊 Resultado: ${successCount} sucesso, ${errorCount} erros`);
+
+    // ✅ REGISTRAR LOG DE ATIVIDADE
+    try {
+      await logActivity(adminId, ActivityAction.SEND_GLOBAL_NOTIFICATION, {
+        title,
+        message,
+        type,
+        target,
+        totalRecipients: users.length,
+        successCount,
+        errorCount,
+        action: 'send_global_notification',
+        timestamp: new Date().toISOString()
+      });
+    } catch (logError: any) {
+      console.error('⚠️ Erro ao registrar log de atividade:', logError.message);
+      // Não falhar a operação por causa do log
+    }
+
+    return { 
+      count: successCount, 
+      errors: errorCount,
+      message: `${successCount} notificações enviadas com sucesso${errorCount > 0 ? ` (${errorCount} erros)` : ''}` 
+    };
   }
 
   /**
@@ -571,11 +647,200 @@ class AdminService {
   }
 
   /**
+   * ✅ Buscar logs de acesso (login/logout)
+   */
+  async getAccessLogs(search?: string, action?: string) {
+    let query = `
+      SELECT 
+        ll.id, ll.user_id, ll.action, ll.ip_address, ll.user_agent, ll.created_at,
+        u.name as user_name, u.email as user_email, u.role
+      FROM login_logs ll
+      LEFT JOIN users u ON u.id = ll.user_id
+      WHERE 1=1
+    `;
+    const params: any[] = [];
+
+    if (search) {
+      query += ` AND (u.name ILIKE $${params.length + 1} OR u.email ILIKE $${params.length + 1} OR ll.ip_address ILIKE $${params.length + 1})`;
+      params.push(`%${search}%`);
+    }
+
+    if (action) {
+      query += ` AND ll.action ILIKE $${params.length + 1}`;
+      params.push(`%${action}%`);
+    }
+
+    query += ' ORDER BY ll.created_at DESC LIMIT 300';
+    const result = await pool.query(query, params);
+    return result.rows;
+  }
+
+  /**
    * ✅ Criar log de atividade manualmente (deprecated - usar logActivity)
    * @deprecated Use logActivity() do utils/activityLogger.ts
    */
   async createActivityLog(userId: string, action: string, details?: any) {
     await logActivity(userId, action, details);
+  }
+
+  /**
+   * ✅ Gerar relatórios em formato CSV
+   */
+  async generateReport(type: string, start: string, end: string): Promise<string> {
+    console.log(`📊 generateReport chamado: type=${type}, start=${start}, end=${end}`);
+    
+    switch(type) {
+      case 'sales':
+        return await this.generateSalesReport(start, end);
+      case 'commissions':
+        return await this.generateCommissionsReport(start, end);
+      case 'team':
+        return await this.generateTeamReport(start, end);
+      case 'goals':
+        return await this.generateGoalsReport(start, end);
+      default:
+        throw new Error(`Tipo de relatório inválido: ${type}`);
+    }
+  }
+
+  /**
+   * Gerar relatório de vendas
+   */
+  private async generateSalesReport(start: string, end: string): Promise<string> {
+    console.log(`📈 Gerando relatório de vendas: ${start} - ${end}`);
+    const result = await pool.query(`
+      SELECT 
+        s.id,
+        TO_CHAR(s.created_at, 'DD/MM/YYYY HH24:MI') as data,
+        c.name as cliente,
+        c.cpf,
+        u.name as vendedor,
+        s.value as valor,
+        s.kilowatts as kwp,
+        s.status
+      FROM sales s
+      JOIN clients c ON s.client_id = c.id
+      JOIN users u ON s.user_id = u.id
+      WHERE s.created_at BETWEEN $1 AND $2
+      ORDER BY s.created_at DESC
+    `, [start, end]);
+
+    console.log(`✅ Query vendas retornou ${result.rows.length} registros`);
+    const headers = 'ID;Data;Cliente;CPF;Vendedor;Valor;kWp;Status\n';
+    const rows = result.rows.map(r => 
+      `${r.id};${r.data};${r.cliente};${r.cpf || 'N/A'};${r.vendedor};R$ ${parseFloat(r.valor).toFixed(2)};${r.kwp};${r.status}`
+    ).join('\n');
+    
+    return headers + rows;
+  }
+
+  /**
+   * Gerar relatório de comissões
+   */
+  private async generateCommissionsReport(start: string, end: string): Promise<string> {
+    console.log(`💰 Gerando relatório de comissões: ${start} - ${end}`);
+    const result = await pool.query(`
+      SELECT 
+        'Pessoal' as tipo,
+        pc.id,
+        TO_CHAR(pc.created_at, 'DD/MM/YYYY HH24:MI') as data,
+        u.name as usuario,
+        u.email,
+        s.id as venda_id,
+        pc.commission_amount as valor,
+        CASE WHEN pc.paid THEN 'Pago' ELSE 'Pendente' END as status
+      FROM personal_commissions pc
+      JOIN users u ON pc.user_id = u.id
+      LEFT JOIN sales s ON pc.sale_id = s.id
+      WHERE pc.created_at BETWEEN $1 AND $2
+      
+      UNION ALL
+      
+      SELECT 
+        'Rede' as tipo,
+        nc.id,
+        TO_CHAR(nc.created_at, 'DD/MM/YYYY HH24:MI') as data,
+        u.name as usuario,
+        u.email,
+        s.id as venda_id,
+        nc.commission_amount as valor,
+        CASE WHEN nc.paid THEN 'Pago' ELSE 'Pendente' END as status
+      FROM network_commissions nc
+      JOIN users u ON nc.leader_id = u.id
+      LEFT JOIN sales s ON nc.sale_id = s.id
+      WHERE nc.created_at BETWEEN $3 AND $4
+      
+      ORDER BY data DESC
+    `, [start, end, start, end]);
+
+    console.log(`✅ Query comissões retornou ${result.rows.length} registros`);
+    const headers = 'Tipo;ID;Data;Usuário;Email;Venda ID;Valor;Status\n';
+    const rows = result.rows.map(r => 
+      `${r.tipo};${r.id};${r.data};${r.usuario};${r.email};${r.venda_id || 'N/A'};R$ ${parseFloat(r.valor).toFixed(2)};${r.status}`
+    ).join('\n');
+    
+    return headers + rows;
+  }
+
+  /**
+   * Gerar relatório da equipe
+   */
+  private async generateTeamReport(start: string, end: string): Promise<string> {
+    console.log(`👥 Gerando relatório de equipe: ${start} - ${end}`);
+    const result = await pool.query(`
+      SELECT 
+        u.id,
+        u.name as nome,
+        u.email,
+        u.role as cargo,
+        u.is_active as ativo,
+        TO_CHAR(u.created_at, 'DD/MM/YYYY') as data_cadastro,
+        COALESCE(leader.name, 'N/A') as patrocinador,
+        (SELECT COUNT(*) FROM sales WHERE user_id = u.id AND created_at BETWEEN $1 AND $2) as vendas,
+        COALESCE((SELECT SUM(value) FROM sales WHERE user_id = u.id AND created_at BETWEEN $1 AND $2), 0) as valor_total,
+        COALESCE((SELECT SUM(commission_amount) FROM personal_commissions WHERE user_id = u.id AND created_at BETWEEN $1 AND $2), 0) as comissoes
+      FROM users u
+      LEFT JOIN user_hierarchy uh ON u.id = uh.subordinate_id
+      LEFT JOIN users leader ON uh.leader_id = leader.id
+      ORDER BY vendas DESC, valor_total DESC
+    `, [start, end]);
+
+    const headers = 'ID;Nome;Email;Cargo;Ativo;Cadastro;Patrocinador;Vendas;Valor Total;Comissões\n';
+    const rows = result.rows.map(r => 
+      `${r.id};${r.nome};${r.email};${r.cargo};${r.ativo ? 'Sim' : 'Não'};${r.data_cadastro};${r.patrocinador};${r.vendas};R$ ${parseFloat(r.valor_total).toFixed(2)};R$ ${parseFloat(r.comissoes).toFixed(2)}`
+    ).join('\n');
+    
+    return headers + rows;
+  }
+
+  /**
+   * Gerar relatório de metas
+   */
+  private async generateGoalsReport(start: string, end: string): Promise<string> {
+    // Buscar vendas agrupadas por usuário no período
+    const result = await pool.query(`
+      SELECT 
+        u.id,
+        u.name as vendedor,
+        u.email,
+        COUNT(s.id) as vendas_realizadas,
+        COALESCE(SUM(s.value), 0) as valor_total,
+        COALESCE(SUM(s.kilowatts), 0) as kwp_total,
+        TO_CHAR(MIN(s.created_at), 'DD/MM/YYYY') as primeira_venda,
+        TO_CHAR(MAX(s.created_at), 'DD/MM/YYYY') as ultima_venda
+      FROM users u
+      LEFT JOIN sales s ON s.user_id = u.id AND s.created_at BETWEEN $1 AND $2
+      WHERE u.role IN ('vendedor', 'gerente', 'diretor', 'ceo')
+      GROUP BY u.id, u.name, u.email
+      ORDER BY vendas_realizadas DESC, valor_total DESC
+    `, [start, end]);
+
+    const headers = 'ID;Vendedor;Email;Vendas;Valor Total;kWp Total;Primeira Venda;Última Venda\n';
+    const rows = result.rows.map(r => 
+      `${r.id};${r.vendedor};${r.email};${r.vendas_realizadas};R$ ${parseFloat(r.valor_total).toFixed(2)};${parseFloat(r.kwp_total).toFixed(2)};${r.primeira_venda || 'N/A'};${r.ultima_venda || 'N/A'}`
+    ).join('\n');
+    
+    return headers + rows;
   }
 }
 

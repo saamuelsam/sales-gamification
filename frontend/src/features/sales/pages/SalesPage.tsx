@@ -8,7 +8,7 @@ import toast from 'react-hot-toast';
 import { CurrencyInput } from '@/components/ui/CurrencyInput';
 import { useInvalidateDashboard } from '@/features/dashboard/hooks/useDashboard';
 
-type SaleStatus = 'negotiation' | 'pending' | 'approved' | 'financingdenied' | 'cancelled' | 'delivered';
+type SaleStatus = 'negotiation' | 'pending' | 'approved' | 'financing_denied' | 'cancelled' | 'delivered';
 type SaleType = 'direct' | 'consortium' | 'cash' | 'card';
 
 interface Sale {
@@ -42,7 +42,7 @@ const statusConfig: Record<SaleStatus, { label: string; color: string }> = {
   negotiation: { label: 'Negociação', color: 'bg-primary/10 text-primary border-primary/30' },
   pending: { label: 'Pendente', color: 'bg-accent/10 text-accent border-accent/30' },
   approved: { label: 'Aprovado', color: 'bg-green-100 text-green-800 border-green-300' },
-  financingdenied: { label: 'Negado', color: 'bg-red-100 text-red-800 border-red-300' },
+  financing_denied: { label: 'Negado', color: 'bg-red-100 text-red-800 border-red-300' },
   cancelled: { label: 'Cancelado', color: 'bg-gray-100 text-gray-800 border-gray-300' },
   delivered: { label: 'Entregue', color: 'bg-highlight/10 text-highlight border-highlight/30' },
 };
@@ -120,11 +120,11 @@ export const SalesPage = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral via-neutral to-accent/5 p-2 sm:p-4 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-neutral via-neutral to-accent/5 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 p-2 sm:p-4 pb-20">
       <div className="max-w-7xl mx-auto space-y-3">
         <div className="flex justify-between items-center gap-2">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-primary">Vendas</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-primary dark:text-primary-400">Vendas</h1>
           </div>
           <Button
             onClick={() => setShowCreateModal(true)}
@@ -135,12 +135,12 @@ export const SalesPage = () => {
           </Button>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-2 space-y-2">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-2 space-y-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value as any)}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
               <option value="all">Todos Status</option>
               {Object.entries(statusConfig).map(([key, config]) => (
@@ -162,17 +162,17 @@ export const SalesPage = () => {
 
         <div className="space-y-2">
           {loading ? (
-            <div className="bg-white rounded-lg p-8 text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="text-sm text-gray-600 mt-2">Carregando...</p>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-8 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+              <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">Carregando...</p>
             </div>
           ) : filteredSales.length === 0 ? (
-            <div className="bg-white rounded-lg p-8 text-center">
-              <p className="text-sm text-gray-600">Nenhuma venda encontrada</p>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-8 text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-300">Nenhuma venda encontrada</p>
             </div>
           ) : (
             filteredSales.map((sale) => (
-              <div key={sale.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 hover:shadow-md transition-shadow">
+              <div key={sale.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-3 hover:shadow-md transition-shadow">
                 <div className="flex justify-between items-start mb-2 gap-2">
                   <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-sm text-primary truncate">
@@ -211,8 +211,8 @@ export const SalesPage = () => {
 
                 <div className="grid grid-cols-2 gap-2 mb-2 text-xs">
                   <div>
-                    <p className="text-gray-600">Valor</p>
-                    <p className="font-semibold text-primary">
+                    <p className="text-gray-600 dark:text-gray-300">Valor</p>
+                    <p className="font-semibold text-primary dark:text-primary-400">
                       {new Intl.NumberFormat('pt-BR', {
                         style: 'currency',
                         currency: 'BRL',
@@ -236,14 +236,14 @@ export const SalesPage = () => {
                     </div>
                   ) : (
                     <div>
-                      <p className="text-gray-600">Potência</p>
-                      <p className="font-semibold text-gray-900">{sale.kilowatts} kW</p>
+                      <p className="text-gray-600 dark:text-gray-300">Potência</p>
+                      <p className="font-semibold text-gray-900 dark:text-gray-100">{sale.kilowatts} kW</p>
                     </div>
                   )}
 
                   <div>
-                    <p className="text-gray-600">Data</p>
-                    <p className="text-gray-900">
+                    <p className="text-gray-600 dark:text-gray-300">Data</p>
+                    <p className="text-gray-900 dark:text-gray-100">
                       {new Date(sale.created_at).toLocaleDateString('pt-BR', {
                         day: '2-digit',
                         month: '2-digit',
@@ -253,23 +253,23 @@ export const SalesPage = () => {
 
                   {sale.sale_type === 'consortium' && (
                     <div>
-                      <p className="text-gray-600">Potência</p>
-                      <p className="font-semibold text-gray-900">{sale.kilowatts} kW</p>
+                      <p className="text-gray-600 dark:text-gray-300">Potência</p>
+                      <p className="font-semibold text-gray-900 dark:text-gray-100">{sale.kilowatts} kW</p>
                     </div>
                   )}
                 </div>
 
-                <div className="flex gap-1 pt-2 border-t">
+                <div className="flex gap-1 pt-2 border-t dark:border-gray-700">
                   <button
                     onClick={() => handleViewDetails(sale)}
-                    className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded text-xs font-medium transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1 px-2 py-2 bg-primary/10 dark:bg-primary/20 hover:bg-primary/20 dark:hover:bg-primary/30 text-primary dark:text-primary-400 rounded text-xs font-medium transition-colors"
                   >
                     <Eye className="w-3 h-3" />
                     Ver
                   </button>
                   <button
                     onClick={() => handleDelete(sale.id)}
-                    className="px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 rounded transition-colors"
+                    className="px-3 py-2 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 text-red-700 dark:text-red-300 rounded transition-colors"
                   >
                     <Trash className="w-3 h-3" />
                   </button>
@@ -388,19 +388,19 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
     <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ zIndex: 9999 }}>
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
       <div
-        className="relative bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg flex flex-col shadow-2xl"
+        className="relative bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-lg flex flex-col shadow-2xl"
         style={{ maxHeight: '90vh', height: 'auto' }}
       >
-        <div className="flex justify-between items-center px-4 py-3 border-b bg-white rounded-t-2xl shrink-0">
-          <h2 className="text-base font-bold text-primary">
+        <div className="flex justify-between items-center px-4 py-3 border-b dark:border-gray-700 bg-white dark:bg-gray-800 rounded-t-2xl shrink-0">
+          <h2 className="text-base font-bold text-primary dark:text-primary-400">
             {step === 'client' ? '👤 Dados do Cliente' : '📊 Dados da Venda'}
           </h2>
-          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-full transition-colors">
-            <X className="w-5 h-5" />
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+            <X className="w-5 h-5 text-gray-900 dark:text-gray-100" />
           </button>
         </div>
 
-        <div className="flex gap-2 px-4 py-2 bg-gray-50 shrink-0">
+        <div className="flex gap-2 px-4 py-2 bg-gray-50 dark:bg-gray-900 shrink-0">
           <div className={`flex-1 h-1.5 rounded-full transition-all ${step === 'client' ? 'bg-primary' : 'bg-accent'}`} />
           <div className={`flex-1 h-1.5 rounded-full transition-all ${step === 'sale' ? 'bg-primary' : 'bg-gray-300'}`} />
         </div>
@@ -412,12 +412,12 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
           {step === 'client' ? (
             <form onSubmit={handleNext} className="p-4 space-y-3">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1.5">Nome Completo *</label>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1.5">Nome Completo *</label>
                 <input
                   type="text"
                   value={clientData.name}
                   onChange={(e) => setClientData({ ...clientData, name: e.target.value })}
-                  className="w-full px-3 py-2.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+                  className="w-full px-3 py-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   placeholder="João Silva"
                   required
                   autoFocus
@@ -691,13 +691,13 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
           )}
         </div>
 
-        <div className="px-4 py-3 bg-white border-t shrink-0 rounded-b-2xl">
+        <div className="px-4 py-3 bg-white dark:bg-gray-800 border-t dark:border-gray-700 shrink-0 rounded-b-2xl">
           <div className="flex gap-2">
             {step === 'sale' && (
               <button
                 type="button"
                 onClick={() => setStep('client')}
-                className="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium text-sm transition-colors"
+                className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium text-sm transition-colors"
               >
                 ← Voltar
               </button>
@@ -755,7 +755,7 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
     }
     setLoading(true);
     try {
-      await api.patch(`/sales/${sale.id}/status`, { status: newStatus });
+      await api.put(`/sales/${sale.id}/status`, { status: newStatus });
       toast.success('Status atualizado!');
       setIsEditingStatus(false);
       invalidateDashboard();
@@ -770,18 +770,18 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
   return (
     <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ zIndex: 9999 }}>
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
-      <div className="relative bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl flex flex-col shadow-2xl" style={{ maxHeight: '90vh' }}>
-        <div className="flex justify-between items-center px-4 py-3 border-b bg-white rounded-t-2xl shrink-0">
-          <h2 className="text-base font-bold text-primary">Detalhes da Venda</h2>
-          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 rounded-full transition-colors">
-            <X className="w-5 h-5" />
+      <div className="relative bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl flex flex-col shadow-2xl" style={{ maxHeight: '90vh' }}>
+        <div className="flex justify-between items-center px-4 py-3 border-b dark:border-gray-700 bg-white dark:bg-gray-800 rounded-t-2xl shrink-0">
+          <h2 className="text-base font-bold text-primary dark:text-primary-400">Detalhes da Venda</h2>
+          <button onClick={onClose} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors">
+            <X className="w-5 h-5 text-gray-900 dark:text-gray-100" />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-3" style={{ WebkitOverflowScrolling: 'touch' }}>
-          <div className="bg-gray-50 rounded-lg p-3 border">
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 border dark:border-gray-700">
             <div className="flex justify-between items-start mb-2">
-              <p className="text-xs text-gray-600 font-semibold">Status da Venda</p>
+              <p className="text-xs text-gray-600 dark:text-gray-300 font-semibold">Status da Venda</p>
               {!isEditingStatus && (
                 <button
                   onClick={() => setIsEditingStatus(true)}
@@ -797,12 +797,12 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
                 <select
                   value={newStatus}
                   onChange={(e) => setNewStatus(e.target.value as SaleStatus)}
-                  className="w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 text-sm border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
                   <option value="negotiation">🔵 Negociação</option>
                   <option value="pending">🟡 Pendente</option>
                   <option value="approved">🟢 Aprovado</option>
-                  <option value="financingdenied">🔴 Financiamento Negado</option>
+                  <option value="financing_denied">🔴 Financiamento Negado</option>
                   <option value="cancelled">⚫ Cancelado</option>
                   <option value="delivered">🟣 Entregue</option>
                 </select>
@@ -810,7 +810,7 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setIsEditingStatus(false)}
-                    className="flex-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium"
+                    className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium"
                   >
                     Cancelar
                   </button>
@@ -835,8 +835,8 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
           </div>
 
           {sale.sale_type && (
-            <div className="bg-gray-50 rounded-lg p-2.5">
-              <p className="text-xs text-gray-600 mb-1.5">Tipo de Venda</p>
+            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-2.5">
+              <p className="text-xs text-gray-600 dark:text-gray-300 mb-1.5">Tipo de Venda</p>
               <span
                 className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${
                   sale.sale_type === 'consortium'
@@ -890,28 +890,28 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold mb-2 text-primary">Informações do Cliente</h3>
+            <h3 className="text-sm font-semibold mb-2 text-primary dark:text-primary-400">Informações do Cliente</h3>
             <div className="grid grid-cols-2 gap-2">
-              <div className="bg-gray-50 rounded p-2.5">
-                <p className="text-xs text-gray-600 mb-0.5">Nome</p>
-                <p className="text-xs font-medium">{sale.client_full_name || sale.client_name || '-'}</p>
+              <div className="bg-gray-50 dark:bg-gray-900 rounded p-2.5">
+                <p className="text-xs text-gray-600 dark:text-gray-300 mb-0.5">Nome</p>
+                <p className="text-xs font-medium text-gray-900 dark:text-gray-100">{sale.client_full_name || sale.client_name || '-'}</p>
               </div>
               {sale.cpf && (
-                <div className="bg-gray-50 rounded p-2.5">
-                  <p className="text-xs text-gray-600 mb-0.5">CPF</p>
-                  <p className="text-xs font-medium">{sale.cpf}</p>
+                <div className="bg-gray-50 dark:bg-gray-900 rounded p-2.5">
+                  <p className="text-xs text-gray-600 dark:text-gray-300 mb-0.5">CPF</p>
+                  <p className="text-xs font-medium text-gray-900 dark:text-gray-100">{sale.cpf}</p>
                 </div>
               )}
               {sale.phone && (
-                <div className="bg-gray-50 rounded p-2.5">
-                  <p className="text-xs text-gray-600 mb-0.5">Telefone</p>
-                  <p className="text-xs font-medium">{sale.phone}</p>
+                <div className="bg-gray-50 dark:bg-gray-900 rounded p-2.5">
+                  <p className="text-xs text-gray-600 dark:text-gray-300 mb-0.5">Telefone</p>
+                  <p className="text-xs font-medium text-gray-900 dark:text-gray-100">{sale.phone}</p>
                 </div>
               )}
               {sale.email && (
-                <div className="bg-gray-50 rounded p-2.5">
-                  <p className="text-xs text-gray-600 mb-0.5">Email</p>
-                  <p className="text-xs font-medium break-all">{sale.email}</p>
+                <div className="bg-gray-50 dark:bg-gray-900 rounded p-2.5">
+                  <p className="text-xs text-gray-600 dark:text-gray-300 mb-0.5">Email</p>
+                  <p className="text-xs font-medium text-gray-900 dark:text-gray-100 break-all">{sale.email}</p>
                 </div>
               )}
             </div>

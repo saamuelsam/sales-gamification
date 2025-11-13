@@ -20,22 +20,34 @@ var ActivityAction;
     ActivityAction["REMOVE_TEAM_MEMBER"] = "Removeu membro da equipe";
     // Ações de Comissões
     ActivityAction["NEW_COMMISSION"] = "Recebeu nova comiss\u00E3o da rede";
+    ActivityAction["PERSONAL_COMMISSION"] = "Recebeu comiss\u00E3o pessoal";
+    ActivityAction["NETWORK_COMMISSION"] = "Recebeu comiss\u00E3o de rede";
     ActivityAction["MARK_COMMISSION_PAID"] = "Marcou comiss\u00E3o como paga";
     ActivityAction["ADMIN_MARK_COMMISSION_PAID"] = "Marcou comiss\u00E3o como paga (admin)";
     // Ações de Vendas
     ActivityAction["CREATE_SALE"] = "Registrou nova venda";
     ActivityAction["UPDATE_SALE"] = "Atualizou venda";
     ActivityAction["DELETE_SALE"] = "Removeu venda";
+    ActivityAction["APPROVE_SALE"] = "Venda aprovada";
+    ActivityAction["REJECT_SALE"] = "Venda rejeitada";
+    // Ações de Níveis
+    ActivityAction["LEVEL_UP"] = "Subiu de n\u00EDvel";
+    ActivityAction["LEVEL_DOWN"] = "Rebaixado de n\u00EDvel";
+    // Ações de Recompensas
+    ActivityAction["REWARD_EARNED"] = "Conquistou recompensa";
+    ActivityAction["REWARD_CLAIMED"] = "Resgatou recompensa";
     // Ações Administrativas
     ActivityAction["UPDATE_USER_STATUS"] = "Atualizou status de usu\u00E1rio";
     ActivityAction["UPDATE_USER_ROLE"] = "Alterou fun\u00E7\u00E3o de usu\u00E1rio";
     ActivityAction["UPDATE_SYSTEM_CONFIG"] = "Alterou configura\u00E7\u00F5es globais";
     ActivityAction["SEND_GLOBAL_NOTIFICATION"] = "Enviou notifica\u00E7\u00E3o global";
+    ActivityAction["DELETE_NOTIFICATION"] = "Deletou notifica\u00E7\u00E3o";
     // Ações de Autenticação
     ActivityAction["USER_LOGIN"] = "Realizou login";
     ActivityAction["USER_LOGOUT"] = "Realizou logout";
     ActivityAction["FAILED_LOGIN"] = "Tentativa de login falhou";
     ActivityAction["PASSWORD_RESET"] = "Redefiniu senha";
+    ActivityAction["REGISTER"] = "Registrou novo usu\u00E1rio";
     // Erros
     ActivityAction["SYSTEM_ERROR"] = "Erro cr\u00EDtico do sistema";
     ActivityAction["USER_ERROR"] = "Erro na opera\u00E7\u00E3o do usu\u00E1rio";

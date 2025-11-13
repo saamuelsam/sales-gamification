@@ -2029,3 +2029,161 @@
 {"level":"info","message":"✅ Encontradas 0 comissões","timestamp":"2025-11-06 23:00:42"}
 {"level":"info","message":"📊 Buscando resumo para usuário: 6fbd7237-d334-4c80-8bb4-c880e5ac98a3","timestamp":"2025-11-06 23:00:42"}
 {"level":"info","message":"📊 Buscando resumo para usuário: 6fbd7237-d334-4c80-8bb4-c880e5ac98a3","timestamp":"2025-11-06 23:00:42"}
+{"level":"error","message":"❌ Erro ao registrar login falho: relation \"login_logs\" does not exist","timestamp":"2025-11-12 18:07:23"}
+{"level":"error","message":"❌ Erro ao registrar log de login: relation \"login_logs\" does not exist","timestamp":"2025-11-12 18:07:45"}
+{"level":"info","message":"🔍 Iniciando processNetworkCommission para member 66a7f970-1807-4903-9440-41fe2204720b, sale 636b07c1-2ba2-470f-bfee-a6a47373bbb1","timestamp":"2025-11-12 18:12:32"}
+{"code":"42P01","file":"parse_relation.c","length":113,"level":"error","line":"1392","message":"❌ Erro ao processar comissão de rede: relation \"user_hierarchy\" does not exist relation \"user_hierarchy\" does not exist","name":"error","position":"41","routine":"parserOpenTable","severity":"ERROR","stack":"error: relation \"user_hierarchy\" does not exist\n    at /app/node_modules/pg-pool/index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at CommissionService.processNetworkCommission (/app/src/modules/commissions/commission.service.ts:74:26)\n    at SalesService.updateSale (/app/src/modules/sales/sales.service.ts:474:9)\n    at SalesController.updateStatus (/app/src/modules/sales/sales.controller.ts:100:20)","timestamp":"2025-11-12 18:12:32"}
+{"level":"info","message":"✅ Notificação criada para usuário 66a7f970-1807-4903-9440-41fe2204720b: 🏆 Promoção: Master","timestamp":"2025-11-12 18:19:18"}
+{"level":"info","message":"🔍 Iniciando processNetworkCommission para member 66a7f970-1807-4903-9440-41fe2204720b, sale fcb5ea2e-5455-418d-93a2-e3d27baffb5b","timestamp":"2025-11-12 18:19:35"}
+{"code":"42P01","file":"parse_relation.c","length":113,"level":"error","line":"1392","message":"❌ Erro ao processar comissão de rede: relation \"user_hierarchy\" does not exist relation \"user_hierarchy\" does not exist","name":"error","position":"41","routine":"parserOpenTable","severity":"ERROR","stack":"error: relation \"user_hierarchy\" does not exist\n    at /app/node_modules/pg-pool/index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at CommissionService.processNetworkCommission (/app/src/modules/commissions/commission.service.ts:74:26)\n    at SalesService.updateSale (/app/src/modules/sales/sales.service.ts:474:9)\n    at SalesController.updateStatus (/app/src/modules/sales/sales.controller.ts:100:20)","timestamp":"2025-11-12 18:19:35"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: relation \"user_hierarchy\" does not exist","timestamp":"2025-11-12 18:19:37"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: relation \"user_hierarchy\" does not exist","timestamp":"2025-11-12 18:19:37"}
+{"level":"info","message":"✅ Notificação fe620ad2-70bf-4cbb-ba62-83a54aa5a3c7 deletada","timestamp":"2025-11-12 18:19:44"}
+{"level":"info","message":"✅ Notificação ef652503-9641-4530-aa6b-3abfcc8e22ec deletada","timestamp":"2025-11-12 18:19:44"}
+{"level":"error","message":"❌ Erro ao registrar log de login: relation \"login_logs\" does not exist","timestamp":"2025-11-12 18:20:14"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: relation \"user_hierarchy\" does not exist","timestamp":"2025-11-12 18:20:18"}
+{"level":"error","message":"❌ Erro ao buscar resumo de rede: relation \"user_hierarchy\" does not exist","timestamp":"2025-11-12 18:20:18"}
+{"level":"info","message":"🔍 [REMOVE_MEMBER] Leader ID: 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-12 18:24:13"}
+{"level":"info","message":"🔍 [REMOVE_MEMBER] Member ID: 3be370ba-f468-4037-be96-67d25efd7f47","timestamp":"2025-11-12 18:24:13"}
+{"level":"info","message":"🔍 [REMOVE_MEMBER] Query result: []","timestamp":"2025-11-12 18:24:13"}
+{"level":"error","message":"❌ [REMOVE_MEMBER] Membro não encontrado! Leader: 66a7f970-1807-4903-9440-41fe2204720b, Member: 3be370ba-f468-4037-be96-67d25efd7f47","timestamp":"2025-11-12 18:24:13"}
+{"level":"error","message":"❌ [REMOVE_MEMBER] ERRO: Membro não encontrado na sua equipe","timestamp":"2025-11-12 18:24:13"}
+{"level":"error","message":"❌ [REMOVE_MEMBER] Stack: Error: Membro não encontrado na sua equipe\n    at TeamService.removeTeamMember (/app/src/modules/team/team.service.ts:171:15)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at TeamController.removeTeamMember (/app/src/modules/team/team.controller.ts:50:7)","timestamp":"2025-11-12 18:24:13"}
+{"level":"info","message":"🔍 Iniciando processPersonalCommission para consultant 66a7f970-1807-4903-9440-41fe2204720b, sale a9c54005-816f-4e58-8782-be26dea52390","timestamp":"2025-11-12 18:32:15"}
+{"level":"info","message":"💰 Percentual: 7%, Valor: R$ 700","timestamp":"2025-11-12 18:32:15"}
+{"level":"info","message":"✅ Comissão pessoal criada: ID e97b8952-295c-4352-92e5-9be6741b3430, user 66a7f970-1807-4903-9440-41fe2204720b, sale a9c54005-816f-4e58-8782-be26dea52390, R$ 700","timestamp":"2025-11-12 18:32:15"}
+{"level":"info","message":"🔍 Iniciando processNetworkCommission para member 66a7f970-1807-4903-9440-41fe2204720b, sale a9c54005-816f-4e58-8782-be26dea52390","timestamp":"2025-11-12 18:32:15"}
+{"level":"warn","message":"⚠️ Nenhum líder encontrado para o membro 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-12 18:32:15"}
+{"level":"info","message":"🔍 Iniciando processPersonalCommission para consultant 3be370ba-f468-4037-be96-67d25efd7f47, sale fab1e2d8-ab2b-4a37-b461-73539290d70a","timestamp":"2025-11-12 18:32:58"}
+{"level":"info","message":"💰 Percentual: 5%, Valor: R$ 500","timestamp":"2025-11-12 18:32:58"}
+{"level":"info","message":"✅ Comissão pessoal criada: ID 39c72725-c335-4d9e-b6a7-fe848a045cd3, user 3be370ba-f468-4037-be96-67d25efd7f47, sale fab1e2d8-ab2b-4a37-b461-73539290d70a, R$ 500","timestamp":"2025-11-12 18:32:58"}
+{"level":"info","message":"🔍 Iniciando processNetworkCommission para member 3be370ba-f468-4037-be96-67d25efd7f47, sale fab1e2d8-ab2b-4a37-b461-73539290d70a","timestamp":"2025-11-12 18:32:58"}
+{"level":"info","message":"👤 Líder encontrado: samuel (master_consultant)","timestamp":"2025-11-12 18:32:58"}
+{"level":"info","message":"💰 Taxa: 2%, Valor: R$ 200","timestamp":"2025-11-12 18:32:58"}
+{"level":"info","message":"✅ Comissão de rede criada: ID 3215cfc7-d06a-4611-a1a8-caad50823934, líder samuel, membro 3be370ba-f468-4037-be96-67d25efd7f47, R$ 200","timestamp":"2025-11-12 18:32:58"}
+{"level":"warn","message":"⚠️ Tabela activity_logs não existe. Pulando log.","timestamp":"2025-11-12 21:54:30"}
+{"level":"info","message":"✅ [LOGIN_LOG] LOGIN registrado para usuário 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-12 21:54:30"}
+{"level":"error","message":"Erro ao buscar configurações: relation \"system_settings\" does not exist","timestamp":"2025-11-12 21:54:46"}
+{"level":"error","message":"Erro ao buscar configurações: relation \"system_settings\" does not exist","timestamp":"2025-11-12 21:54:46"}
+{"level":"warn","message":"⚠️ Tabela activity_logs não existe. Pulando log.","timestamp":"2025-11-12 21:59:21"}
+{"level":"info","message":"✅ [LOGIN_LOG] LOGIN registrado para usuário 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-12 21:59:21"}
+{"level":"error","message":"Erro ao buscar notificações: column \"read\" does not exist","timestamp":"2025-11-12 21:59:26"}
+{"level":"error","message":"Erro ao buscar notificações: column \"read\" does not exist","timestamp":"2025-11-12 21:59:26"}
+{"level":"error","message":"Erro ao buscar configurações: relation \"system_settings\" does not exist","timestamp":"2025-11-12 21:59:27"}
+{"level":"error","message":"Erro ao buscar configurações: relation \"system_settings\" does not exist","timestamp":"2025-11-12 21:59:27"}
+{"level":"info","message":"✅ Notificação criada para usuário 66a7f970-1807-4903-9440-41fe2204720b: 🏆 Promoção: Master","timestamp":"2025-11-12 21:59:59"}
+{"level":"info","message":"✅ Notificação criada para usuário 66a7f970-1807-4903-9440-41fe2204720b: 🏆 Promoção: Consultor Elite","timestamp":"2025-11-12 22:00:02"}
+{"level":"info","message":"✅ Notificação criada para usuário 66a7f970-1807-4903-9440-41fe2204720b: 🏆 Promoção: Master","timestamp":"2025-11-12 22:00:53"}
+{"level":"info","message":"🔍 Iniciando processPersonalCommission para consultant 66a7f970-1807-4903-9440-41fe2204720b, sale f947dceb-2910-49da-89f4-101350d8e8c2","timestamp":"2025-11-12 22:00:59"}
+{"level":"info","message":"💰 Percentual: 7%, Valor: R$ 700","timestamp":"2025-11-12 22:00:59"}
+{"level":"info","message":"✅ Comissão pessoal criada: ID 7da2e009-984a-4849-a5f5-722203a5944a, user 66a7f970-1807-4903-9440-41fe2204720b, sale f947dceb-2910-49da-89f4-101350d8e8c2, R$ 700","timestamp":"2025-11-12 22:00:59"}
+{"level":"info","message":"🔍 Iniciando processNetworkCommission para member 66a7f970-1807-4903-9440-41fe2204720b, sale f947dceb-2910-49da-89f4-101350d8e8c2","timestamp":"2025-11-12 22:00:59"}
+{"level":"warn","message":"⚠️ Nenhum líder encontrado para o membro 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-12 22:00:59"}
+{"level":"info","message":"✅ Notificação criada para usuário 66a7f970-1807-4903-9440-41fe2204720b: 🏆 Promoção: Consultor Elite","timestamp":"2025-11-12 22:00:59"}
+{"level":"info","message":"✅ Notificação criada para usuário 66a7f970-1807-4903-9440-41fe2204720b: 🏆 Promoção: Master","timestamp":"2025-11-12 22:01:39"}
+{"level":"info","message":"🔍 Iniciando processPersonalCommission para consultant 66a7f970-1807-4903-9440-41fe2204720b, sale c5384a71-7c88-46b5-8fc6-e16aa1318da3","timestamp":"2025-11-12 22:01:45"}
+{"level":"info","message":"💰 Percentual: 7%, Valor: R$ 700","timestamp":"2025-11-12 22:01:45"}
+{"level":"info","message":"✅ Comissão pessoal criada: ID f8981fb2-b79e-45d1-a04a-54ab71425032, user 66a7f970-1807-4903-9440-41fe2204720b, sale c5384a71-7c88-46b5-8fc6-e16aa1318da3, R$ 700","timestamp":"2025-11-12 22:01:45"}
+{"level":"info","message":"🔍 Iniciando processNetworkCommission para member 66a7f970-1807-4903-9440-41fe2204720b, sale c5384a71-7c88-46b5-8fc6-e16aa1318da3","timestamp":"2025-11-12 22:01:45"}
+{"level":"warn","message":"⚠️ Nenhum líder encontrado para o membro 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-12 22:01:45"}
+{"level":"warn","message":"⚠️ Tabela activity_logs não existe. Pulando log.","timestamp":"2025-11-12 22:08:39"}
+{"level":"info","message":"✅ [LOGIN_LOG] LOGIN registrado para usuário 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-12 22:08:39"}
+{"level":"error","message":"Erro ao buscar configurações: relation \"system_settings\" does not exist","timestamp":"2025-11-12 22:08:55"}
+{"level":"error","message":"Erro ao buscar configurações: relation \"system_settings\" does not exist","timestamp":"2025-11-12 22:08:55"}
+{"level":"warn","message":"⚠️ Tabela activity_logs não existe. Pulando log.","timestamp":"2025-11-12 22:09:33"}
+{"level":"info","message":"✅ [LOGIN_LOG] LOGIN registrado para usuário 3be370ba-f468-4037-be96-67d25efd7f47","timestamp":"2025-11-12 22:09:33"}
+{"level":"info","message":"🔍 Iniciando processPersonalCommission para consultant 3be370ba-f468-4037-be96-67d25efd7f47, sale ade0a0f7-c4ee-4912-ba8c-3ccfb9c0111f","timestamp":"2025-11-12 22:10:01"}
+{"level":"info","message":"💰 Percentual: 5%, Valor: R$ 1000","timestamp":"2025-11-12 22:10:01"}
+{"level":"info","message":"✅ Comissão pessoal criada: ID 4d0a066e-7495-46cf-9bbd-bd023b1e5bbe, user 3be370ba-f468-4037-be96-67d25efd7f47, sale ade0a0f7-c4ee-4912-ba8c-3ccfb9c0111f, R$ 1000","timestamp":"2025-11-12 22:10:01"}
+{"level":"info","message":"🔍 Iniciando processNetworkCommission para member 3be370ba-f468-4037-be96-67d25efd7f47, sale ade0a0f7-c4ee-4912-ba8c-3ccfb9c0111f","timestamp":"2025-11-12 22:10:01"}
+{"level":"info","message":"👤 Líder encontrado: samuel (ceo)","timestamp":"2025-11-12 22:10:01"}
+{"level":"info","message":"💰 Taxa: 1%, Valor: R$ 200","timestamp":"2025-11-12 22:10:01"}
+{"level":"info","message":"✅ Comissão de rede criada: ID 56d54d45-570b-4df5-936b-1c113c79fae1, líder samuel, membro 3be370ba-f468-4037-be96-67d25efd7f47, R$ 200","timestamp":"2025-11-12 22:10:01"}
+{"level":"warn","message":"⚠️ Tabela activity_logs não existe. Pulando log.","timestamp":"2025-11-12 22:23:12"}
+{"level":"info","message":"✅ [LOGIN_LOG] LOGIN registrado para usuário 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-12 22:23:12"}
+{"level":"error","message":"Erro ao buscar configurações: relation \"system_settings\" does not exist","timestamp":"2025-11-12 22:23:38"}
+{"level":"error","message":"Erro ao buscar configurações: relation \"system_settings\" does not exist","timestamp":"2025-11-12 22:23:38"}
+{"level":"info","message":"✅ Notificação criada para usuário 3be370ba-f468-4037-be96-67d25efd7f47: 🏆 Promoção: Master","timestamp":"2025-11-12 19:36:22"}
+{"level":"info","message":"🔍 Iniciando processPersonalCommission para consultant 3be370ba-f468-4037-be96-67d25efd7f47, sale 1d30f74d-5b77-410e-91d2-022900d1c9a2","timestamp":"2025-11-12 19:36:24"}
+{"level":"info","message":"💰 Percentual: 7%, Valor: R$ 2100","timestamp":"2025-11-12 19:36:24"}
+{"level":"info","message":"✅ Comissão pessoal criada: ID 3ba213cf-a265-4407-84d1-883c7ff9de7e, user 3be370ba-f468-4037-be96-67d25efd7f47, sale 1d30f74d-5b77-410e-91d2-022900d1c9a2, R$ 2100","timestamp":"2025-11-12 19:36:24"}
+{"level":"info","message":"🔍 Iniciando processNetworkCommission para member 3be370ba-f468-4037-be96-67d25efd7f47, sale 1d30f74d-5b77-410e-91d2-022900d1c9a2","timestamp":"2025-11-12 19:36:24"}
+{"level":"info","message":"👤 Líder encontrado: samuel (ceo)","timestamp":"2025-11-12 19:36:24"}
+{"level":"info","message":"💰 Taxa: 1%, Valor: R$ 300","timestamp":"2025-11-12 19:36:24"}
+{"level":"info","message":"✅ Comissão de rede criada: ID f4392948-90e1-46ed-b095-b8555e2cc67c, líder samuel, membro 3be370ba-f468-4037-be96-67d25efd7f47, R$ 300","timestamp":"2025-11-12 19:36:24"}
+{"level":"error","message":"Erro ao buscar configurações: relation \"system_settings\" does not exist","timestamp":"2025-11-12 22:43:10"}
+{"level":"error","message":"Erro ao buscar configurações: relation \"system_settings\" does not exist","timestamp":"2025-11-12 22:43:10"}
+{"level":"error","message":"Erro ao buscar configurações: relation \"system_settings\" does not exist","timestamp":"2025-11-12 22:44:20"}
+{"level":"error","message":"Erro ao buscar configurações: relation \"system_settings\" does not exist","timestamp":"2025-11-12 22:57:34"}
+{"level":"error","message":"Erro ao buscar configurações: relation \"system_settings\" does not exist","timestamp":"2025-11-12 22:57:34"}
+{"level":"error","message":"Erro ao buscar notificações: column \"read\" does not exist","timestamp":"2025-11-12 22:57:40"}
+{"level":"error","message":"Erro ao buscar notificações: column \"read\" does not exist","timestamp":"2025-11-12 22:57:40"}
+{"level":"error","message":"Erro ao buscar configurações: relation \"system_settings\" does not exist","timestamp":"2025-11-12 22:57:41"}
+{"level":"error","message":"Erro ao buscar configurações: relation \"system_settings\" does not exist","timestamp":"2025-11-12 22:57:41"}
+{"level":"error","message":"Erro ao buscar configurações: relation \"system_settings\" does not exist","timestamp":"2025-11-12 22:57:46"}
+{"level":"error","message":"Erro ao buscar configurações: relation \"system_settings\" does not exist","timestamp":"2025-11-12 22:57:46"}
+{"level":"error","message":"Erro ao buscar notificações: column \"read\" does not exist","timestamp":"2025-11-12 23:02:37"}
+{"level":"error","message":"Erro ao buscar notificações: column \"read\" does not exist","timestamp":"2025-11-12 23:02:37"}
+{"level":"error","message":"Erro ao buscar notificações: column \"read\" does not exist","timestamp":"2025-11-12 23:05:14"}
+{"level":"error","message":"Erro ao buscar notificações: column \"read\" does not exist","timestamp":"2025-11-12 23:05:14"}
+{"level":"info","message":"✅ Notificação 47154ec7-750c-414f-81b3-07f00cdca202 deletada","timestamp":"2025-11-12 23:06:22"}
+{"level":"info","message":"✅ Notificação 3e139fda-1379-4ce1-bd65-abca72b13e01 deletada","timestamp":"2025-11-12 23:06:24"}
+{"level":"error","message":"Erro ao buscar notificações: column \"read\" does not exist","timestamp":"2025-11-12 23:07:40"}
+{"level":"error","message":"Erro ao criar notificação: column \"read\" of relation \"notifications\" does not exist","timestamp":"2025-11-12 23:08:57"}
+{"level":"info","message":"✅ Notificação f44b4f55-70ab-4a32-84a5-c3a493e43f56 marcada como lida","timestamp":"2025-11-12 23:09:41"}
+{"level":"error","message":"Erro ao criar notificação: column \"active\" does not exist","timestamp":"2025-11-12 23:10:57"}
+{"level":"error","message":"Erro ao criar notificação: column \"active\" does not exist","timestamp":"2025-11-12 23:12:37"}
+{"level":"error","message":"Erro ao criar notificação: column \"active\" does not exist","timestamp":"2025-11-12 23:12:47"}
+{"level":"error","message":"Erro ao criar notificação: column \"active\" does not exist","timestamp":"2025-11-12 23:12:50"}
+{"level":"error","message":"Erro ao criar notificação: column \"active\" does not exist","timestamp":"2025-11-12 23:12:53"}
+{"level":"error","message":"Erro ao criar notificação: column \"active\" does not exist","stack":"error: column \"active\" does not exist\n    at /app/node_modules/pg-pool/index.js:45:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at AdminService.createGlobalNotification (/app/src/modules/admin/admin.service.ts:557:20)\n    at AdminController.createNotification (/app/src/modules/admin/admin.controller.ts:182:22)","timestamp":"2025-11-12 23:15:42"}
+{"level":"warn","message":"⚠️ Tabela activity_logs não existe. Pulando log.","timestamp":"2025-11-12 23:18:01"}
+{"level":"error","message":"Erro ao buscar logs: relation \"activity_logs\" does not exist","timestamp":"2025-11-12 23:18:40"}
+{"level":"error","message":"Erro ao buscar logs: relation \"activity_logs\" does not exist","timestamp":"2025-11-12 23:18:40"}
+{"level":"info","message":"✅ Notificação criada para usuário 66a7f970-1807-4903-9440-41fe2204720b: 🏆 Promoção: Master","timestamp":"2025-11-12 23:28:03"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Usuário fez login - User: 3be370ba-f468-4037-be96-67d25efd7f47","timestamp":"2025-11-12 23:29:16"}
+{"level":"info","message":"✅ [LOGIN_LOG] LOGIN registrado para usuário 3be370ba-f468-4037-be96-67d25efd7f47","timestamp":"2025-11-12 23:29:16"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Registrou nova venda - User: 66a3d4ba-6388-4721-bbaf-1ac08a71813b","timestamp":"2025-11-12 20:33:39"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Atualizou venda - User: 66a3d4ba-6388-4721-bbaf-1ac08a71813b","timestamp":"2025-11-12 20:33:39"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Registrou nova venda - User: 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-12 20:33:39"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Atualizou venda - User: 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-12 20:33:39"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Registrou nova venda - User: 3be370ba-f468-4037-be96-67d25efd7f47","timestamp":"2025-11-12 20:33:39"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Atualizou venda - User: 3be370ba-f468-4037-be96-67d25efd7f47","timestamp":"2025-11-12 20:33:40"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Registrou nova venda - User: 3be370ba-f468-4037-be96-67d25efd7f47","timestamp":"2025-11-12 20:33:52"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Atualizou venda - User: 3be370ba-f468-4037-be96-67d25efd7f47","timestamp":"2025-11-12 20:33:52"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Removeu venda - User: 3be370ba-f468-4037-be96-67d25efd7f47","timestamp":"2025-11-12 20:33:52"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Registrou nova venda - User: 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-12 20:33:52"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Atualizou venda - User: 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-12 20:33:52"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Removeu venda - User: 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-12 20:33:52"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Registrou nova venda - User: 66a3d4ba-6388-4721-bbaf-1ac08a71813b","timestamp":"2025-11-12 20:33:52"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Atualizou venda - User: 66a3d4ba-6388-4721-bbaf-1ac08a71813b","timestamp":"2025-11-12 20:33:52"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Removeu venda - User: 66a3d4ba-6388-4721-bbaf-1ac08a71813b","timestamp":"2025-11-12 20:33:52"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Realizou login - User: 3be370ba-f468-4037-be96-67d25efd7f47","timestamp":"2025-11-12 20:33:52"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Realizou logout - User: 3be370ba-f468-4037-be96-67d25efd7f47","timestamp":"2025-11-12 20:33:52"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Subiu de nível - User: 66a3d4ba-6388-4721-bbaf-1ac08a71813b","timestamp":"2025-11-12 20:36:53"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Conquistou recompensa - User: 66a3d4ba-6388-4721-bbaf-1ac08a71813b","timestamp":"2025-11-12 20:36:53"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Recebeu comissão pessoal - User: 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-12 20:36:53"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Recebeu comissão de rede - User: 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-12 20:36:53"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Adicionou novo membro à equipe - User: 3be370ba-f468-4037-be96-67d25efd7f47","timestamp":"2025-11-12 20:36:53"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Venda aprovada - User: 3be370ba-f468-4037-be96-67d25efd7f47","timestamp":"2025-11-12 20:36:53"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Registrou nova venda - User: 3be370ba-f468-4037-be96-67d25efd7f47","timestamp":"2025-11-12 20:37:05"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Atualizou status de usuário - User: 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-12 20:37:05"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Removeu membro da equipe - User: 66a3d4ba-6388-4721-bbaf-1ac08a71813b","timestamp":"2025-11-12 20:37:05"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Atualizou venda - User: 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-13 00:05:53"}
+{"level":"info","message":"🔍 Iniciando processPersonalCommission para consultant 66a7f970-1807-4903-9440-41fe2204720b, sale b234277b-4686-4f1e-aeb6-0caee9754365","timestamp":"2025-11-13 00:05:53"}
+{"level":"info","message":"💰 Percentual: 7%, Valor: R$ 770","timestamp":"2025-11-13 00:05:53"}
+{"level":"info","message":"✅ Comissão pessoal criada: ID ec217c0f-737e-4f2f-aeb2-a7d24a4566c1, user 66a7f970-1807-4903-9440-41fe2204720b, sale b234277b-4686-4f1e-aeb6-0caee9754365, R$ 770","timestamp":"2025-11-13 00:05:53"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Recebeu comissão pessoal - User: 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-13 00:05:54"}
+{"level":"info","message":"🔍 Iniciando processNetworkCommission para member 66a7f970-1807-4903-9440-41fe2204720b, sale b234277b-4686-4f1e-aeb6-0caee9754365","timestamp":"2025-11-13 00:05:54"}
+{"level":"warn","message":"⚠️ Nenhum líder encontrado para o membro 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-13 00:05:54"}
+{"level":"info","message":"📝 [ACTIVITY_LOG] Venda aprovada - User: 66a7f970-1807-4903-9440-41fe2204720b","timestamp":"2025-11-13 00:05:54"}
+{"level":"error","message":"Erro ao gerar relatório sales: column c.cpf_cnpj does not exist","timestamp":"2025-11-13 00:47:59"}
+{"level":"error","message":"Erro ao gerar relatório commissions: column pc.amount does not exist","timestamp":"2025-11-13 00:48:01"}
+{"level":"error","message":"Erro ao gerar relatório team: column uh.user_id does not exist","timestamp":"2025-11-13 00:48:02"}
+{"level":"error","message":"Erro ao gerar relatório sales: column c.cpf_cnpj does not exist","timestamp":"2025-11-13 00:48:08"}
+{"level":"error","message":"Erro ao gerar relatório commissions: column pc.amount does not exist","timestamp":"2025-11-13 00:48:09"}
+{"level":"error","message":"Erro ao gerar relatório team: column uh.user_id does not exist","timestamp":"2025-11-13 00:48:09"}
+{"level":"error","message":"Erro ao gerar relatório sales: column c.cpf_cnpj does not exist","timestamp":"2025-11-13 00:54:39"}
+{"level":"error","message":"Erro ao gerar relatório sales: column c.cpf_cnpj does not exist","timestamp":"2025-11-13 00:54:48"}
+{"level":"error","message":"Erro ao gerar relatório commissions: column pc.amount does not exist","timestamp":"2025-11-13 00:54:48"}
+{"level":"error","message":"Erro ao gerar relatório team: column uh.user_id does not exist","timestamp":"2025-11-13 00:54:49"}

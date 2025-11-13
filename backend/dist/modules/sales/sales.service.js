@@ -4,9 +4,12 @@ exports.salesService = exports.SalesService = void 0;
 const database_1 = require("../../config/database");
 const rewards_service_1 = require("../rewards/rewards.service");
 const level_service_1 = require("../levels/level.service");
+const commission_service_1 = require("../commissions/commission.service");
+const activityLogger_1 = require("../../utils/activityLogger");
 class SalesService {
     constructor() {
         this.levelService = new level_service_1.LevelService();
+        this.commissionService = new commission_service_1.CommissionService();
     }
     async createSale(userId, data) {
         const client = await database_1.pool.connect();
@@ -54,6 +57,8 @@ class SalesService {
                         `Venda: ${data.client_name}`;
             await client.query(`INSERT INTO points (user_id, sale_id, points, accumulated_points, description)
          VALUES ($1, $2, $3, $4, $5)`, [userId, sale.id, points, newAccumulatedPoints, description]);
+            // ✅ Verificar promoção de nível após registrar pontos
+            await level_service_1.levelService.checkLevelUp(userId, newAccumulatedPoints, client);
             // 5. Buscar nível do usuário
             const userResult = await client.query('SELECT role FROM users WHERE id = $1', [userId]);
             const userRole = userResult.rows[0].role;
@@ -103,6 +108,15 @@ class SalesService {
             const pointsEarned = Math.floor(data.kilowatts);
             await client.query(`UPDATE users SET points = points + $1 WHERE id = $2`, [pointsEarned, userId]);
             await client.query('COMMIT');
+            // 📝 LOG: Venda criada
+            await (0, activityLogger_1.logActivity)(userId, 'Registrou nova venda', {
+                sale_id: sale.id,
+                client_name: data.client_name,
+                value: data.value,
+                kilowatts: data.kilowatts,
+                sale_type: data.sale_type || 'direct',
+                points_earned: points,
+            });
             return {
                 sale,
                 points: {
@@ -318,18 +332,91 @@ class SalesService {
       RETURNING *
     `;
         const result = await database_1.pool.query(query, values);
-        return result.rows[0];
+        const updatedSale = result.rows[0];
+        // 📝 LOG: Venda atualizada
+        await (0, activityLogger_1.logActivity)(userId, 'Atualizou venda', {
+            sale_id: saleId,
+            client_name: updatedSale.client_name,
+            updated_fields: Object.keys(data),
+            new_status: updatedSale.status,
+        });
+        // 🟢 Se a venda foi aprovada, gerar comissões (pessoal + rede)
+        if (updatedSale.status === 'approved') {
+            console.log(`\n🎯 STATUS MUDOU PARA 'APPROVED' - Processando comissões para venda ${updatedSale.id}`);
+            const client = await database_1.pool.connect();
+            try {
+                await client.query('BEGIN');
+                // 💵 1. Comissão pessoal
+                console.log(`  1️⃣ Chamando processPersonalCommission(${updatedSale.user_id}, ${updatedSale.value}, ${updatedSale.kilowatts}, ${updatedSale.id})`);
+                await this.commissionService.processPersonalCommission(updatedSale.user_id, // ID do vendedor
+                updatedSale.value, // Valor da venda
+                updatedSale.kilowatts, // Pontos / kW
+                updatedSale.id // ID da venda
+                );
+                console.log(`  ✅ Comissão pessoal gerada para venda ${updatedSale.id}`);
+                // 🌐 2. Comissão de rede
+                console.log(`  2️⃣ Chamando processNetworkCommission(${updatedSale.user_id}, ${updatedSale.value}, ${updatedSale.kilowatts}, ${updatedSale.id})`);
+                await this.commissionService.processNetworkCommission(updatedSale.user_id, // ID do vendedor
+                updatedSale.value, // Valor da venda
+                updatedSale.kilowatts, // Pontos / kW
+                updatedSale.id // ID da venda
+                );
+                console.log(`  ✅ Comissão de rede gerada para venda ${updatedSale.id}`);
+                // 📝 LOG: Venda aprovada
+                await (0, activityLogger_1.logActivity)(updatedSale.user_id, 'Venda aprovada', {
+                    sale_id: updatedSale.id,
+                    client_name: updatedSale.client_name,
+                    value: updatedSale.value,
+                    kilowatts: updatedSale.kilowatts,
+                });
+                // ✅ Verificar promoção automática após aprovar venda
+                const userPointsResult = await client.query(`SELECT points FROM users WHERE id = $1`, [updatedSale.user_id]);
+                const currentPoints = parseFloat(userPointsResult.rows[0]?.points || 0);
+                await level_service_1.levelService.checkLevelUp(updatedSale.user_id, currentPoints, client);
+                await client.query('COMMIT');
+            }
+            catch (error) {
+                await client.query('ROLLBACK');
+                console.error('❌ Erro ao gerar comissões:', error);
+                console.error('STACK:', error instanceof Error ? error.stack : 'sem stack');
+            }
+            finally {
+                client.release();
+            }
+            // ✅ Verificar promoção automática após aprovar venda
+            try {
+                const userPointsResult = await database_1.pool.query(`SELECT points FROM users WHERE id = $1`, [updatedSale.user_id]);
+                const currentPoints = parseFloat(userPointsResult.rows[0]?.points || 0);
+                await level_service_1.levelService.checkLevelUp(updatedSale.user_id, currentPoints, database_1.pool);
+            }
+            catch (error) {
+                console.warn('⚠️ Erro ao verificar promoção após aprovação:', error instanceof Error ? error.message : error);
+            }
+        }
+        return updatedSale;
     }
     // Deletar venda
-    async deleteSale(saleId) {
+    async deleteSale(saleId, userId) {
         const client = await database_1.pool.connect();
         try {
             await client.query('BEGIN');
+            // Buscar informações da venda antes de deletar
+            const saleInfo = await client.query('SELECT user_id, client_name, value, kilowatts FROM sales WHERE id = $1', [saleId]);
+            const saleData = saleInfo.rows[0];
             // 1️⃣ Deletar pontos associados à venda
             await client.query('DELETE FROM points WHERE sale_id = $1', [saleId]);
             // 2️⃣ Deletar a venda
             const result = await client.query('DELETE FROM sales WHERE id = $1 RETURNING id', [saleId]);
             await client.query('COMMIT');
+            // 📝 LOG: Venda deletada
+            if (saleData) {
+                await (0, activityLogger_1.logActivity)(userId || saleData.user_id, 'Removeu venda', {
+                    sale_id: saleId,
+                    client_name: saleData.client_name,
+                    value: saleData.value,
+                    kilowatts: saleData.kilowatts,
+                });
+            }
             if (result.rows.length === 0) {
                 throw new Error('Venda não encontrada');
             }
@@ -409,7 +496,7 @@ class SalesService {
             client.release();
         }
     }
-    // ✅ NOVO MÉTODO - Formatar nomes de status em [translate:Português]
+    // ✅ NOVO MÉTODO - Formatar nomes de status em Português
     formatStatusName(status) {
         const statusMap = {
             'pending': 'Pendente',

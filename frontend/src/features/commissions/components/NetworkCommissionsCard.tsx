@@ -51,7 +51,7 @@ export const NetworkCommissionsCard = ({
             </h3>
           </div>
           <span className="text-xs sm:text-sm text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-            {commissions.length} comissão{commissions.length !== 1 ? 'ões' : ''}
+            {Array.isArray(commissions) ? commissions.length : 0} comissão{(Array.isArray(commissions) ? commissions.length : 0) !== 1 ? 'ões' : ''}
           </span>
         </div>
 
@@ -93,8 +93,8 @@ export const NetworkCommissionsCard = ({
         {/* Divider */}
         <div className="border-t my-6"></div>
 
-        {/* Lista de Comissões */}
-        {commissions.length === 0 ? (
+        {/* Lista de Comissões - ✅ VERSÃO SEGURA */}
+        {!Array.isArray(commissions) || commissions.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <DollarSign className="w-12 h-12 mx-auto opacity-30 mb-2" />
             <p className="text-sm">Nenhuma comissão de rede</p>

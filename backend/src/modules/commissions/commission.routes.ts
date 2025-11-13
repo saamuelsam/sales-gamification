@@ -1,38 +1,26 @@
-// backend/src/modules/commissions/commission.routes.ts
 import { Router } from 'express';
-import { commissionController } from './commission.controller';
 import { verifyTokenMiddleware } from '../../middleware/auth.middleware';
+import { commissionController } from './commission.controller';
 
 const router = Router();
 
-// ✅ Minhas comissões de rede (EXISTE)
-router.get('/network', verifyTokenMiddleware, (req, res, next) =>
-  commissionController.getNetworkCommissions(req, res).catch(next)
-);
-
-// ✅ Resumo consolidado (EXISTE)
+/**
+ * 🔹 Rotas de comissões
+ */
 router.get('/summary', verifyTokenMiddleware, (req, res, next) =>
   commissionController.getSummary(req, res).catch(next)
 );
 
-// ✅ Marcar comissão como paga (EXISTE)
-router.put('/:commissionId/mark-paid', verifyTokenMiddleware, (req, res, next) =>
-  commissionController.markAsPaid(req, res).catch(next)
+router.get('/personal', verifyTokenMiddleware, (req, res, next) =>
+  commissionController.getPersonalCommissions(req, res).catch(next)
 );
 
-// ✅ Relatório (EXISTE)
-router.get('/report', verifyTokenMiddleware, (req, res, next) =>
-  commissionController.getReport(req, res).catch(next)
+router.get('/network', verifyTokenMiddleware, (req, res, next) =>
+  commissionController.getNetworkCommissions(req, res).catch(next)
 );
-
-// ✅ Exportar CSV (EXISTE)
-router.get('/export/csv', verifyTokenMiddleware, (req, res, next) =>
-  commissionController.exportCSV(req, res).catch(next)
-);
-
 
 router.get('/monthly', verifyTokenMiddleware, (req, res, next) =>
-  commissionController.getMonthlyNetworkCommissions(req, res).catch(next)
+  commissionController.getMonthly(req, res).catch(next)
 );
 
 export default router;

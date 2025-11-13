@@ -15,6 +15,7 @@ router.get('/commissions', auth_middleware_1.verifyTokenMiddleware, admin_middle
 router.patch('/commissions/:id/paid', auth_middleware_1.verifyTokenMiddleware, admin_middleware_1.verifyAdminMiddleware, (req, res, next) => admin_controller_1.adminController.markCommissionAsPaid(req, res).catch(next));
 router.get('/commissions/export', auth_middleware_1.verifyTokenMiddleware, admin_middleware_1.verifyAdminMiddleware, (req, res, next) => admin_controller_1.adminController.exportCommissionsCSV(req, res).catch(next));
 router.get('/reports', auth_middleware_1.verifyTokenMiddleware, admin_middleware_1.verifyAdminMiddleware, (req, res, next) => admin_controller_1.adminController.getReports(req, res).catch(next));
+router.get('/reports/:type', auth_middleware_1.verifyTokenMiddleware, admin_middleware_1.verifyAdminMiddleware, (req, res, next) => admin_controller_1.adminController.downloadReport(req, res).catch(next));
 router.get('/config', auth_middleware_1.verifyTokenMiddleware, admin_middleware_1.verifyAdminMiddleware, (req, res, next) => admin_controller_1.adminController.getConfig(req, res).catch(next));
 router.patch('/config', auth_middleware_1.verifyTokenMiddleware, admin_middleware_1.verifyAdminMiddleware, (req, res, next) => admin_controller_1.adminController.updateConfig(req, res).catch(next));
 router.get('/notifications', auth_middleware_1.verifyTokenMiddleware, admin_middleware_1.verifyAdminMiddleware, (req, res, next) => admin_controller_1.adminController.getNotifications(req, res).catch(next));
@@ -22,6 +23,7 @@ router.post('/notifications', auth_middleware_1.verifyTokenMiddleware, admin_mid
 router.delete('/notifications/:id', auth_middleware_1.verifyTokenMiddleware, admin_middleware_1.verifyAdminMiddleware, (req, res, next) => admin_controller_1.adminController.deleteNotification(req, res).catch(next));
 router.get('/logs', auth_middleware_1.verifyTokenMiddleware, admin_middleware_1.verifyAdminMiddleware, (req, res, next) => admin_controller_1.adminController.getLogs(req, res).catch(next));
 router.post('/logs', auth_middleware_1.verifyTokenMiddleware, (req, res, next) => admin_controller_1.adminController.createLog(req, res).catch(next));
+router.get('/access-logs', auth_middleware_1.verifyTokenMiddleware, admin_middleware_1.verifyAdminMiddleware, (req, res, next) => admin_controller_1.adminController.getAccessLogs(req, res).catch(next));
 router.post('/logout', auth_middleware_1.verifyTokenMiddleware, async (req, res) => {
     const userId = req.user?.userId || 'unknown';
     await (0, loginLogger_1.logUserAccess)(userId, 'logout', req.ip, req.headers['user-agent']);

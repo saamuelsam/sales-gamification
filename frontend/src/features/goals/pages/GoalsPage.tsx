@@ -115,10 +115,10 @@ export const GoalsPage = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Carregando suas metas...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
+                    <p className="text-gray-600 dark:text-gray-400">Carregando suas metas...</p>
                 </div>
             </div>
         );
@@ -126,11 +126,11 @@ export const GoalsPage = () => {
 
     if (error || !goals) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
-                <div className="bg-white rounded-lg shadow-lg p-8 text-center max-w-md">
-                    <div className="text-red-500 text-4xl mb-4">⚠️</div>
-                    <h2 className="text-lg font-bold text-gray-900 mb-2">Erro ao carregar</h2>
-                    <p className="text-gray-600 mb-4">{error || 'Não conseguimos carregar suas metas'}</p>
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center max-w-md border dark:border-gray-700">
+                    <div className="text-red-500 dark:text-red-400 text-4xl mb-4">⚠️</div>
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Erro ao carregar</h2>
+                    <p className="text-gray-600 dark:text-gray-400 mb-4">{error || 'Não conseguimos carregar suas metas'}</p>
                     <button
                         onClick={fetchGoals}
                         className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
@@ -170,15 +170,15 @@ export const GoalsPage = () => {
     const nextRequirements = goals.nextLevel ? getRequirements(goals.nextLevel.name) : null;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6 pb-20 sm:pb-6">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4 sm:p-6 pb-20 sm:pb-6">
             <div className="max-w-6xl mx-auto space-y-6">
                 {/* Header */}
                 <div>
-                    <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 flex items-center gap-2 mb-2">
-                        <Trophy className="w-8 h-8 text-yellow-500" />
+                    <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-2">
+                        <Trophy className="w-8 h-8 text-yellow-500 dark:text-yellow-400" />
                         Suas Metas
                     </h1>
-                    <p className="text-gray-600">Acompanhe seu progresso na carreira</p>
+                    <p className="text-gray-600 dark:text-gray-400">Acompanhe seu progresso na carreira</p>
                 </div>
 
                 {/* Nível Atual */}
@@ -206,9 +206,9 @@ export const GoalsPage = () => {
                 {/* Benefícios Atuais */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {goals.currentLevel.advancement_bonus > 0 && (
-                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
-                            <Award className="w-8 h-8 text-yellow-500 mb-3" />
-                            <h3 className="font-semibold text-gray-900 mb-2">Bônus de Avanço</h3>
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                            <Award className="w-8 h-8 text-yellow-500 dark:text-yellow-400 mb-3" />
+                            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Bônus de Avanço</h3>
                             <p className="text-2xl font-bold text-green-600">
                                 R$ {goals.currentLevel.advancement_bonus.toLocaleString('pt-BR')}
                             </p>
@@ -216,18 +216,18 @@ export const GoalsPage = () => {
                     )}
 
                     {goals.currentLevel.fixed_allowance && goals.currentLevel.fixed_allowance > 0 && (
-                        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
-                            <Trophy className="w-8 h-8 text-blue-500 mb-3" />
-                            <h3 className="font-semibold text-gray-900 mb-2">Ajuda de Custo</h3>
+                        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                            <Trophy className="w-8 h-8 text-blue-500 dark:text-blue-400 mb-3" />
+                            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Ajuda de Custo</h3>
                             <p className="text-2xl font-bold text-blue-600">
                                 R$ {goals.currentLevel.fixed_allowance.toLocaleString('pt-BR')}/mês
                             </p>
                         </div>
                     )}
 
-                    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow">
-                        <Trophy className="w-8 h-8 text-purple-500 mb-3" />
-                        <h3 className="font-semibold text-gray-900 mb-2">Prêmio Especial</h3>
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
+                        <Trophy className="w-8 h-8 text-purple-500 dark:text-purple-400 mb-3" />
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Prêmio Especial</h3>
                         <p className="text-sm font-medium text-purple-600">{goals.currentLevel.advancement_reward || 'Sem prêmio especial'}</p>
                     </div>
                 </div>
@@ -241,15 +241,15 @@ export const GoalsPage = () => {
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                             {currentRequirements.contracts && (
-                                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                                    <p className="text-sm text-purple-600 mb-1">Contratos/Mês</p>
+                                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                                    <p className="text-sm text-purple-600 dark:text-purple-400 mb-1">Contratos/Mês</p>
                                     <p className="text-2xl font-bold text-purple-700">{currentRequirements.contracts}</p>
                                 </div>
                             )}
 
                             {currentRequirements.salesGoal && (
-                                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                                    <p className="text-sm text-green-600 mb-1">Meta de Vendas/Mês</p>
+                                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                                    <p className="text-sm text-green-600 dark:text-green-400 mb-1">Meta de Vendas/Mês</p>
                                     <p className="text-2xl font-bold text-green-700">
                                         R$ {(currentRequirements.salesGoal / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}k
                                     </p>
@@ -257,8 +257,8 @@ export const GoalsPage = () => {
                             )}
 
                             {goals.currentLevel.name === 'Executivo' && goals.currentLevel.bonus_goal && (
-                                <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
-                                    <p className="text-sm text-amber-600 mb-1">Meta Bônus (R$ 5.000)</p>
+                                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                                    <p className="text-sm text-amber-600 dark:text-amber-400 mb-1">Meta Bônus (R$ 5.000)</p>
                                     <p className="text-2xl font-bold text-amber-700">
                                         R$ {(goals.currentLevel.bonus_goal / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}k
                                     </p>
@@ -267,9 +267,9 @@ export const GoalsPage = () => {
 
                             {/* Nota sobre equipe */}
                             {['Consultor Sênior', 'Consultor Prime', 'Executivo'].includes(goals.currentLevel.name) && (
-                                <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200 col-span-full">
-                                    <p className="text-xs font-semibold text-indigo-600 mb-1">📊 IMPORTANTE</p>
-                                    <p className="text-sm text-indigo-700">Pontos e vendas incluem sua equipe geral</p>
+                                <div className="p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800 col-span-full">
+                                    <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 mb-1">📊 IMPORTANTE</p>
+                                    <p className="text-sm text-indigo-700 dark:text-indigo-300">Pontos e vendas incluem sua equipe geral</p>
                                 </div>
                             )}
                         </div>
@@ -287,29 +287,29 @@ export const GoalsPage = () => {
                             {/* Progresso */}
                             <div>
                                 <div className="flex justify-between items-center mb-2">
-                                    <span className="text-sm font-medium text-gray-700">Progresso</span>
-                                    <span className="text-sm font-bold text-blue-600">{Math.round(goals.progressPercentage)}%</span>
+                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Progresso</span>
+                                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{Math.round(goals.progressPercentage)}%</span>
                                 </div>
-                                <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden">
                                     <div
                                         className="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-500"
                                         style={{ width: `${Math.min(100, goals.progressPercentage)}%` }}
                                     />
                                 </div>
-                                <p className="text-sm text-gray-600 mt-2">
+                                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
                                     Faltam <strong>{goals.pointsToNextLevel.toLocaleString('pt-BR')}</strong> pontos para atingir o próximo nível
                                 </p>
                             </div>
 
                             {/* Benefícios do próximo nível */}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-                                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                                    <p className="text-sm text-purple-600 mb-1">Nova Comissão Pessoal</p>
-                                    <p className="text-2xl font-bold text-purple-700">{goals.nextLevel.personal_commission}%</p>
+                                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                                    <p className="text-sm text-purple-600 dark:text-purple-400 mb-1">Nova Comissão Pessoal</p>
+                                    <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">{goals.nextLevel.personal_commission}%</p>
                                 </div>
                                 {goals.nextLevel.fixed_allowance && goals.nextLevel.fixed_allowance > (goals.currentLevel.fixed_allowance || 0) && (
-                                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                                        <p className="text-sm text-green-600 mb-1">Nova Ajuda de Custo</p>
+                                    <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                                        <p className="text-sm text-green-600 dark:text-green-400 mb-1">Nova Ajuda de Custo</p>
                                         <p className="text-2xl font-bold text-green-700">
                                             R$ {goals.nextLevel.fixed_allowance.toLocaleString('pt-BR')}/mês
                                         </p>
@@ -319,11 +319,11 @@ export const GoalsPage = () => {
 
                             {/* Requisitos do próximo nível */}
                             {nextRequirements && (nextRequirements.contracts || nextRequirements.salesGoal) && (
-                                <div className="mt-6 p-4 bg-orange-50 rounded-lg border border-orange-200">
-                                    <p className="text-sm font-bold text-orange-700 mb-3">📋 Requisitos para {goals.nextLevel.name}</p>
+                                <div className="mt-6 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                                    <p className="text-sm font-bold text-orange-700 dark:text-orange-300 mb-3">📋 Requisitos para {goals.nextLevel.name}</p>
                                     <div className="space-y-2">
                                         {nextRequirements.contracts && (
-                                            <p className="text-sm text-orange-600">
+                                            <p className="text-sm text-orange-600 dark:text-orange-400">
                                                 • Contratos/Mês: <strong>{nextRequirements.contracts}</strong>
                                             </p>
                                         )}
@@ -351,18 +351,18 @@ export const GoalsPage = () => {
 
                 {/* ✅ MODAL DE META */}
                 {showGoalModal && goalNotification && (
-                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full animate-bounce">
+                    <div className="fixed inset-0 bg-black bg-opacity-50 dark:bg-opacity-70 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-md w-full animate-bounce border dark:border-gray-700">
                             {/* Icon */}
                             <div className="text-6xl text-center mb-4">🏆</div>
 
                             {/* Title */}
-                            <h2 className="text-2xl font-bold text-center text-gray-900 mb-3">
+                            <h2 className="text-2xl font-bold text-center text-gray-900 dark:text-gray-100 mb-3">
                                 {goalNotification.title}
                             </h2>
 
                             {/* Message */}
-                            <p className="text-center text-gray-600 mb-6 leading-relaxed">
+                            <p className="text-center text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
                                 {goalNotification.message}
                             </p>
 

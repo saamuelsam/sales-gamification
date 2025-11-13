@@ -6,10 +6,13 @@ export class AdminController {
   /** GET /api/admin/dashboard */
   async getDashboard(req: Request, res: Response) {
     try {
+      console.log('🎯 GET /api/admin/dashboard - Iniciando...');
       const stats = await adminService.getDashboardStats();
+      console.log('📊 Stats retornadas:', stats);
       res.json({ success: true, data: stats, message: 'Estatísticas carregadas com sucesso' });
     } catch (error: any) {
       logger.error(`Erro ao buscar estatísticas: ${error.message}`);
+      console.error('❌ Erro getDashboard:', error);
       res.status(500).json({ success: false, message: 'Erro ao carregar estatísticas' });
     }
   }
@@ -170,6 +173,8 @@ export class AdminController {
       const { title, message, type, target } = req.body;
       const adminId = (req as any).user?.userId;
 
+      console.log('📩 Recebendo requisição de notificação:', { title, message, type, target, adminId });
+
       if (!title || !message || !type) {
         return res.status(400).json({ success: false, message: 'Campos obrigatórios: title, message, type' });
       }
@@ -177,8 +182,9 @@ export class AdminController {
       const result = await adminService.createGlobalNotification(title, message, type, target || 'all', adminId);
       res.json({ success: true, data: result, message: `Notificação enviada para ${result.count} usuários` });
     } catch (error: any) {
-      logger.error(`Erro ao criar notificação: ${error.message}`);
-      res.status(500).json({ success: false, message: 'Erro ao criar notificação' });
+      console.error('❌ Erro detalhado ao criar notificação:', error);
+      logger.error(`Erro ao criar notificação: ${error.message}`, { stack: error.stack });
+      res.status(500).json({ success: false, message: 'Erro ao criar notificação', error: error.message });
     }
   }
 
@@ -197,12 +203,33 @@ export class AdminController {
   /** GET /api/admin/logs */
   async getLogs(req: Request, res: Response) {
     try {
+      console.log('📊 Recebendo requisição de logs:', req.query);
       const { search, action } = req.query;
+      console.log('📊 Parâmetros:', { search, action });
+      
       const logs = await adminService.getActivityLogs(search as string, action as string);
+      console.log('📊 Logs encontrados:', logs.length);
+      
       res.json({ success: true, data: logs, count: logs.length, message: 'Logs carregados com sucesso' });
     } catch (error: any) {
-      logger.error(`Erro ao buscar logs: ${error.message}`);
-      res.status(500).json({ success: false, message: 'Erro ao carregar logs' });
+      console.error('❌ Erro detalhado ao buscar logs:', error);
+      logger.error(`Erro ao buscar logs: ${error.message}`, { stack: error.stack });
+      res.status(500).json({ success: false, message: 'Erro ao carregar logs', error: error.message });
+    }
+  }
+
+  /** GET /api/admin/access-logs */
+  async getAccessLogs(req: Request, res: Response) {
+    try {
+      console.log('🔐 Recebendo requisição de logs de acesso:', req.query);
+      const { search, action } = req.query;
+      const logs = await adminService.getAccessLogs(search as string, action as string);
+      console.log('🔐 Logs de acesso encontrados:', logs.length);
+      res.json({ success: true, data: logs, count: logs.length, message: 'Logs de acesso carregados com sucesso' });
+    } catch (error: any) {
+      console.error('❌ Erro ao buscar logs de acesso:', error);
+      logger.error(`Erro ao buscar access logs: ${error.message}`, { stack: error.stack });
+      res.status(500).json({ success: false, message: 'Erro ao carregar logs de acesso', error: error.message });
     }
   }
 
@@ -222,11 +249,49 @@ export class AdminController {
   /** GET /api/admin/reports */
   async getReports(req: Request, res: Response) {
     try {
+      console.log('🎯 GET /api/admin/reports - Iniciando...');
       const reports = await adminService.getReports();
+      console.log('📈 Reports retornados:', JSON.stringify(reports, null, 2));
       res.json({ success: true, message: 'Relatórios carregados com sucesso', data: reports });
     } catch (error: any) {
       logger.error(`Erro ao gerar relatórios: ${error.message}`);
+      console.error('❌ Erro getReports:', error);
       res.status(500).json({ success: false, message: error.message || 'Erro ao gerar relatórios' });
+    }
+  }
+
+  /** GET /api/admin/reports/:type */
+  async downloadReport(req: Request, res: Response) {
+    try {
+      const { type } = req.params;
+      const { start, end } = req.query;
+
+      console.log(`📥 Gerando relatório: ${type} (${start} - ${end})`);
+
+      if (!start || !end) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Parâmetros start e end são obrigatórios' 
+        });
+      }
+
+      const reportData = await adminService.generateReport(
+        type, 
+        start as string, 
+        end as string
+      );
+
+      // Configurar headers para download CSV
+      res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename=relatorio_${type}_${start}_${end}.csv`);
+      res.send(reportData);
+    } catch (error: any) {
+      logger.error(`Erro ao gerar relatório ${req.params.type}: ${error.message}`);
+      console.error('❌ Erro downloadReport:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: error.message || 'Erro ao gerar relatório' 
+      });
     }
   }
 }

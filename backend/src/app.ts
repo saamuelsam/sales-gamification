@@ -12,6 +12,8 @@ import userRoutes from './modules/users/user.routes';
 import teamRoutes from './modules/team/team.routes';
 import commissionRoutes from './modules/commissions/commission.routes';
 import adminRoutes from './modules/admin/admin.routes';
+import benefitRoutes from './modules/benefits/benefit.routes';
+
 
 dotenv.config();
 
@@ -98,6 +100,7 @@ app.use('/api/levels', levelRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/commissions', commissionRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/benefits', benefitRoutes);
 
 // ✅ Middleware de erro global
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

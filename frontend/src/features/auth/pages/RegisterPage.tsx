@@ -60,14 +60,14 @@ export const RegisterPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary via-primary/90 to-highlight flex items-center justify-center p-4 sm:p-6">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8 border dark:border-gray-700">
         {/* Logo e Título */}
         <div className="flex flex-col items-center mb-6">
           <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-accent to-highlight rounded-full flex items-center justify-center mb-4 shadow-lg">
             <Award className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-primary">Criar Conta</h1>
-          <p className="text-gray-600 mt-2 text-center text-sm">
+          <h1 className="text-2xl sm:text-3xl font-bold text-primary dark:text-white">Criar Conta</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2 text-center text-sm">
             Junte-se à equipe Fortal Energia Solar
           </p>
         </div>
@@ -75,14 +75,14 @@ export const RegisterPage = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Nome Completo */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Nome Completo *
             </label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all text-base"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all text-base"
               placeholder="João Silva"
               required
               autoFocus
@@ -91,14 +91,14 @@ export const RegisterPage = () => {
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Email *
             </label>
             <input
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all text-base"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all text-base"
               placeholder="seu@email.com"
               required
             />
@@ -106,7 +106,7 @@ export const RegisterPage = () => {
 
           {/* Senha */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Senha *
             </label>
             <div className="relative">
@@ -114,7 +114,7 @@ export const RegisterPage = () => {
                 type={showPassword ? 'text' : 'password'}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all text-base"
+                className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-all text-base"
                 placeholder="Mínimo 8 caracteres"
                 required
                 minLength={8}

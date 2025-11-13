@@ -23,19 +23,24 @@ class AuthService {
         // Hash da senha
         const hashedPassword = await bcryptjs_1.default.hash(password, 10);
         // Inserir usuário
+        // Inserir usuário
         const result = await database_1.pool.query(`INSERT INTO users (name, email, password, role, parent_id)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, name, email, role, created_at`, [name, email, hashedPassword, 'consultant', parent_id || null]);
+   VALUES ($1, $2, $3, $4, $5)
+   RETURNING id, name, email, role, created_at`, [name, email, hashedPassword, 'consultant', parent_id || null]);
         const userId = result.rows[0].id;
+        // 🔧 Normaliza o UUID para formato válido do tipo LTREE (sem hífens)
+        const cleanUserId = userId.replace(/-/g, '_');
         // Atualizar path hierárquico
         if (parent_id) {
             const parentResult = await database_1.pool.query('SELECT path FROM users WHERE id = $1', [parent_id]);
             const parentPath = parentResult.rows[0]?.path || '';
-            const fullPath = parentPath ? `${parentPath}.${userId}` : userId;
+            const fullPath = parentPath ? `${parentPath}.${cleanUserId}` : cleanUserId;
             await database_1.pool.query(`UPDATE users SET path = $1::ltree WHERE id = $2`, [fullPath, userId]);
         }
         else {
-            await database_1.pool.query(`UPDATE users SET path = $1::ltree WHERE id = $2`, [userId, userId]);
+            await database_1.pool.query(`INSERT INTO user_hierarchy (leader_id, subordinate_id, line_level, joined_at)
+     VALUES ($1, $2, 1, NOW())
+     ON CONFLICT DO NOTHING`, [parent_id, userId]);
         }
         return result.rows[0];
     }

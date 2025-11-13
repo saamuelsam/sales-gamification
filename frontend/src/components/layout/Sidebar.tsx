@@ -22,6 +22,8 @@ const menuItems = [
   { path: '/benefits', label: 'Benefícios', icon: Gift, roles: ['all'] },
   { path: '/levels', label: 'Plano de Carreira', icon: Award, roles: ['all'] },
   { path: '/reports', label: 'Relatórios', icon: BarChart3, roles: ['admin', 'director', 'ceo'] },
+  { path: '/financeiro', label: 'Financeiro', icon: DollarSign, roles: ['ceo', 'financeiro'] },
+  { path: '/admin', label: 'Administração', icon: BarChart3, roles: ['ceo', 'admin'] },
 ];
 
 export const Sidebar = () => {
@@ -33,15 +35,15 @@ export const Sidebar = () => {
   );
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 h-screen sticky top-0">
+    <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 h-screen sticky top-0">
       <div className="p-6">
         <div className="flex items-center gap-3 mb-8">
           <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center">
             <Award className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="font-bold text-lg">Fortal</h1>
-            <p className="text-xs text-gray-600">Energia Solar</p>
+            <h1 className="font-bold text-lg text-gray-900 dark:text-gray-100">Fortal</h1>
+            <p className="text-xs text-gray-600 dark:text-gray-400">Energia Solar</p>
           </div>
         </div>
 
@@ -57,8 +59,8 @@ export const Sidebar = () => {
                 className={cn(
                   'flex items-center gap-3 px-4 py-3 rounded-lg transition-colors',
                   isActive
-                    ? 'bg-primary-50 text-primary-700 font-medium'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    ? 'bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 font-medium'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                 )}
               >
                 <Icon className="w-5 h-5" />

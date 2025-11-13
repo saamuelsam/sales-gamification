@@ -74,28 +74,28 @@ export const StatsCard: React.FC<StatsCardProps> = ({
 
   return (
     <div
-      className={`bg-white rounded-xl shadow-sm border border-gray-200 p-3 sm:p-4 transition-all hover:shadow-md ${className}`}
+      className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 sm:p-4 transition-all hover:shadow-md ${className}`}
       data-testid={`stat-card-${title.toLowerCase()}`}
     >
       <div className="flex items-start justify-between gap-3">
         {icon && (
-          <div className="bg-gray-50 rounded-md p-2 flex items-center justify-center flex-shrink-0 text-gray-600">
+          <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-2 flex items-center justify-center flex-shrink-0 text-gray-600 dark:text-gray-300">
             {icon}
           </div>
         )}
 
         <div className="min-w-0 flex-1">
-          <p className="text-xs text-gray-500 font-medium truncate uppercase tracking-wide">
+          <p className="text-xs text-gray-500 dark:text-gray-400 font-medium truncate uppercase tracking-wide">
             {title}
           </p>
           <p
-            className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate"
+            className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 truncate"
             data-testid={`stat-value-${title.toLowerCase()}`}
           >
             {display}
           </p>
           {subtitle && (
-            <p className="text-xs text-gray-400 mt-1 truncate">
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 truncate">
               {subtitle}
             </p>
           )}

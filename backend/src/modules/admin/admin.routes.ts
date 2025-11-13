@@ -42,6 +42,10 @@ router.get('/reports', verifyTokenMiddleware, verifyAdminMiddleware, (req, res, 
   adminController.getReports(req, res).catch(next)
 );
 
+router.get('/reports/:type', verifyTokenMiddleware, verifyAdminMiddleware, (req, res, next) =>
+  adminController.downloadReport(req, res).catch(next)
+);
+
 router.get('/config', verifyTokenMiddleware, verifyAdminMiddleware, (req, res, next) =>
   adminController.getConfig(req, res).catch(next)
 );
@@ -68,6 +72,10 @@ router.get('/logs', verifyTokenMiddleware, verifyAdminMiddleware, (req, res, nex
 
 router.post('/logs', verifyTokenMiddleware, (req, res, next) =>
   adminController.createLog(req, res).catch(next)
+);
+
+router.get('/access-logs', verifyTokenMiddleware, verifyAdminMiddleware, (req, res, next) =>
+  adminController.getAccessLogs(req, res).catch(next)
 );
 
 router.post('/logout', verifyTokenMiddleware, async (req, res) => {

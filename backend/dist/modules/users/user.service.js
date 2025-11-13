@@ -1,31 +1,37 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userService = exports.UserService = void 0;
 // backend/src/modules/users/user.service.ts
 const database_1 = require("../../config/database");
-const bcryptjs_1 = __importDefault(require("bcryptjs"));
-const dashboard_service_1 = require("../dashboard/dashboard.service"); // ⚡ Importa o serviço de níveis
+const dashboard_service_1 = require("../dashboard/dashboard.service");
 class UserService {
-    // ========== DASHBOARD - CORRIGIDO COM CÁLCULO DE NÍVEL E PROGRESSO ==========
+    // ========== DASHBOARD - CORRIGIDO COM CAST UUID E LOGS ==========
     async getDashboard(userId) {
         try {
             console.log('🔍 [getDashboard] userId:', userId, '| Timestamp:', Date.now());
-            // 🔹 Busca vendas do usuário
+            // 🔹 Busca vendas do usuário + data da última venda (CAST corrigido!)
             const salesResult = await database_1.pool.query(`SELECT 
-          COALESCE(COUNT(*), 0)::INT as total_sales,
-          COALESCE(SUM(value), 0)::NUMERIC as total_revenue,
-          COALESCE(SUM(kilowatts), 0)::NUMERIC as total_kilowatts
+          COALESCE(COUNT(*), 0)::INT AS total_sales,
+          COALESCE(SUM(value), 0)::NUMERIC AS total_revenue,
+          COALESCE(SUM(kilowatts), 0)::NUMERIC AS total_kilowatts,
+          MAX(created_at) AS last_sale_date
         FROM sales
-        WHERE user_id = $1 
+        WHERE user_id = $1::uuid
           AND status NOT IN ('cancelled', 'rejected', 'financing_denied')`, [userId]);
             const salesData = salesResult.rows[0];
             console.log('📊 Sales Data:', salesData);
-            // 🔹 Busca pontos do usuário
-            const userResult = await database_1.pool.query(`SELECT COALESCE(points, 0)::NUMERIC as total_points, role
-         FROM users WHERE id = $1`, [userId]);
+            // 🔹 Calcular meses sem contratos
+            let meses_sem_contratos = 0;
+            if (salesData.last_sale_date) {
+                const lastSaleDate = new Date(salesData.last_sale_date);
+                const now = new Date();
+                const diffMs = now.getTime() - lastSaleDate.getTime();
+                meses_sem_contratos = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30)); // ~30 dias/mês
+            }
+            // 🔹 Busca pontos e cargo do usuário
+            const userResult = await database_1.pool.query(`SELECT COALESCE(points, 0)::NUMERIC AS total_points, role
+         FROM users 
+         WHERE id = $1::uuid`, [userId]);
             const totalPointsRaw = parseFloat(userResult.rows[0]?.total_points || '0');
             const currentRole = userResult.rows[0]?.role || 'consultant';
             // 🔧 Corrige escala (kW → pontos)
@@ -39,57 +45,58 @@ class UserService {
                 master: 'Master',
                 seniorConsultant: 'Consultor Sênior',
                 consultorPrime: 'Consultor Prime',
-                executive: 'Executive',
+                executive: 'Executivo',
             };
             const displayLevel = levelDisplayMap[levelInfo.phaseName] || 'Nível Desconhecido';
-            // 📈 Definição das faixas de pontos
+            // 📈 Faixas de pontuação
             const levelThresholds = {
                 elite: { min: 0, next: 1000 },
                 master: { min: 1000, next: 10000 },
                 seniorConsultant: { min: 10000, next: 800000 },
                 consultorPrime: { min: 800000, next: 2000000 },
-                executive: { min: 2000000, next: null }, // nível máximo
+                executive: { min: 2000000, next: null },
             };
             const key = levelInfo.phaseName;
             const { min, next } = levelThresholds[key] || { min: 0, next: null };
-            // 🔢 Calcula progresso para a barra
+            // 🔢 Calcula progresso
             let progress = 0;
             if (next) {
                 progress = ((totalPoints - min) / (next - min)) * 100;
-                if (progress < 0)
-                    progress = 0;
-                if (progress > 100)
-                    progress = 100;
+                progress = Math.min(Math.max(progress, 0), 100);
             }
             // 📊 Equipe
-            const teamResult = await database_1.pool.query(`SELECT COUNT(*)::INT as team_members 
+            const teamResult = await database_1.pool.query(`SELECT COUNT(*)::INT AS team_members 
          FROM users 
-         WHERE parent_id = $1 AND is_active = true`, [userId]);
+         WHERE parent_id = $1::uuid 
+           AND is_active = true`, [userId]);
             // 🔹 Status das vendas
-            const statusResult = await database_1.pool.query(`SELECT status, COUNT(*)::INT as count
+            const statusResult = await database_1.pool.query(`SELECT status, COUNT(*)::INT AS count
          FROM sales
-         WHERE user_id = $1 AND status NOT IN ('cancelled', 'rejected')
+         WHERE user_id = $1::uuid
+           AND status NOT IN ('cancelled', 'rejected')
          GROUP BY status`, [userId]);
             // 🔹 Gráfico mensal
             const monthlyResult = await database_1.pool.query(`SELECT 
-          TO_CHAR(created_at, 'Mon') as month,
-          COUNT(*)::INT as count,
-          COALESCE(SUM(value), 0)::NUMERIC as total
+          TO_CHAR(created_at, 'Mon') AS month,
+          COUNT(*)::INT AS count,
+          COALESCE(SUM(value), 0)::NUMERIC AS total
          FROM sales
-         WHERE user_id = $1 
+         WHERE user_id = $1::uuid
            AND created_at >= NOW() - INTERVAL '6 months'
            AND status NOT IN ('cancelled', 'rejected')
          GROUP BY TO_CHAR(created_at, 'Mon'), EXTRACT(MONTH FROM created_at)
          ORDER BY EXTRACT(MONTH FROM created_at)`, [userId]);
-            // ✅ Monta o dashboard completo
+            // ✅ Monta o dashboard final
             const dashboardData = {
                 total_sales: parseInt(salesData?.total_sales || '0'),
                 total_revenue: parseFloat(salesData?.total_revenue || '0'),
                 total_kilowatts: parseFloat(salesData?.total_kilowatts || '0'),
                 total_points: totalPoints,
-                level: displayLevel, // nome do nível
-                progress: parseFloat(progress.toFixed(1)), // progresso da barra em %
-                next_level_points: next, // pontos necessários para o próximo nível
+                level: displayLevel,
+                progress: parseFloat(progress.toFixed(1)),
+                next_level_points: next,
+                last_sale_date: salesData?.last_sale_date || null,
+                meses_sem_contratos,
                 team_members: parseInt(teamResult.rows[0]?.team_members || '0'),
                 charts: {
                     byStatus: statusResult.rows.map((row) => ({
@@ -116,6 +123,8 @@ class UserService {
                 level: 'Consultor Elite',
                 progress: 0,
                 next_level_points: 1000,
+                last_sale_date: null,
+                meses_sem_contratos: 0,
                 team_members: 0,
                 charts: {
                     byStatus: [],
@@ -124,26 +133,70 @@ class UserService {
             };
         }
     }
-    // ========== MÉTODOS DE EQUIPE - SEM ALTERAÇÕES ==========
+    // ========== MÉTODOS DE EQUIPE ==========
+    /**
+     * 🔥 NOVO MÉTODO: Vincula um consultor existente a um líder
+     * Retorna objeto padronizado { success, message, data, statusCode }
+     */
     async addTeamMember(parentId, memberData) {
-        const { name, email, password, role = 'consultant' } = memberData;
-        if (!parentId)
-            throw new Error('Líder não informado');
-        if (!name || !email || !password)
-            throw new Error('Nome, email e senha são obrigatórios');
-        if (password.length < 8)
-            throw new Error('Senha deve ter no mínimo 8 caracteres');
-        const hashedPassword = await bcryptjs_1.default.hash(password, 10);
-        const parentExists = await database_1.pool.query('SELECT id FROM users WHERE id = $1', [parentId]);
-        if (parentExists.rows.length === 0)
-            throw new Error('Líder não encontrado');
-        const emailExists = await database_1.pool.query('SELECT 1 FROM users WHERE email = $1', [email]);
-        if (emailExists.rows.length > 0)
-            throw new Error('Email já está em uso');
-        const result = await database_1.pool.query(`INSERT INTO users (name, email, password, role, parent_id, is_active, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, true, NOW(), NOW())
-       RETURNING id, name, email, role, parent_id`, [name, email, hashedPassword, role, parentId]);
-        return result.rows[0];
+        try {
+            const { email, name } = memberData;
+            if (!parentId) {
+                return { success: false, message: 'Líder não informado', statusCode: 401 };
+            }
+            if (!email || !email.trim()) {
+                return { success: false, message: 'Email é obrigatório', statusCode: 400 };
+            }
+            // 🔹 Verifica se o líder existe
+            const parentExists = await database_1.pool.query('SELECT id FROM users WHERE id = $1', [parentId]);
+            if (parentExists.rows.length === 0) {
+                return { success: false, message: 'Líder não encontrado', statusCode: 404 };
+            }
+            // 🔹 Busca o membro pelo e-mail
+            const userResult = await database_1.pool.query('SELECT id, name, parent_id FROM users WHERE email = $1', [email]);
+            if (userResult.rows.length === 0) {
+                return {
+                    success: false,
+                    message: 'Usuário não encontrado na base de dados',
+                    statusCode: 404,
+                };
+            }
+            const user = userResult.rows[0];
+            // 🔹 Verifica se já está em uma equipe
+            if (user.parent_id) {
+                return {
+                    success: false,
+                    message: 'Consultor já está em uma equipe',
+                    statusCode: 400,
+                };
+            }
+            // 🔹 Atualiza o parent_id do membro
+            await database_1.pool.query(`UPDATE users 
+       SET parent_id = $1, updated_at = NOW()
+       WHERE id = $2`, [parentId, user.id]);
+            // 🔹 Cria ou mantém o vínculo hierárquico
+            await database_1.pool.query(`INSERT INTO user_hierarchy (leader_id, subordinate_id, line_level)
+       VALUES ($1, $2, 1)
+       ON CONFLICT (leader_id, subordinate_id) DO NOTHING`, [parentId, user.id]);
+            // 🔹 Retorna o membro atualizado
+            const updated = await database_1.pool.query(`SELECT id, name, email, role, parent_id, created_at 
+       FROM users 
+       WHERE id = $1`, [user.id]);
+            return {
+                success: true,
+                message: `${name || updated.rows[0].name} adicionado à equipe com sucesso!`,
+                data: updated.rows[0],
+            };
+        }
+        catch (error) {
+            console.error('❌ Erro no addTeamMember:', error);
+            return {
+                success: false,
+                message: 'Erro interno ao adicionar membro à equipe',
+                statusCode: 500,
+                errors: error.message,
+            };
+        }
     }
     async getDirectTeamMembers(userId) {
         const result = await database_1.pool.query(`SELECT
@@ -210,6 +263,44 @@ class UserService {
        WHERE id = $4
        RETURNING *`, [name, email, role, id]);
         return result.rows[0];
+    }
+    /**
+     * 🔥 Remove membro da equipe
+     * - Verifica se o membro pertence ao líder
+     * - Remove da hierarquia e zera o parent_id
+     */
+    async removeTeamMember(leaderId, memberId) {
+        try {
+            // 🔹 Verifica se o membro pertence à equipe do líder
+            const check = await database_1.pool.query(`SELECT id FROM users WHERE id = $1 AND parent_id = $2`, [memberId, leaderId]);
+            if (check.rows.length === 0) {
+                // Verifica se há vínculo na tabela hierárquica
+                const hierarchyCheck = await database_1.pool.query(`SELECT id FROM user_hierarchy WHERE subordinate_id = $1 AND leader_id = $2`, [memberId, leaderId]);
+                if (hierarchyCheck.rows.length === 0) {
+                    return {
+                        success: false,
+                        message: 'Membro não encontrado na sua equipe',
+                        statusCode: 404,
+                    };
+                }
+            }
+            // 🔹 Remove o vínculo na hierarquia
+            await database_1.pool.query(`DELETE FROM user_hierarchy WHERE subordinate_id = $1 AND leader_id = $2`, [memberId, leaderId]);
+            // 🔹 Remove o vínculo direto
+            await database_1.pool.query(`UPDATE users SET parent_id = NULL, updated_at = NOW() WHERE id = $1`, [memberId]);
+            return {
+                success: true,
+                message: 'Membro removido da equipe com sucesso',
+            };
+        }
+        catch (error) {
+            console.error('❌ Erro ao remover membro:', error);
+            return {
+                success: false,
+                message: 'Erro interno ao remover membro da equipe',
+                statusCode: 500,
+            };
+        }
     }
     async remove(id) {
         await database_1.pool.query(`UPDATE users SET is_active = false, updated_at = NOW() WHERE id = $1`, [id]);

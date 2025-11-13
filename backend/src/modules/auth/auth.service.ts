@@ -51,8 +51,10 @@ export class AuthService {
       );
     } else {
       await pool.query(
-        `UPDATE users SET path = $1::ltree WHERE id = $2`,
-        [cleanUserId, userId]
+        `INSERT INTO user_hierarchy (leader_id, subordinate_id, line_level, joined_at)
+     VALUES ($1, $2, 1, NOW())
+     ON CONFLICT DO NOTHING`,
+        [parent_id, userId]
       );
     }
 

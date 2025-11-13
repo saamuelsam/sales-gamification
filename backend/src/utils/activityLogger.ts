@@ -19,6 +19,8 @@ export enum ActivityAction {
   
   // Ações de Comissões
   NEW_COMMISSION = 'Recebeu nova comissão da rede',
+  PERSONAL_COMMISSION = 'Recebeu comissão pessoal',
+  NETWORK_COMMISSION = 'Recebeu comissão de rede',
   MARK_COMMISSION_PAID = 'Marcou comissão como paga',
   ADMIN_MARK_COMMISSION_PAID = 'Marcou comissão como paga (admin)',
   
@@ -26,18 +28,30 @@ export enum ActivityAction {
   CREATE_SALE = 'Registrou nova venda',
   UPDATE_SALE = 'Atualizou venda',
   DELETE_SALE = 'Removeu venda',
+  APPROVE_SALE = 'Venda aprovada',
+  REJECT_SALE = 'Venda rejeitada',
+  
+  // Ações de Níveis
+  LEVEL_UP = 'Subiu de nível',
+  LEVEL_DOWN = 'Rebaixado de nível',
+  
+  // Ações de Recompensas
+  REWARD_EARNED = 'Conquistou recompensa',
+  REWARD_CLAIMED = 'Resgatou recompensa',
   
   // Ações Administrativas
   UPDATE_USER_STATUS = 'Atualizou status de usuário',
   UPDATE_USER_ROLE = 'Alterou função de usuário',
   UPDATE_SYSTEM_CONFIG = 'Alterou configurações globais',
   SEND_GLOBAL_NOTIFICATION = 'Enviou notificação global',
+  DELETE_NOTIFICATION = 'Deletou notificação',
   
   // Ações de Autenticação
   USER_LOGIN = 'Realizou login',
   USER_LOGOUT = 'Realizou logout',
   FAILED_LOGIN = 'Tentativa de login falhou',
   PASSWORD_RESET = 'Redefiniu senha',
+  REGISTER = 'Registrou novo usuário',
   
   // Erros
   SYSTEM_ERROR = 'Erro crítico do sistema',

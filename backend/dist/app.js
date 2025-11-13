@@ -17,6 +17,7 @@ const user_routes_1 = __importDefault(require("./modules/users/user.routes"));
 const team_routes_1 = __importDefault(require("./modules/team/team.routes"));
 const commission_routes_1 = __importDefault(require("./modules/commissions/commission.routes"));
 const admin_routes_1 = __importDefault(require("./modules/admin/admin.routes"));
+const benefit_routes_1 = __importDefault(require("./modules/benefits/benefit.routes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 // ✅ CORS COMPLETO - Permitir headers customizados
@@ -94,6 +95,7 @@ app.use('/api/levels', level_routes_1.default);
 app.use('/api/users', user_routes_1.default);
 app.use('/api/commissions', commission_routes_1.default);
 app.use('/api/admin', admin_routes_1.default);
+app.use('/api/benefits', benefit_routes_1.default);
 // ✅ Middleware de erro global
 app.use((err, req, res, next) => {
     console.error('❌ Erro não tratado:', {

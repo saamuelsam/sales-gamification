@@ -1,169 +1,254 @@
-// backend/src/modules/commissions/commission.service.ts
 import { pool } from '../../config/database';
 import { logger } from '../../utils/logger';
-import { logActivity, ActivityAction } from '../../utils/activityLogger'; // ✅ Import
+import { logActivity } from '../../utils/activityLogger';
 
 export class CommissionService {
-  private readonly commissionRates: any = {
-    'consultant': 0,
-    'master_consultant': 2.0,
-    'senior_consultant': 1.5,
-    'prime_consultant': 1.5,
-    'executive': 1.0,
-  };
-
   /**
-   * ✅ Processar comissão de rede (com log integrado)
+   * ✅ Processar comissão pessoal — Insere em personal_commissions
    */
-  async processNetworkCommission(memberId: string, saleValue: number, points: number, saleId?: string) {
+  async processPersonalCommission(
+    consultantId: string,
+    saleValue: number,
+    points: number,
+    saleId?: string
+  ) {
     try {
-      logger.info(`📝 [COMISSÃO] Iniciando para membro: ${memberId}`);
+        logger.info(`🔍 Iniciando processPersonalCommission para consultant ${consultantId}, sale ${saleId}`);
 
-      // 1. Buscar o líder direto
-      const leaderResult = await pool.query(
-        `SELECT u.id, u.role, u.name FROM user_hierarchy uh
-         JOIN users u ON uh.leader_id = u.id
-         WHERE uh.subordinate_id = $1 AND uh.line_level = 1
-         LIMIT 1`,
-        [memberId]
+      // Buscar percentual de comissão baseado no nível do usuário
+      const levelResult = await pool.query(
+        `SELECT personal_commission
+         FROM levels
+         WHERE phase_number = (
+           CASE
+             WHEN (SELECT role FROM users WHERE id = $1) = 'consultant' THEN 1
+             WHEN (SELECT role FROM users WHERE id = $1) = 'master_consultant' THEN 2
+             WHEN (SELECT role FROM users WHERE id = $1) = 'senior_consultant' THEN 3
+             WHEN (SELECT role FROM users WHERE id = $1) = 'prime_consultant' THEN 4
+             WHEN (SELECT role FROM users WHERE id = $1) = 'executive' THEN 5
+             ELSE 1
+           END
+         )`,
+        [consultantId]
       );
 
-      if (leaderResult.rows.length === 0) {
-        logger.info(`⚠️ [COMISSÃO] Membro SEM líder`);
-        return;
-      }
+      const commissionPercentage = parseFloat(levelResult.rows[0]?.personal_commission ?? 5);
+      const commissionAmount = parseFloat(((saleValue * commissionPercentage) / 100).toFixed(2));
 
-      const leaderId = leaderResult.rows[0].id;
-      const leaderRole = leaderResult.rows[0].role;
-      const leaderName = leaderResult.rows[0].name;
-      const commissionRate = this.commissionRates[leaderRole] || 0;
+        logger.info(`💰 Percentual: ${commissionPercentage}%, Valor: R$ ${commissionAmount}`);
 
-      if (commissionRate === 0) {
-        logger.info(`⚠️ [COMISSÃO] Líder tem taxa 0%`);
-        return;
-      }
-
-      // 2. Calcular comissão
-      const commissionAmount = (saleValue * commissionRate) / 100;
-      logger.info(`💰 [COMISSÃO] Valor: R$${commissionAmount.toFixed(2)}`);
-
-      // 3. Buscar informações do membro
-      const memberInfo = await pool.query(
-        'SELECT name, email FROM users WHERE id = $1',
-        [memberId]
+      // Inserir em personal_commissions
+      const result = await pool.query(
+        `INSERT INTO personal_commissions
+         (user_id, sale_id, commission_percentage, commission_amount, points, paid, created_at)
+         VALUES ($1, $2, $3, $4, $5, FALSE, NOW())
+         ON CONFLICT (user_id, sale_id) DO NOTHING
+         RETURNING id`,
+        [consultantId, saleId || null, commissionPercentage, commissionAmount, points || 0]
       );
 
-      const memberName = memberInfo.rows[0]?.name || 'Desconhecido';
-      const memberEmail = memberInfo.rows[0]?.email || 'Desconhecido';
-
-      // 4. Inserir comissão no banco
-      logger.info(`💾 [COMISSÃO] Inserindo no banco...`);
-      const insertResult = await pool.query(
-        `INSERT INTO network_commissions 
-         (leader_id, team_member_id, sale_id, line_level, commission_percentage, commission_amount, paid)
-         VALUES ($1, $2, $3, $4, $5, $6, FALSE)
-         RETURNING id, commission_amount`,
-        [
-          leaderId,
-          memberId,
-          saleId || null,
-          1,
-          commissionRate,
-          parseFloat(commissionAmount.toFixed(2)),
-        ]
-      );
-
-      const commissionId = insertResult.rows[0].id;
-
-      logger.info(`✅ [COMISSÃO] Inserida com sucesso!`);
-      logger.info(`✅ [COMISSÃO] ID: ${commissionId}`);
-      logger.info(`✅ [COMISSÃO] Valor: R$${insertResult.rows[0].commission_amount}`);
-
-      // ✅ REGISTRAR LOG DE ATIVIDADE - NOVA COMISSÃO
-      await logActivity(leaderId, ActivityAction.NEW_COMMISSION, {
-        commissionId,
-        memberId,
-        memberName,
-        memberEmail,
-        commissionAmount: parseFloat(commissionAmount.toFixed(2)),
-        commissionRate,
-        percentage: commissionRate,
-        saleId: saleId || null,
-        saleValue,
-        action: 'new_commission',
-        timestamp: new Date().toISOString()
-      });
-
+        if (result.rows.length > 0) {
+          logger.info(
+            `✅ Comissão pessoal criada: ID ${result.rows[0].id}, user ${consultantId}, sale ${saleId || 'N/A'}, R$ ${commissionAmount}`
+          );
+          
+          // 📝 LOG: Comissão pessoal recebida
+          await logActivity(consultantId, 'Recebeu comissão pessoal', {
+            commission_id: result.rows[0].id,
+            sale_id: saleId,
+            percentage: commissionPercentage,
+            amount: commissionAmount,
+            points: points
+          });
+        } else {
+          logger.warn(`⚠️ Comissão pessoal já existe (ON CONFLICT): user ${consultantId}, sale ${saleId}`);
+        }
     } catch (error: any) {
-      logger.error(`❌ [COMISSÃO] ERRO: ${error.message}`);
-      logger.error(`❌ [COMISSÃO] Stack: ${error.stack}`);
+        logger.error(`❌ Erro ao processar comissão pessoal: ${error.message}`, error);
     }
   }
 
   /**
-   * ✅ Listar comissões de rede
+   * ✅ Processar comissão de rede — Insere em network_commissions
+   */
+  async processNetworkCommission(
+  memberId: string,
+  saleValue: number,
+  points: number,
+  saleId?: string
+) {
+  try {
+    logger.info(`🔍 Iniciando processNetworkCommission para member ${memberId}, sale ${saleId}`);
+
+    // Buscar líder direto
+    const leaderResult = await pool.query(
+      `SELECT u.id, u.role, u.name
+       FROM user_hierarchy uh
+       JOIN users u ON uh.leader_id = u.id
+       WHERE uh.subordinate_id = $1 AND uh.line_level = 1
+       LIMIT 1`,
+      [memberId]
+    );
+
+    if (leaderResult.rows.length === 0) {
+      logger.warn(`⚠️ Nenhum líder encontrado para o membro ${memberId}`);
+      return;
+    }
+
+    const leader = leaderResult.rows[0];
+    logger.info(`👤 Líder encontrado: ${leader.name} (${leader.role})`);
+
+    const commissionRates: Record<string, number> = {
+      consultant: 0,
+      master_consultant: 2.0,
+      senior_consultant: 1.5,
+      prime_consultant: 1.5,
+      executive: 1.0,
+    };
+
+    const commissionRate = commissionRates[leader.role] ?? 1.0;
+    const commissionAmount = parseFloat(((saleValue * commissionRate) / 100).toFixed(2));
+
+    logger.info(`💰 Taxa: ${commissionRate}%, Valor: R$ ${commissionAmount}`);
+
+    // Inserir em network_commissions
+    const result = await pool.query(
+      `INSERT INTO network_commissions
+       (leader_id, team_member_id, sale_id, line_level, commission_percentage, commission_amount, paid, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, FALSE, NOW())
+       ON CONFLICT (leader_id, team_member_id, sale_id) DO NOTHING
+       RETURNING id`,
+      [leader.id, memberId, saleId || null, 1, commissionRate, commissionAmount]
+    );
+
+    if (result.rows.length > 0) {
+      logger.info(
+        `✅ Comissão de rede criada: ID ${result.rows[0].id}, líder ${leader.name}, membro ${memberId}, R$ ${commissionAmount}`
+      );
+      
+      // 📝 LOG: Comissão de rede gerada
+      await logActivity(leader.id, 'Recebeu nova comissão da rede', {
+        commission_id: result.rows[0].id,
+        team_member_id: memberId,
+        sale_id: saleId,
+        line_level: 1,
+        percentage: commissionRate,
+        amount: commissionAmount,
+        team_member_name: leader.name
+      });
+    } else {
+      logger.warn(`⚠️ Comissão de rede já existe (ON CONFLICT): líder ${leader.id}, membro ${memberId}`);
+    }
+  } catch (error: any) {
+    logger.error(`❌ Erro ao processar comissão de rede: ${error.message}`, error);
+  }
+}
+
+  /**
+   * ✅ COMISSÕES PESSOAIS — Detalhadas
+   */
+  async getPersonalCommissions(userId: string) {
+    const result = await pool.query(
+      `SELECT 
+        pc.id, pc.sale_id, pc.commission_percentage, pc.commission_amount, pc.points,
+        pc.paid, pc.paid_at, pc.created_at,
+        s.value AS sale_value,
+        c.name AS client_name
+       FROM personal_commissions pc
+       LEFT JOIN sales s ON pc.sale_id = s.id
+       LEFT JOIN clients c ON s.client_id = c.id
+       WHERE pc.user_id = $1
+       ORDER BY pc.created_at DESC`,
+      [userId]
+    );
+
+    return result.rows;
+  }
+
+  /**
+   * ✅ COMISSÕES DE REDE — Detalhadas
    */
   async getNetworkCommissions(leaderId: string) {
-    try {
-      logger.info(`📋 Buscando comissões para: ${leaderId}`);
+    const result = await pool.query(
+      `SELECT 
+        nc.id, nc.sale_id, nc.commission_percentage, nc.commission_amount,
+        nc.line_level, nc.paid, nc.paid_at, nc.created_at,
+        u.name AS team_member_name, u.email AS team_member_email,
+        s.value AS sale_value,
+        c.name AS client_name
+       FROM network_commissions nc
+       JOIN users u ON nc.team_member_id = u.id
+       LEFT JOIN sales s ON nc.sale_id = s.id
+       LEFT JOIN clients c ON s.client_id = c.id
+       WHERE nc.leader_id = $1
+       ORDER BY nc.created_at DESC`,
+      [leaderId]
+    );
 
-      const result = await pool.query(
-        `SELECT 
-          nc.id,
-          nc.leader_id,
-          nc.team_member_id,
-          nc.commission_percentage,
-          nc.commission_amount,
-          nc.paid,
-          nc.paid_at,
-          nc.created_at,
-          u.name as team_member_name,
-          u.email as team_member_email
-         FROM network_commissions nc
-         JOIN users u ON nc.team_member_id = u.id
-         WHERE nc.leader_id = $1
-         ORDER BY nc.created_at DESC
-         LIMIT 100`,
-        [leaderId]
-      );
-
-      logger.info(`✅ Encontradas ${result.rows.length} comissões`);
-      return result.rows;
-    } catch (error: any) {
-      logger.error(`❌ Erro ao buscar: ${error.message}`);
-      return [];
-    }
+    return result.rows;
   }
 
   /**
-   * ✅ Resumo de comissões
+   * ✅ RESUMO PESSOAL
    */
-  async getNetworkCommissionsSummary(leaderId: string) {
+  async getPersonalSummary(userId: string) {
+    const result = await pool.query(
+      `SELECT 
+         COUNT(*)::int AS total_commissions,
+         COUNT(CASE WHEN paid = FALSE THEN 1 END)::int AS unpaid_commissions,
+         COUNT(CASE WHEN paid = TRUE THEN 1 END)::int AS paid_commissions,
+         COALESCE(SUM(CASE WHEN paid = FALSE THEN commission_amount ELSE 0 END), 0)::float AS total_unpaid,
+         COALESCE(SUM(CASE WHEN paid = TRUE THEN commission_amount ELSE 0 END), 0)::float AS total_paid,
+         COALESCE(SUM(commission_amount), 0)::float AS total_earned
+       FROM personal_commissions
+       WHERE user_id = $1`,
+      [userId]
+    );
+
+    return result.rows[0];
+  }
+
+  /**
+   * ✅ RESUMO DE REDE (corrigido)
+   */
+  async getNetworkSummary(userId: string) {
     try {
-      const result = await pool.query(
-        `SELECT 
-           COUNT(*)::int as total_commissions,
-           COUNT(CASE WHEN paid = FALSE THEN 1 END)::int as unpaid_commissions,
-           COUNT(CASE WHEN paid = TRUE THEN 1 END)::int as paid_commissions,
-           COALESCE(SUM(CASE WHEN paid = FALSE THEN commission_amount ELSE 0 END), 0) as total_unpaid,
-           COALESCE(SUM(CASE WHEN paid = TRUE THEN commission_amount ELSE 0 END), 0) as total_paid,
-           COALESCE(SUM(commission_amount), 0) as total_earned
-         FROM network_commissions 
+      // Verifica se o usuário é líder de alguém
+      const checkLeader = await pool.query(
+        `SELECT COUNT(*)::int AS total_team
+         FROM user_hierarchy
          WHERE leader_id = $1`,
-        [leaderId]
+        [userId]
       );
 
-      const row = result.rows[0] || {};
-      return {
-        total_commissions: row.total_commissions || 0,
-        unpaid_commissions: row.unpaid_commissions || 0,
-        paid_commissions: row.paid_commissions || 0,
-        total_unpaid: parseFloat(row.total_unpaid || 0),
-        total_paid: parseFloat(row.total_paid || 0),
-        total_earned: parseFloat(row.total_earned || 0),
-      };
+      if (checkLeader.rows[0].total_team === 0) {
+        // Usuário sem equipe → nada de comissões de rede
+        return {
+          total_commissions: 0,
+          unpaid_commissions: 0,
+          paid_commissions: 0,
+          total_unpaid: 0,
+          total_paid: 0,
+          total_earned: 0,
+        };
+      }
+
+      const result = await pool.query(
+        `SELECT 
+           COUNT(*)::int AS total_commissions,
+           COUNT(CASE WHEN paid = FALSE THEN 1 END)::int AS unpaid_commissions,
+           COUNT(CASE WHEN paid = TRUE THEN 1 END)::int AS paid_commissions,
+           COALESCE(SUM(CASE WHEN paid = FALSE THEN commission_amount ELSE 0 END), 0)::float AS total_unpaid,
+           COALESCE(SUM(CASE WHEN paid = TRUE THEN commission_amount ELSE 0 END), 0)::float AS total_paid,
+           COALESCE(SUM(commission_amount), 0)::float AS total_earned
+         FROM network_commissions
+         WHERE leader_id = $1`,
+        [userId]
+      );
+
+      return result.rows[0];
     } catch (error: any) {
-      logger.error(`❌ Erro ao buscar resumo: ${error.message}`);
+      logger.error(`❌ Erro ao buscar resumo de rede: ${error.message}`);
       return {
         total_commissions: 0,
         unpaid_commissions: 0,
@@ -176,78 +261,43 @@ export class CommissionService {
   }
 
   /**
-   * ✅ Comissões agrupadas por mês para o gráfico
+   * ✅ RESUMO COMPLETO (Pessoal + Rede)
    */
-  async getMonthlyNetworkCommissions(leaderId: string) {
+  async getCombinedSummary(userId: string) {
     try {
-      logger.info(`📊 Buscando comissões mensais para líder: ${leaderId}`);
+      const [personal, network] = await Promise.all([
+        this.getPersonalSummary(userId),
+        this.getNetworkSummary(userId)
+      ]);
 
-      const result = await pool.query(
-        `
-        SELECT 
-          TO_CHAR(DATE_TRUNC('month', nc.created_at), 'Mon') AS month,
-          DATE_TRUNC('month', nc.created_at) AS month_date,
-          COALESCE(SUM(nc.commission_amount), 0) AS amount
-        FROM network_commissions nc
-        WHERE nc.leader_id = $1
-          AND nc.created_at >= NOW() - INTERVAL '6 months'
-        GROUP BY DATE_TRUNC('month', nc.created_at)
-        ORDER BY month_date ASC
-        `,
-        [leaderId]
-      );
+      const safePersonal = personal || {
+        total_earned: 0,
+        total_paid: 0,
+        total_unpaid: 0,
+      };
+      const safeNetwork = network || {
+        total_earned: 0,
+        total_paid: 0,
+        total_unpaid: 0,
+      };
 
-      const formattedData = result.rows.map((r) => ({
-        month: this.formatMonthName(r.month),
-        amount: parseFloat(r.amount),
-      }));
-
-      logger.info(`✅ Encontrados ${formattedData.length} meses de comissões`);
-      return formattedData;
-    } catch (error: any) {
-      logger.error(`❌ Erro ao buscar comissões mensais: ${error.message}`);
-      throw new Error('Erro ao buscar comissões mensais');
-    }
-  }
-
-  /**
-   * Formatar nome do mês para português
-   */
-  private formatMonthName(monthAbbr: string): string {
-    const monthMap: Record<string, string> = {
-      'Jan': 'Jan',
-      'Feb': 'Fev',
-      'Mar': 'Mar',
-      'Apr': 'Abr',
-      'May': 'Mai',
-      'Jun': 'Jun',
-      'Jul': 'Jul',
-      'Aug': 'Ago',
-      'Sep': 'Set',
-      'Oct': 'Out',
-      'Nov': 'Nov',
-      'Dec': 'Dez',
-    };
-
-    const capitalized = monthAbbr.charAt(0).toUpperCase() + monthAbbr.slice(1).toLowerCase();
-    return monthMap[capitalized] || capitalized;
-  }
-
-  /**
-   * ✅ Resumo completo
-   */
-  async getCompleteCommissionsSummary(userId: string) {
-    try {
-      const networkSummary = await this.getNetworkCommissionsSummary(userId);
       return {
-        network: networkSummary,
-        total_earned: networkSummary.total_earned || 0,
-        total_paid: networkSummary.total_paid || 0,
-        total_pending: networkSummary.total_unpaid || 0,
+        personal: safePersonal,
+        network: safeNetwork,
+        total_earned:
+          parseFloat(safePersonal.total_earned) +
+          parseFloat(safeNetwork.total_earned),
+        total_paid:
+          parseFloat(safePersonal.total_paid) +
+          parseFloat(safeNetwork.total_paid),
+        total_pending:
+          parseFloat(safePersonal.total_unpaid) +
+          parseFloat(safeNetwork.total_unpaid),
       };
     } catch (error: any) {
-      logger.error(`❌ Erro: ${error.message}`);
+      logger.error('❌ Erro ao buscar resumo de comissões:', error.message);
       return {
+        personal: null,
         network: null,
         total_earned: 0,
         total_paid: 0,
@@ -257,142 +307,49 @@ export class CommissionService {
   }
 
   /**
-   * ✅ Marcar como paga (com log integrado)
+   * ✅ RESUMO MENSAL (últimos 6 meses)
    */
-  async markNetworkCommissionAsPaid(commissionId: string, leaderId: string) {
+  async getMonthlySummary(userId: string) {
     try {
-      // Buscar informações da comissão antes de atualizar
-      const commissionInfo = await pool.query(
-        `SELECT nc.commission_amount, u.name as member_name
-         FROM network_commissions nc
-         JOIN users u ON nc.team_member_id = u.id
-         WHERE nc.id = $1 AND nc.leader_id = $2`,
-        [commissionId, leaderId]
-      );
-
-      if (commissionInfo.rows.length === 0) {
-        throw new Error('Comissão não encontrada');
-      }
-
-      const commissionAmount = commissionInfo.rows[0].commission_amount;
-      const memberName = commissionInfo.rows[0].member_name;
-
-      // Atualizar comissão
-      const result = await pool.query(
-        `UPDATE network_commissions 
-         SET paid = TRUE, paid_at = CURRENT_TIMESTAMP
-         WHERE id = $1 AND leader_id = $2
-         RETURNING *`,
-        [commissionId, leaderId]
-      );
-
-      if (result.rows.length === 0) {
-        throw new Error('Erro ao atualizar comissão');
-      }
-
-      logger.info(`✅ Comissão ${commissionId} marcada como paga`);
-
-      // ✅ REGISTRAR LOG DE ATIVIDADE - COMISSÃO PAGA
-      await logActivity(leaderId, ActivityAction.MARK_COMMISSION_PAID, {
-        commissionId,
-        commissionAmount: parseFloat(commissionAmount),
-        amount: parseFloat(commissionAmount),
-        memberName,
-        paidAt: new Date().toISOString(),
-        action: 'mark_commission_paid',
-        timestamp: new Date().toISOString()
-      });
-
-      return result.rows[0];
-    } catch (error: any) {
-      logger.error(`❌ Erro ao marcar como paga: ${error.message}`);
-      throw error;
-    }
-  }
-
-  /**
-   * ✅ Relatório consolidado
-   */
-  async getConsolidatedCommissionsReport() {
-    try {
-      const result = await pool.query(
-        `SELECT 
-          u.id as user_id,
-          u.name as user_name,
-          u.email,
-          u.role,
-          COALESCE(SUM(nc.commission_amount), 0) as network_total,
-          COALESCE(SUM(CASE WHEN nc.paid THEN nc.commission_amount ELSE 0 END), 0) as network_paid,
-          COALESCE(SUM(CASE WHEN NOT nc.paid THEN nc.commission_amount ELSE 0 END), 0) as network_pending,
-          COUNT(nc.id)::int as commission_count
-        FROM users u
-        LEFT JOIN network_commissions nc ON nc.leader_id = u.id
-        WHERE u.is_active = true
-        GROUP BY u.id, u.name, u.email, u.role
-        HAVING COUNT(nc.id) > 0
-        ORDER BY network_total DESC`
-      );
-
-      logger.info(`📈 Relatório: ${result.rows.length} usuários com comissões`);
-      return result.rows;
-    } catch (error: any) {
-      logger.error(`❌ Erro ao gerar relatório: ${error.message}`);
-      return [];
-    }
-  }
-
-  /**
-   * ✅ Exportar CSV
-   */
-  async exportCommissionsCSV() {
-    try {
-      const report = await this.getConsolidatedCommissionsReport();
-      const headers = ['ID', 'Nome', 'Email', 'Cargo', 'Total', 'Pagas', 'Pendentes', 'Quantidade'];
-      const rows = report.map((r: any) => [
-        r.user_id,
-        r.user_name,
-        r.email,
-        r.role,
-        parseFloat(r.network_total).toFixed(2),
-        parseFloat(r.network_paid).toFixed(2),
-        parseFloat(r.network_pending).toFixed(2),
-        r.commission_count,
+      const [personal, network] = await Promise.all([
+        pool.query(
+          `SELECT 
+            TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM') AS month,
+            COALESCE(SUM(commission_amount), 0)::float AS amount
+           FROM personal_commissions
+           WHERE user_id = $1 AND created_at >= NOW() - INTERVAL '6 months'
+           GROUP BY DATE_TRUNC('month', created_at)
+           ORDER BY month ASC`,
+          [userId]
+        ),
+        pool.query(
+          `SELECT 
+            TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM') AS month,
+            COALESCE(SUM(commission_amount), 0)::float AS amount
+           FROM network_commissions
+           WHERE leader_id = $1 AND created_at >= NOW() - INTERVAL '6 months'
+           GROUP BY DATE_TRUNC('month', created_at)
+           ORDER BY month ASC`,
+          [userId]
+        )
       ]);
 
-      logger.info(`📥 CSV exportado: ${rows.length} linhas`);
-      return { headers, rows };
-    } catch (error: any) {
-      logger.error(`❌ Erro ao exportar: ${error.message}`);
-      throw error;
-    }
-  }
-
-  /**
-   * ✅ Estatísticas gerais do sistema de comissões
-   */
-  async getCommissionsStats() {
-    try {
-      const result = await pool.query(
-        `SELECT 
-          COUNT(*)::int as total_commissions,
-          COUNT(DISTINCT leader_id)::int as total_leaders,
-          COALESCE(SUM(commission_amount), 0) as total_amount,
-          COALESCE(SUM(CASE WHEN paid THEN commission_amount ELSE 0 END), 0) as total_paid,
-          COALESCE(AVG(commission_amount), 0) as avg_commission
-         FROM network_commissions`
+      // Junta resultados
+      const monthlyMap = new Map<string, number>();
+      personal.rows.forEach(r =>
+        monthlyMap.set(r.month, (monthlyMap.get(r.month) || 0) + r.amount)
+      );
+      network.rows.forEach(r =>
+        monthlyMap.set(r.month, (monthlyMap.get(r.month) || 0) + r.amount)
       );
 
-      const stats = result.rows[0];
-      return {
-        total_commissions: stats.total_commissions || 0,
-        total_leaders: stats.total_leaders || 0,
-        total_amount: parseFloat(stats.total_amount || 0),
-        total_paid: parseFloat(stats.total_paid || 0),
-        avg_commission: parseFloat(stats.avg_commission || 0),
-      };
+      return Array.from(monthlyMap.entries()).map(([month, amount]) => ({
+        month,
+        amount,
+      }));
     } catch (error: any) {
-      logger.error(`❌ Erro ao buscar estatísticas: ${error.message}`);
-      throw error;
+      logger.error(`❌ Erro ao buscar resumo mensal: ${error.message}`);
+      return [];
     }
   }
 }
