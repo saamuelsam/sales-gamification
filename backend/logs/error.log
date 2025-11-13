@@ -651,3 +651,4 @@
 {"level":"error","message":"Erro ao gerar relatório sales: column c.cpf_cnpj does not exist","timestamp":"2025-11-13 00:54:48"}
 {"level":"error","message":"Erro ao gerar relatório commissions: column pc.amount does not exist","timestamp":"2025-11-13 00:54:48"}
 {"level":"error","message":"Erro ao gerar relatório team: column uh.user_id does not exist","timestamp":"2025-11-13 00:54:49"}
+{"level":"error","message":"❌ Erro ao registrar login falho: null value in column \"user_id\" of relation \"login_logs\" violates not-null constraint","timestamp":"2025-11-13 04:43:09"}

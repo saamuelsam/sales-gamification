@@ -8,6 +8,9 @@ const router = (0, express_1.Router)();
 router.use(auth_middleware_1.verifyTokenMiddleware);
 // ✅ Dashboard
 router.get('/dashboard', (req, res) => user_controller_1.userController.getDashboard(req, res));
+// ✅ Perfil
+router.get('/profile', (req, res) => user_controller_1.userController.getProfile(req, res));
+router.put('/profile', (req, res) => user_controller_1.userController.updateProfile(req, res));
 // ✅ Equipe
 router.post('/team/add', (req, res) => user_controller_1.userController.addMember(req, res));
 router.get('/team/members', (req, res) => user_controller_1.userController.getMyTeam(req, res));

@@ -38,8 +38,8 @@ const database_1 = require("../config/database");
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const runMigrations = async () => {
-    console.log('🔹 DB_HOST configurado:', process.env.DB_HOST); // Log para debugs
-    console.log('🔹 Host atual no pool:', database_1.pool.options.host);
+    console.log('🔹 DATABASE_URL:', process.env.DATABASE_URL || 'usando variáveis individuais');
+    console.log('🔹 DB_HOST configurado:', process.env.DB_HOST || 'não definido');
     const client = await database_1.pool.connect();
     try {
         console.log('🚀 Executando migrations...\n');

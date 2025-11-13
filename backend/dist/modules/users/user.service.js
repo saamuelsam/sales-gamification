@@ -135,6 +135,104 @@ class UserService {
     }
     // ========== MÉTODOS DE EQUIPE ==========
     /**
+     * 🔥 Buscar perfil completo do usuário
+     */
+    async getProfile(userId) {
+        const result = await database_1.pool.query(`SELECT 
+        id, name, email, role, points, is_active, created_at,
+        cpf, phone, birth_date, avatar_url,
+        address_street, address_number, address_complement, 
+        address_neighborhood, address_city, address_state, address_zip,
+        pix_key, pix_type, bank_name, bank_code, bank_agency, 
+        bank_account, bank_account_type
+      FROM users 
+      WHERE id = $1`, [userId]);
+        if (result.rows.length === 0) {
+            throw new Error('Usuário não encontrado');
+        }
+        const user = result.rows[0];
+        // Remove senha do retorno
+        return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            points: parseFloat(user.points || '0'),
+            is_active: user.is_active,
+            created_at: user.created_at,
+            personal_data: {
+                cpf: user.cpf,
+                phone: user.phone,
+                birth_date: user.birth_date,
+                avatar_url: user.avatar_url
+            },
+            address: {
+                street: user.address_street,
+                number: user.address_number,
+                complement: user.address_complement,
+                neighborhood: user.address_neighborhood,
+                city: user.address_city,
+                state: user.address_state,
+                zip: user.address_zip
+            },
+            banking: {
+                pix_key: user.pix_key,
+                pix_type: user.pix_type,
+                bank_name: user.bank_name,
+                bank_code: user.bank_code,
+                bank_agency: user.bank_agency,
+                bank_account: user.bank_account,
+                bank_account_type: user.bank_account_type
+            }
+        };
+    }
+    /**
+     * 🔥 Atualizar perfil do usuário
+     */
+    async updateProfile(userId, data) {
+        const { name, cpf, phone, birth_date, avatar_url, address_street, address_number, address_complement, address_neighborhood, address_city, address_state, address_zip, pix_key, pix_type, bank_name, bank_code, bank_agency, bank_account, bank_account_type } = data;
+        // Validação de CPF único
+        if (cpf) {
+            const existingCpf = await database_1.pool.query('SELECT id FROM users WHERE cpf = $1 AND id != $2', [cpf, userId]);
+            if (existingCpf.rows.length > 0) {
+                throw new Error('CPF já cadastrado para outro usuário');
+            }
+        }
+        const result = await database_1.pool.query(`UPDATE users 
+       SET 
+         name = COALESCE($1, name),
+         cpf = COALESCE($2, cpf),
+         phone = COALESCE($3, phone),
+         birth_date = COALESCE($4, birth_date),
+         avatar_url = COALESCE($5, avatar_url),
+         address_street = COALESCE($6, address_street),
+         address_number = COALESCE($7, address_number),
+         address_complement = COALESCE($8, address_complement),
+         address_neighborhood = COALESCE($9, address_neighborhood),
+         address_city = COALESCE($10, address_city),
+         address_state = COALESCE($11, address_state),
+         address_zip = COALESCE($12, address_zip),
+         pix_key = COALESCE($13, pix_key),
+         pix_type = COALESCE($14, pix_type),
+         bank_name = COALESCE($15, bank_name),
+         bank_code = COALESCE($16, bank_code),
+         bank_agency = COALESCE($17, bank_agency),
+         bank_account = COALESCE($18, bank_account),
+         bank_account_type = COALESCE($19, bank_account_type),
+         updated_at = NOW()
+       WHERE id = $20
+       RETURNING *`, [
+            name, cpf, phone, birth_date, avatar_url,
+            address_street, address_number, address_complement,
+            address_neighborhood, address_city, address_state, address_zip,
+            pix_key, pix_type, bank_name, bank_code,
+            bank_agency, bank_account, bank_account_type,
+            userId
+        ]);
+        return this.getProfile(userId);
+    }
+    // ========== MÉTODOS DE EQUIPE ==========
+    /**
      * 🔥 NOVO MÉTODO: Vincula um consultor existente a um líder
      * Retorna objeto padronizado { success, message, data, statusCode }
      */

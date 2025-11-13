@@ -44,8 +44,9 @@ export class AuthService {
     // 🔧 Normaliza o UUID para formato válido do tipo LTREE (sem hífens)
     const cleanUserId = userId.replace(/-/g, '_');
 
-    // Atualizar path hierárquico
+    // Atualizar path hierárquico e user_hierarchy
     if (parent_id) {
+      // Se tem parent, atualiza o path e insere na hierarquia
       const parentResult = await pool.query('SELECT path FROM users WHERE id = $1', [parent_id]);
       const parentPath: string = parentResult.rows[0]?.path || '';
       const fullPath = parentPath ? `${parentPath}.${cleanUserId}` : cleanUserId;
@@ -54,12 +55,19 @@ export class AuthService {
         `UPDATE users SET path = $1::ltree WHERE id = $2`,
         [fullPath, userId]
       );
-    } else {
+
+      // Inserir na hierarquia
       await pool.query(
         `INSERT INTO user_hierarchy (leader_id, subordinate_id, line_level, joined_at)
-     VALUES ($1, $2, 1, NOW())
-     ON CONFLICT DO NOTHING`,
+         VALUES ($1, $2, 1, NOW())
+         ON CONFLICT DO NOTHING`,
         [parent_id, userId]
+      );
+    } else {
+      // Se não tem parent, apenas define o path com o próprio ID
+      await pool.query(
+        `UPDATE users SET path = $1::ltree WHERE id = $2`,
+        [cleanUserId, userId]
       );
     }
 
@@ -234,9 +242,12 @@ export class AuthService {
       // Enviar email
       try {
         await emailService.sendPasswordResetEmail(user.email, user.name, resetToken);
-      } catch (error) {
-        console.error('Erro ao enviar email de reset:', error);
-        throw new Error('Erro ao enviar email de redefinição de senha');
+        console.log('✅ Email de reset enviado para:', user.email);
+      } catch (error: any) {
+        console.error('❌ Erro ao enviar email de reset:', error.message || error);
+        console.error('Stack:', error.stack);
+        // Não bloqueia o fluxo - retorna sucesso mesmo se email falhar
+        // O token foi salvo no banco, então pode ser usado manualmente se necessário
       }
 
       return { success: true, message: 'Se o email existir, você receberá instruções para redefinir sua senha.' };

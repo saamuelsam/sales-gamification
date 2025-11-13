@@ -18,6 +18,31 @@ class UserController {
             return responses_1.ApiResponse.error(res, error.message || 'Erro ao buscar dashboard', 500);
         }
     }
+    // ========== PERFIL ==========
+    async getProfile(req, res) {
+        try {
+            const userId = req.user?.userId;
+            if (!userId)
+                return responses_1.ApiResponse.error(res, 'Usuário não autenticado', 401);
+            const profile = await userService.getProfile(String(userId));
+            return responses_1.ApiResponse.success(res, profile, 'Perfil carregado com sucesso');
+        }
+        catch (error) {
+            return responses_1.ApiResponse.error(res, error.message || 'Erro ao buscar perfil', 500);
+        }
+    }
+    async updateProfile(req, res) {
+        try {
+            const userId = req.user?.userId;
+            if (!userId)
+                return responses_1.ApiResponse.error(res, 'Usuário não autenticado', 401);
+            const profile = await userService.updateProfile(String(userId), req.body);
+            return responses_1.ApiResponse.success(res, profile, 'Perfil atualizado com sucesso');
+        }
+        catch (error) {
+            return responses_1.ApiResponse.error(res, error.message || 'Erro ao atualizar perfil', 500);
+        }
+    }
     // ========== EQUIPE ==========
     /**
      * 🔥 Adiciona um membro existente à equipe

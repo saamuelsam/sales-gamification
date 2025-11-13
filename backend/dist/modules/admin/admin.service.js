@@ -586,6 +586,7 @@ class AdminService {
      * ✅ Gerar relatórios em formato CSV
      */
     async generateReport(type, start, end) {
+        console.log(`📊 generateReport chamado: type=${type}, start=${start}, end=${end}`);
         switch (type) {
             case 'sales':
                 return await this.generateSalesReport(start, end);
@@ -603,12 +604,13 @@ class AdminService {
      * Gerar relatório de vendas
      */
     async generateSalesReport(start, end) {
+        console.log(`📈 Gerando relatório de vendas: ${start} - ${end}`);
         const result = await database_1.pool.query(`
       SELECT 
         s.id,
         TO_CHAR(s.created_at, 'DD/MM/YYYY HH24:MI') as data,
         c.name as cliente,
-        c.cpf_cnpj,
+        c.cpf,
         u.name as vendedor,
         s.value as valor,
         s.kilowatts as kwp,
@@ -619,14 +621,16 @@ class AdminService {
       WHERE s.created_at BETWEEN $1 AND $2
       ORDER BY s.created_at DESC
     `, [start, end]);
-        const headers = 'ID;Data;Cliente;CPF/CNPJ;Vendedor;Valor;kWp;Status\n';
-        const rows = result.rows.map(r => `${r.id};${r.data};${r.cliente};${r.cpf_cnpj || 'N/A'};${r.vendedor};R$ ${parseFloat(r.valor).toFixed(2)};${r.kwp};${r.status}`).join('\n');
+        console.log(`✅ Query vendas retornou ${result.rows.length} registros`);
+        const headers = 'ID;Data;Cliente;CPF;Vendedor;Valor;kWp;Status\n';
+        const rows = result.rows.map(r => `${r.id};${r.data};${r.cliente};${r.cpf || 'N/A'};${r.vendedor};R$ ${parseFloat(r.valor).toFixed(2)};${r.kwp};${r.status}`).join('\n');
         return headers + rows;
     }
     /**
      * Gerar relatório de comissões
      */
     async generateCommissionsReport(start, end) {
+        console.log(`💰 Gerando relatório de comissões: ${start} - ${end}`);
         const result = await database_1.pool.query(`
       SELECT 
         'Pessoal' as tipo,
@@ -635,8 +639,8 @@ class AdminService {
         u.name as usuario,
         u.email,
         s.id as venda_id,
-        pc.amount as valor,
-        pc.status
+        pc.commission_amount as valor,
+        CASE WHEN pc.paid THEN 'Pago' ELSE 'Pendente' END as status
       FROM personal_commissions pc
       JOIN users u ON pc.user_id = u.id
       LEFT JOIN sales s ON pc.sale_id = s.id
@@ -651,15 +655,16 @@ class AdminService {
         u.name as usuario,
         u.email,
         s.id as venda_id,
-        nc.amount as valor,
-        nc.status
+        nc.commission_amount as valor,
+        CASE WHEN nc.paid THEN 'Pago' ELSE 'Pendente' END as status
       FROM network_commissions nc
-      JOIN users u ON nc.sponsor_id = u.id
+      JOIN users u ON nc.leader_id = u.id
       LEFT JOIN sales s ON nc.sale_id = s.id
-      WHERE nc.created_at BETWEEN $1 AND $2
+      WHERE nc.created_at BETWEEN $3 AND $4
       
       ORDER BY data DESC
     `, [start, end, start, end]);
+        console.log(`✅ Query comissões retornou ${result.rows.length} registros`);
         const headers = 'Tipo;ID;Data;Usuário;Email;Venda ID;Valor;Status\n';
         const rows = result.rows.map(r => `${r.tipo};${r.id};${r.data};${r.usuario};${r.email};${r.venda_id || 'N/A'};R$ ${parseFloat(r.valor).toFixed(2)};${r.status}`).join('\n');
         return headers + rows;
@@ -668,6 +673,7 @@ class AdminService {
      * Gerar relatório da equipe
      */
     async generateTeamReport(start, end) {
+        console.log(`👥 Gerando relatório de equipe: ${start} - ${end}`);
         const result = await database_1.pool.query(`
       SELECT 
         u.id,
@@ -676,13 +682,13 @@ class AdminService {
         u.role as cargo,
         u.is_active as ativo,
         TO_CHAR(u.created_at, 'DD/MM/YYYY') as data_cadastro,
-        COALESCE(sponsor.name, 'N/A') as patrocinador,
+        COALESCE(leader.name, 'N/A') as patrocinador,
         (SELECT COUNT(*) FROM sales WHERE user_id = u.id AND created_at BETWEEN $1 AND $2) as vendas,
         COALESCE((SELECT SUM(value) FROM sales WHERE user_id = u.id AND created_at BETWEEN $1 AND $2), 0) as valor_total,
-        COALESCE((SELECT SUM(amount) FROM personal_commissions WHERE user_id = u.id AND created_at BETWEEN $1 AND $2), 0) as comissoes
+        COALESCE((SELECT SUM(commission_amount) FROM personal_commissions WHERE user_id = u.id AND created_at BETWEEN $1 AND $2), 0) as comissoes
       FROM users u
-      LEFT JOIN user_hierarchy uh ON u.id = uh.user_id
-      LEFT JOIN users sponsor ON uh.sponsor_id = sponsor.id
+      LEFT JOIN user_hierarchy uh ON u.id = uh.subordinate_id
+      LEFT JOIN users leader ON uh.leader_id = leader.id
       ORDER BY vendas DESC, valor_total DESC
     `, [start, end]);
         const headers = 'ID;Nome;Email;Cargo;Ativo;Cadastro;Patrocinador;Vendas;Valor Total;Comissões\n';
