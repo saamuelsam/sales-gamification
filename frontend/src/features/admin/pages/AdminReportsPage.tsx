@@ -177,8 +177,8 @@ export function AdminReportsPage() {
   }
 
   const COLORS = ['#10b981', '#f59e0b', '#3b82f6', '#a855f7', '#ef4444'];
-  const summary = data.summary || {};
-  const charts = data.charts || {};
+  const summary = (data.summary || {}) as any;
+  const charts = (data.charts || {}) as any;
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 space-y-6">
