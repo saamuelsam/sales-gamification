@@ -14,8 +14,8 @@ export const BottomNav = () => {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 sm:hidden z-50">
-      <div className="grid grid-cols-4 h-16">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 lg:hidden z-50 pb-safe shadow-lg">
+      <div className="grid grid-cols-4 h-16 max-w-screen-sm mx-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
@@ -25,12 +25,19 @@ export const BottomNav = () => {
               key={item.path}
               to={item.path}
               className={cn(
-                'flex flex-col items-center justify-center gap-1 transition-colors',
-                isActive ? 'text-blue-600' : 'text-gray-600'
+                'flex flex-col items-center justify-center gap-0.5 transition-all active:scale-95',
+                isActive 
+                  ? 'text-primary dark:text-primary-400 bg-primary/5 dark:bg-primary/10' 
+                  : 'text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary-400'
               )}
             >
-              <Icon className={cn('w-6 h-6', isActive && 'scale-110')} />
-              <span className="text-xs font-medium">{item.label}</span>
+              <Icon className={cn('w-5 h-5 sm:w-6 sm:h-6 transition-transform', isActive && 'scale-110')} />
+              <span className={cn(
+                'text-[10px] sm:text-xs font-medium',
+                isActive && 'font-semibold'
+              )}>
+                {item.label}
+              </span>
             </Link>
           );
         })}

@@ -76,30 +76,30 @@ export const BenefitsPage = () => {
   if (isLoading) return <Loading />;
 
   return (
-    <div className="space-y-6 pb-20 sm:pb-6">
+    <div className="space-y-4 sm:space-y-6 pb-20 lg:pb-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2 text-gray-900 dark:text-gray-100">
-          <Gift className="w-7 h-7 text-yellow-600 dark:text-yellow-400" />
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2 text-gray-900 dark:text-gray-100">
+          <Gift className="w-6 h-6 sm:w-7 sm:h-7 text-yellow-600 dark:text-yellow-400" />
           Benefícios
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1">
           Conquiste benefícios exclusivos conforme você avança de nível
         </p>
       </div>
 
       {/* Estatísticas */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <Card className="p-4">
-          <div className="flex items-center gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4">
+        <Card className="p-3 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
               <Check className="w-5 h-5 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {benefits?.length || 0}
               </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400">Desbloqueados</p>
+              <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">Desbloqueados</p>
             </div>
           </div>
         </Card>
@@ -148,13 +148,13 @@ export const BenefitsPage = () => {
       </div>
 
       {/* Filtros */}
-      <Card className="p-4">
-        <div className="flex items-center gap-2 mb-4">
+      <Card className="p-3 sm:p-4">
+        <div className="flex items-center gap-2 mb-3 sm:mb-4">
           <Filter className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100">Filtros</h3>
+          <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-gray-100">Filtros</h3>
         </div>
         
-        <div className="grid sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
           {/* Filtro de Categoria */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -196,7 +196,7 @@ export const BenefitsPage = () => {
 
       {/* Lista de Benefícios */}
       {filteredBenefits && filteredBenefits.length > 0 ? (
-        <div className="grid gap-4">
+        <div className="grid gap-3 sm:gap-4">
           {filteredBenefits.map((benefit) => {
             const categoryInfo = categoryConfig[benefit.category];
             const periodInfo = periodConfig[benefit.period];
@@ -205,9 +205,9 @@ export const BenefitsPage = () => {
 
             return (
               <Card key={benefit.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex flex-col md:flex-row gap-3 sm:gap-4">
                   {/* Imagem */}
-                  <div className="relative w-full sm:w-48 h-48 sm:h-auto flex-shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-800">
+                  <div className="relative w-full md:w-48 h-40 sm:h-48 md:h-auto flex-shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-lg md:rounded-none">
                     {benefit.image_url ? (
                       <img 
                         src={benefit.image_url} 
@@ -233,7 +233,7 @@ export const BenefitsPage = () => {
                   </div>
 
                   {/* Conteúdo */}
-                  <div className="flex-1 p-4 sm:p-6">
+                  <div className="flex-1 p-3 sm:p-4 md:p-6">
                     <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
                       <div className="flex-1">
                         <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 mb-1">

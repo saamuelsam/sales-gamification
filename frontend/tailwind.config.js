@@ -24,6 +24,8 @@ export default {
       },
       animation: {
         'pulse-smooth': 'pulse-smooth 2s infinite',
+        'slide-up': 'slide-up 0.3s ease-out',
+        'fade-in': 'fade-in 0.2s ease-in',
       },
       keyframes: {
         'pulse-smooth': {
@@ -36,6 +38,34 @@ export default {
             boxShadow: '0 0 15px rgba(249, 166, 12, 0.9), 0 0 25px rgba(252, 110, 34, 0.6)',
           },
         },
+        'slide-up': {
+          '0%': {
+            transform: 'translateY(100%)',
+            opacity: '0',
+          },
+          '100%': {
+            transform: 'translateY(0)',
+            opacity: '1',
+          },
+        },
+        'fade-in': {
+          '0%': {
+            opacity: '0',
+          },
+          '100%': {
+            opacity: '1',
+          },
+        },
+      },
+      screens: {
+        'xs': '475px',
+        '3xl': '1920px',
+      },
+      spacing: {
+        'safe-top': 'env(safe-area-inset-top)',
+        'safe-bottom': 'env(safe-area-inset-bottom)',
+        'safe-left': 'env(safe-area-inset-left)',
+        'safe-right': 'env(safe-area-inset-right)',
       },
     },
   },

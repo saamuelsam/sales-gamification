@@ -170,32 +170,32 @@ export const GoalsPage = () => {
     const nextRequirements = goals.nextLevel ? getRequirements(goals.nextLevel.name) : null;
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4 sm:p-6 pb-20 sm:pb-6">
-            <div className="max-w-6xl mx-auto space-y-6">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-3 sm:p-4 md:p-6 pb-20 lg:pb-6">
+            <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
                 {/* Header */}
                 <div>
-                    <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-2">
-                        <Trophy className="w-8 h-8 text-yellow-500 dark:text-yellow-400" />
+                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2 mb-1 sm:mb-2">
+                        <Trophy className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-yellow-500 dark:text-yellow-400" />
                         Suas Metas
                     </h1>
-                    <p className="text-gray-600 dark:text-gray-400">Acompanhe seu progresso na carreira</p>
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Acompanhe seu progresso na carreira</p>
                 </div>
 
                 {/* Nível Atual */}
-                <div className={`bg-gradient-to-r ${currentLevelColor} rounded-2xl shadow-xl p-6 sm:p-8 text-white`}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className={`bg-gradient-to-r ${currentLevelColor} rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 md:p-8 text-white`}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div>
-                            <p className="text-sm opacity-90 mb-1">Seu Nível Atual</p>
-                            <h2 className="text-3xl sm:text-4xl font-bold mb-3">{goals.currentLevel.name}</h2>
+                            <p className="text-xs sm:text-sm opacity-90 mb-1">Seu Nível Atual</p>
+                            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2 sm:mb-3">{goals.currentLevel.name}</h2>
                             <div className="flex items-center gap-2">
                                 <TrendingUp className="w-4 h-4" />
-                                <span className="text-lg font-semibold">{goals.currentPoints.toLocaleString('pt-BR')} pontos</span>
+                                <span className="text-base sm:text-lg font-semibold">{goals.currentPoints.toLocaleString('pt-BR')} pontos</span>
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <p className="text-sm opacity-90">Comissão Pessoal</p>
-                            <p className="text-4xl font-bold">{goals.currentLevel.personal_commission}%</p>
+                            <p className="text-xs sm:text-sm opacity-90">Comissão Pessoal</p>
+                            <p className="text-3xl sm:text-4xl font-bold">{goals.currentLevel.personal_commission}%</p>
                             <p className="text-sm opacity-90">+ {goals.currentLevel.insurance_commission}% (Seguro)
                                 {goals.currentLevel.network_commission && ` + ${goals.currentLevel.network_commission}% (Rede)`}
                             </p>
@@ -204,7 +204,7 @@ export const GoalsPage = () => {
                 </div>
 
                 {/* Benefícios Atuais */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                     {goals.currentLevel.advancement_bonus > 0 && (
                         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-6 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow">
                             <Award className="w-8 h-8 text-yellow-500 dark:text-yellow-400 mb-3" />
@@ -234,12 +234,12 @@ export const GoalsPage = () => {
 
                 {/* Requisitos Atuais */}
                 {(currentRequirements.contracts || currentRequirements.salesGoal || goals.currentLevel.bonus_goal) && (
-                    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-                        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+                        <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4 flex items-center gap-2">
                             <Target className="w-5 h-5" />
                             Requisitos do Seu Nível
                         </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                             {currentRequirements.contracts && (
                                 <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
                                     <p className="text-sm text-purple-600 dark:text-purple-400 mb-1">Contratos/Mês</p>
@@ -278,8 +278,8 @@ export const GoalsPage = () => {
 
                 {/* Próximo Nível */}
                 {goals.nextLevel && (
-                    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-                        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl shadow-sm p-4 sm:p-6 border border-gray-200 dark:border-gray-700">
+                        <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4 flex items-center gap-2">
                             🎯 Próximo Nível: {goals.nextLevel.name}
                         </h3>
 

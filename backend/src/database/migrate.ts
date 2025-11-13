@@ -4,8 +4,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 const runMigrations = async () => {
-  console.log('🔹 DB_HOST configurado:', process.env.DB_HOST); // Log para debugs
-  console.log('🔹 Host atual no pool:', pool.options.host);
+  console.log('🔹 DATABASE_URL:', process.env.DATABASE_URL || 'usando variáveis individuais');
+  console.log('🔹 DB_HOST configurado:', process.env.DB_HOST || 'não definido');
   const client = await pool.connect();
 
   try {

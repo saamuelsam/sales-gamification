@@ -176,5 +176,55 @@
   .hover-card {
     @apply hover:bg-gray-50 dark:hover:bg-gray-700;
   }
+
+  /* Mobile utilities */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .pb-nav {
+    padding-bottom: 5rem; /* Space for bottom navigation */
+  }
+
+  /* Touch optimization */
+  .touch-action-pan {
+    touch-action: pan-x pan-y;
+  }
+
+  /* Mobile scroll containers */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* Prevent text size adjustment on mobile */
+  .no-text-size-adjust {
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Grid responsive utilities */
+  .grid-responsive {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4;
+  }
+
+  /* Stack on mobile */
+  .stack-mobile {
+    @apply flex-col sm:flex-row;
+  }
 }
 
