@@ -44,11 +44,11 @@ CREATE TABLE IF NOT EXISTS appointments (
 );
 
 -- Índices para performance
-CREATE INDEX idx_appointments_user_id ON appointments(user_id);
-CREATE INDEX idx_appointments_date ON appointments(appointment_date);
-CREATE INDEX idx_appointments_status ON appointments(status);
-CREATE INDEX idx_appointments_type ON appointments(type);
-CREATE INDEX idx_appointments_user_date ON appointments(user_id, appointment_date);
+CREATE INDEX IF NOT EXISTS idx_appointments_user_id ON appointments(user_id);
+CREATE INDEX IF NOT EXISTS idx_appointments_date ON appointments(appointment_date);
+CREATE INDEX IF NOT EXISTS idx_appointments_status ON appointments(status);
+CREATE INDEX IF NOT EXISTS idx_appointments_type ON appointments(type);
+CREATE INDEX IF NOT EXISTS idx_appointments_user_date ON appointments(user_id, appointment_date);
 
 -- Trigger para atualizar updated_at
 CREATE OR REPLACE FUNCTION update_appointments_updated_at()
