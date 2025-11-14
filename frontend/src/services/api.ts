@@ -1,27 +1,8 @@
 // src/services/api.ts
 import axios from 'axios';
+import { API_URL } from '@/config/env';
 
-// ✅ Detecta automaticamente o ambiente
-// Em produção (sem VITE_API_URL definido), usa /api (relativo ao domínio)
-// Em desenvolvimento, usa http://localhost:4000/api
-const getBaseURL = () => {
-  const envURL = import.meta.env.VITE_API_URL;
-  
-  // Se VITE_API_URL está definido, usa ele
-  if (envURL) {
-    return envURL.endsWith('/api') ? envURL : `${envURL}/api`;
-  }
-  
-  // Se está em localhost (desenvolvimento), usa http://localhost:4000/api
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return 'http://localhost:4000/api';
-  }
-  
-  // Em produção (qualquer outro domínio), usa /api relativo
-  return '/api';
-};
-
-const baseURL = getBaseURL().replace(/\/+$/, ''); // remove barras duplicadas no final
+const baseURL = API_URL.replace(/\/+$/, ''); // remove barras duplicadas no final
 
 const api = axios.create({
   baseURL,
