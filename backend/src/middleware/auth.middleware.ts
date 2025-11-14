@@ -11,13 +11,10 @@ export const verifyTokenMiddleware = async (req: Request, res: Response, next: N
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret') as any;
     
-    // ✅ LOGS PARA DEBUG
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('🔐 [AUTH] Token decodificado:', decoded);
-    console.log('🔐 [AUTH] User ID extraído:', decoded.userId || decoded.id);
-    console.log('🔐 [AUTH] Email:', decoded.email);
-    console.log('🔐 [AUTH] Role:', decoded.role);
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    // ✅ Logs minimalistas (sem expor dados sensíveis)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔐 [AUTH] User ID:', decoded.userId || decoded.id, '| Role:', decoded.role);
+    }
     
     req.user = {
       userId: decoded.userId || decoded.id,
@@ -27,7 +24,9 @@ export const verifyTokenMiddleware = async (req: Request, res: Response, next: N
     
     next();
   } catch (error) {
-    console.error('❌ [AUTH] Erro ao verificar token:', error);
-    return res.status(401).json({ message: 'Token inválido' });
+    if (process.env.NODE_ENV === 'development') {
+      console.error('❌ [AUTH] Token inválido:', error);
+    }
+    return res.status(401).json({ message: 'Token inválido ou expirado' });
   }
 };

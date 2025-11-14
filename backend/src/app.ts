@@ -1,7 +1,10 @@
 // backend/src/app.ts
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import compression from 'compression';
 import dotenv from 'dotenv';
+import { globalLimiter, timeoutMiddleware } from './middleware/security.middleware';
 import authRoutes from './modules/auth/auth.routes';
 import salesRoutes from './modules/sales/sales.routes';
 import dashboardRoutes from './modules/dashboard/dashboard.routes';
@@ -19,6 +22,21 @@ import appointmentRoutes from './modules/appointments/appointment.routes';
 dotenv.config();
 
 const app = express();
+
+// ✅ SEGURANÇA: Helmet (headers HTTP seguros)
+app.use(helmet({
+  contentSecurityPolicy: false, // Desabilita CSP para não quebrar o frontend
+  crossOriginEmbedderPolicy: false,
+}));
+
+// ✅ PERFORMANCE: Compressão Gzip/Brotli
+app.use(compression());
+
+// ✅ SEGURANÇA: Rate Limiting Global
+app.use(globalLimiter);
+
+// ✅ SEGURANÇA: Timeout de 30 segundos
+app.use(timeoutMiddleware(30));
 
 // ✅ CORS COMPLETO - Permitir headers customizados
 app.use(cors({

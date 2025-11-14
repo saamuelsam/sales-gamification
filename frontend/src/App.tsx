@@ -34,10 +34,10 @@ const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-// ✅ Rota Protegida (apenas admin/ceo)
+// ✅ Rota Protegida (apenas admin/ceo/diretor_comercial)
 const ProtectedRoute = ({ 
   children, 
-  roles = ['admin', 'ceo'] 
+  roles = ['admin', 'ceo', 'diretor_comercial'] 
 }: { 
   children: React.ReactNode; 
   roles?: string[] 
@@ -101,21 +101,21 @@ function App() {
         <Route path="appointments" element={<AppointmentsPage />} />
         <Route path="levels" element={<LevelsPage />} />
         
-        {/* ===== ROTA FINANCEIRO (CEO + FINANCEIRO) ===== */}
+        {/* ===== ROTA FINANCEIRO (CEO + FINANCEIRO + DIRETOR_COMERCIAL) ===== */}
         <Route
           path="financeiro"
           element={
-            <ProtectedRoute roles={['ceo', 'financeiro']}>
+            <ProtectedRoute roles={['ceo', 'financeiro', 'diretor_comercial']}>
               <FinanceiroPage />
             </ProtectedRoute>
           }
         />
         
-        {/* ===== ROTAS DE ADMIN (CEO + ADMIN) ===== */}
+        {/* ===== ROTAS DE ADMIN (CEO + ADMIN + DIRETOR_COMERCIAL) ===== */}
         <Route
           path="admin/*"
           element={
-            <ProtectedRoute roles={['ceo', 'admin']}>
+            <ProtectedRoute roles={['ceo', 'admin', 'diretor_comercial']}>
               <AdminPage />
             </ProtectedRoute>
           }

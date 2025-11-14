@@ -1,43 +1,43 @@
 import { Request, Response, NextFunction } from 'express';
 
-// CEO tem acesso total a tudo
+// CEO e Diretor Comercial têm acesso total a tudo
 export const verifyCEOMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const role = req.user?.role;
 
-  if (role === 'ceo') {
+  if (role === 'ceo' || role === 'diretor_comercial') {
     return next();
   }
 
-  return res.status(403).json({ success: false, message: 'Acesso negado: somente CEO' });
+  return res.status(403).json({ success: false, message: 'Acesso negado: somente CEO ou Diretor Comercial' });
 };
 
-// Financeiro tem acesso apenas à área financeira (sem admin)
+// Financeiro, CEO e Diretor Comercial têm acesso à área financeira
 export const verifyFinanceiroMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const role = req.user?.role;
 
-  if (role === 'ceo' || role === 'financeiro') {
+  if (role === 'ceo' || role === 'financeiro' || role === 'diretor_comercial') {
     return next();
   }
 
   return res.status(403).json({ success: false, message: 'Acesso negado: somente área financeira' });
 };
 
-// Admin tem acesso à área admin com limitações (sem financeiro)
+// Admin, CEO e Diretor Comercial têm acesso à área admin
 export const verifyAdminMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const role = req.user?.role;
 
-  if (role === 'ceo' || role === 'admin') {
+  if (role === 'ceo' || role === 'admin' || role === 'diretor_comercial') {
     return next();
   }
 
   return res.status(403).json({ success: false, message: 'Acesso negado: somente administradores' });
 };
 
-// Acesso amplo para visualizações (CEO, Admin, Director)
+// Acesso amplo para visualizações (CEO, Admin, Director, Diretor Comercial)
 export const verifyAdminViewMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const role = req.user?.role;
 
-  if (role === 'ceo' || role === 'admin' || role === 'director') {
+  if (role === 'ceo' || role === 'admin' || role === 'director' || role === 'diretor_comercial') {
     return next();
   }
 
