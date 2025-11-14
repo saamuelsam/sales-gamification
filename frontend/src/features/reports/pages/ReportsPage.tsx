@@ -80,7 +80,8 @@ export default function ReportsPage() {
       console.log('📥 Baixando relatório:', reportId);
       console.log('📅 Período:', dateRange);
       
-      const url = `http://localhost:4000/api/admin/reports/${reportId}?start=${dateRange.start}&end=${dateRange.end}`;
+      const baseURL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000/api' : '/api');
+      const url = `${baseURL}/admin/reports/${reportId}?start=${dateRange.start}&end=${dateRange.end}`;
       console.log('🌐 URL:', url);
       
       const response = await fetch(url, {

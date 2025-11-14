@@ -39,7 +39,8 @@ export default function FinanceiroPage() {
   const fetchCommissions = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:4000/api/admin/commissions', {
+      const baseURL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000/api' : '/api');
+      const response = await fetch(`${baseURL}/admin/commissions`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await response.json();
@@ -66,7 +67,8 @@ export default function FinanceiroPage() {
   const handleMarkPaid = async (commissionId: string) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:4000/api/admin/commissions/${commissionId}/paid`, {
+      const baseURL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000/api' : '/api');
+      const response = await fetch(`${baseURL}/admin/commissions/${commissionId}/paid`, {
         method: 'PATCH',
         headers: { Authorization: `Bearer ${token}` }
       });

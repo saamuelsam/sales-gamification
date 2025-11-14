@@ -98,12 +98,13 @@ export default function CommissionsPage() {
     try {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
+      const baseURL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000/api' : '/api');
 
       const [summaryRes, personalRes, networkRes, monthlyRes] = await Promise.all([
-        fetch('http://localhost:4000/api/commissions/summary', { headers }),
-        fetch('http://localhost:4000/api/commissions/personal', { headers }),
-        fetch('http://localhost:4000/api/commissions/network', { headers }),
-        fetch('http://localhost:4000/api/commissions/monthly', { headers })
+        fetch(`${baseURL}/commissions/summary`, { headers }),
+        fetch(`${baseURL}/commissions/personal`, { headers }),
+        fetch(`${baseURL}/commissions/network`, { headers }),
+        fetch(`${baseURL}/commissions/monthly`, { headers })
       ]);
 
       const summaryData = await summaryRes.json();
