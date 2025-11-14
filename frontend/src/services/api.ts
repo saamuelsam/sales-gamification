@@ -1,28 +1,19 @@
-// src/services/api.ts
 import axios from 'axios';
 
-// Detecta ambiente automaticamente baseado no hostname
 const getApiUrl = (): string => {
-  const viteApiUrl = import.meta.env.VITE_API_URL;
-  if (viteApiUrl) {
-    console.log('🔧 Usando VITE_API_URL:', viteApiUrl);
-    return viteApiUrl;
+  const explicitUrl = import.meta.env.VITE_API_URL;
+  if (explicitUrl) {
+    return explicitUrl;
   }
 
-  const hostname = window.location.hostname;
-  console.log('🌐 Hostname detectado:', hostname);
-  
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    console.log('💻 Ambiente: DESENVOLVIMENTO');
+  if (import.meta.env.DEV) {
     return 'http://localhost:4000/api';
   }
-  
-  console.log('🚀 Ambiente: PRODUÇÃO - usando /api');
+
   return '/api';
 };
 
 const baseURL = getApiUrl().replace(/\/+$/, '');
-console.log('✅ API baseURL configurado:', baseURL);
 
 const api = axios.create({
   baseURL,
@@ -48,18 +39,10 @@ api.interceptors.response.use(
     const status = error.response?.status;
     const url = error.config?.url;
 
-    // ❌ NÃO redirecionar se for erro na rota de login
     if (status === 401 && url !== '/auth/login') {
-      console.warn('⚠️ Token expirado ou inválido. Redirecionando para login.');
       localStorage.removeItem('token');
       localStorage.removeItem('auth-storage');
       window.location.href = '/login';
-    } else if (status === 401 && url === '/auth/login') {
-      console.error('❌ Credenciais inválidas no login');
-    } else if (status === 404) {
-      console.warn(`🚫 Rota não encontrada: ${error.config?.url}`);
-    } else if (status >= 500) {
-      console.error('💥 Erro interno do servidor:', error.response?.data);
     }
 
     return Promise.reject(error);
