@@ -124,6 +124,8 @@ export class AuthController {
     try {
       const { email } = req.body;
 
+      console.log('[RESEND] Request body:', req.body);
+
       if (!email) {
         return ApiResponse.error(res, 'Email é obrigatório', 400);
       }
@@ -132,6 +134,7 @@ export class AuthController {
       return ApiResponse.success(res, result, result.message);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Erro ao reenviar email de verificação';
+      console.error('[RESEND ERROR]', message, error);
       return ApiResponse.error(res, message, 400);
     }
   }
