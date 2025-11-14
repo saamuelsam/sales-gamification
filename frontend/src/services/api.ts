@@ -1,8 +1,28 @@
 // src/services/api.ts
 import axios from 'axios';
-import { API_URL } from '@/config/env';
 
-const baseURL = API_URL.replace(/\/+$/, ''); // remove barras duplicadas no final
+// Detecta ambiente automaticamente baseado no hostname
+const getApiUrl = (): string => {
+  const viteApiUrl = import.meta.env.VITE_API_URL;
+  if (viteApiUrl) {
+    console.log('🔧 Usando VITE_API_URL:', viteApiUrl);
+    return viteApiUrl;
+  }
+
+  const hostname = window.location.hostname;
+  console.log('🌐 Hostname detectado:', hostname);
+  
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    console.log('💻 Ambiente: DESENVOLVIMENTO');
+    return 'http://localhost:4000/api';
+  }
+  
+  console.log('🚀 Ambiente: PRODUÇÃO - usando /api');
+  return '/api';
+};
+
+const baseURL = getApiUrl().replace(/\/+$/, '');
+console.log('✅ API baseURL configurado:', baseURL);
 
 const api = axios.create({
   baseURL,
