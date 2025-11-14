@@ -16,4 +16,18 @@ export default defineConfig({
     host: true,
     strictPort: true,
   },
+  build: {
+    // Limpar cache e garantir build limpo
+    emptyOutDir: true,
+    // Reduzir warning de chunk size
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          ui: ['@headlessui/react', '@heroicons/react'],
+        }
+      }
+    }
+  }
 })
