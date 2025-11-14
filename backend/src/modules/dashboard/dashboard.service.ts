@@ -1,6 +1,6 @@
 // backend/src/modules/dashboard/dashboard.service.ts
 
-import { pool } from '../../config/database';
+import { pool } from '@config/database';
 import { logger } from '../../utils/logger';
 import { levelProgressService } from '../levels/levelProgress.service';
 

@@ -31,6 +31,7 @@ interface Benefit {
   is_active: boolean;
   level_name: string;
   phase_number: number;
+  is_unlocked: boolean;
   created_at: string;
 }
 
@@ -97,7 +98,7 @@ export const BenefitsPage = () => {
             </div>
             <div>
               <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                {benefits?.length || 0}
+                {benefits?.filter(b => b.is_unlocked).length || 0}
               </p>
               <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">Desbloqueados</p>
             </div>
@@ -204,10 +205,10 @@ export const BenefitsPage = () => {
             const PeriodIcon = periodInfo.icon;
 
             return (
-              <Card key={benefit.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+              <Card key={benefit.id} className={`overflow-hidden hover:shadow-lg transition-all ${!benefit.is_unlocked ? 'opacity-60' : ''}`}>
                 <div className="flex flex-col md:flex-row gap-3 sm:gap-4">
                   {/* Imagem */}
-                  <div className="relative w-full md:w-48 h-40 sm:h-48 md:h-auto flex-shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-lg md:rounded-none">
+                  <div className={`relative w-full md:w-48 h-40 sm:h-48 md:h-auto flex-shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-800 rounded-lg md:rounded-none ${!benefit.is_unlocked ? 'grayscale' : ''}`}>
                     {benefit.image_url ? (
                       <img 
                         src={benefit.image_url} 
@@ -225,10 +226,19 @@ export const BenefitsPage = () => {
                     
                     {/* Badge de Status */}
                     <div className="absolute top-3 right-3">
-                      <div className="bg-green-500 dark:bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-lg">
-                        <Check className="w-3 h-3" />
-                        Desbloqueado
-                      </div>
+                      {benefit.is_unlocked ? (
+                        <div className="bg-green-500 dark:bg-green-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-lg">
+                          <Check className="w-3 h-3" />
+                          Desbloqueado
+                        </div>
+                      ) : (
+                        <div className="bg-gray-500 dark:bg-gray-600 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow-lg">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                          </svg>
+                          Bloqueado
+                        </div>
+                      )}
                     </div>
                   </div>
 

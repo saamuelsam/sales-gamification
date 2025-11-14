@@ -1,4 +1,4 @@
-import { pool } from '../../config/database';
+import { pool } from '@config/database';
 import { logger } from '../../utils/logger';
 import { logActivity } from '../../utils/activityLogger';
 

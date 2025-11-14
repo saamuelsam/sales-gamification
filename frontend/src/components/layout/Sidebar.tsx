@@ -10,12 +10,14 @@ import {
   Award,
   DollarSign,
   BarChart3,
+  Calendar,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
 const menuItems = [
   { path: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['all'] },
   { path: '/sales', label: 'Vendas', icon: ShoppingCart, roles: ['all'] },
+  { path: '/appointments', label: 'Agendamentos', icon: Calendar, roles: ['all'] },
   { path: '/team', label: 'Minha Equipe', icon: Users, roles: ['all'] },
   { path: '/goals', label: 'Metas', icon: Target, roles: ['all'] },
   { path: '/commissions', label: 'Comissões', icon: DollarSign, roles: ['all'] },

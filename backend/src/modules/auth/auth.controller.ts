@@ -2,7 +2,9 @@
 import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { ApiResponse } from '../../utils/responses';
-import { pool } from '../../config/database';
+import { hash } from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { pool } from '@config/database';
 
 const authService = new AuthService();
 

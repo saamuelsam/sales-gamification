@@ -344,15 +344,11 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
     setStep('sale');
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();    setLoading(true);
     try {
-      const clientResponse = await api.post('/clients', clientData);
-      const clientId = clientResponse.data.data.id;
-
+      // Enviar venda diretamente com o nome do cliente
       const payload: any = {
-        client_id: clientId,
         client_name: clientData.name,
         value: parseFloat(saleData.value),
         kilowatts: parseFloat(saleData.kilowatts),
@@ -373,11 +369,13 @@ const CreateSaleModal = ({ onClose, onSuccess }: CreateSaleModalProps) => {
         payload.insurance_value = parseFloat(saleData.insurance_value);
       }
 
-      await api.post('/sales', payload);
+      const response = await api.post('/sales', payload);
+      
       toast.success('Venda cadastrada!');
       invalidateDashboard();
       onSuccess();
     } catch (error: any) {
+      console.error('Erro ao cadastrar venda:', error);
       toast.error(error.response?.data?.message || 'Erro ao cadastrar');
     } finally {
       setLoading(false);

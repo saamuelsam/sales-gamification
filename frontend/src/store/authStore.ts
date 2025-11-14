@@ -19,30 +19,45 @@ interface AuthState {
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       token: null,
       isAuthenticated: false,
 
       login: (user, token) => {
-        console.log('🧠 Gravando login no Zustand:', user);
+        console.log('🧠 Zustand.login() CHAMADO');
+        console.log('🧠 Estado ANTES:', get());
+        console.log('🧠 Novos dados:', {
+          user,
+          token: token.substring(0, 20) + '...',
+          isAuthenticated: true
+        });
+        
+        // Salvar token separadamente também
         localStorage.setItem('token', token);
+        console.log('✅ Token salvo no localStorage separadamente');
+        
+        // Atualizar estado do Zustand
         set({ user, token, isAuthenticated: true });
+        
+        console.log('🧠 Estado DEPOIS:', get());
+        
+        // Verificar persistência após um tick
+        setTimeout(() => {
+          const stored = localStorage.getItem('auth-storage');
+          const currentState = get();
+          console.log('🧠 [100ms depois] Estado atual:', currentState);
+          console.log('🧠 [100ms depois] LocalStorage auth-storage:', stored ? JSON.parse(stored) : 'VAZIO');
+        }, 100);
       },
 
       logout: () => {
-        console.log('🚪 Logout executado');
         localStorage.removeItem('token');
         set({ user: null, token: null, isAuthenticated: false });
       },
     }),
     {
-      name: 'auth-storage', // nome no localStorage
-      partialize: (state) => ({
-        user: state.user,
-        token: state.token,
-        isAuthenticated: state.isAuthenticated,
-      }),
+      name: 'auth-storage',
     }
   )
 );

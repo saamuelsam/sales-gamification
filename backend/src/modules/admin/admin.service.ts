@@ -1,5 +1,5 @@
 // backend/src/modules/admin/admin.service.ts
-import { pool } from '../../config/database';
+import { pool } from '@config/database';
 import { logActivity, ActivityAction } from '../../utils/activityLogger';
 
 class AdminService {

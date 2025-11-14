@@ -24,6 +24,7 @@ services:
       DATABASE_URL: postgres://admin:admin123@sales_postgres:5432/sales_gamification
       NODE_ENV: development
       PORT: 4000
+      DISABLE_EMAILS: "true"
     depends_on:
       - postgres
     ports:

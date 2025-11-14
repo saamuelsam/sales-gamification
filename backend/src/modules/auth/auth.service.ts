@@ -1,5 +1,5 @@
 // backend/src/modules/auth/auth.service.ts
-import { pool } from '../../config/database';
+import { pool } from '@config/database';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { generateToken } from '../../config/jwt';

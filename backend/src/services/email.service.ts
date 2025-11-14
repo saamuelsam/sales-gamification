@@ -1,8 +1,5 @@
-import sgMail from '@sendgrid/mail';
+import nodemailer from 'nodemailer';
 import { ENV } from '../config/env';
-
-// Configurar SendGrid
-sgMail.setApiKey(ENV.SENDGRID_API_KEY);
 
 interface EmailOptions {
   to: string;
@@ -12,23 +9,48 @@ interface EmailOptions {
 }
 
 class EmailService {
-  private from = {
-    email: ENV.SENDGRID_FROM_EMAIL,
-    name: ENV.SENDGRID_FROM_NAME,
-  };
+  private transporter;
 
-  async sendEmail({ to, subject, html, text }: EmailOptions): Promise<void> {
+  constructor() {
+    // Configuração SMTP Hostinger
+    this.transporter = nodemailer.createTransport({
+      host: ENV.SMTP_HOST,
+      port: ENV.SMTP_PORT,
+      secure: ENV.SMTP_SECURE, // true para 465, false para outros
+      auth: {
+        user: ENV.SMTP_USER,
+        pass: ENV.SMTP_PASS,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+
+    console.log('✅ Servidor SMTP configurado');
+    
+    // Nota: Verificação SMTP removida para evitar travamento na inicialização
+    // A conexão será testada quando o primeiro email for enviado
+  }
+
+  async sendEmail({ to, subject, html }: EmailOptions): Promise<void> {
+    // 🚫 DESABILITAR EMAILS EM DESENVOLVIMENTO (evitar travamento)
+    if (process.env.NODE_ENV === 'development' || process.env.DISABLE_EMAILS === 'true') {
+      console.log('📧 [EMAIL DESABILITADO] Para:', to, '| Assunto:', subject);
+      return;
+    }
+
     try {
-      await sgMail.send({
+      const info = await this.transporter.sendMail({
+        from: `"${ENV.SMTP_FROM_NAME}" <${ENV.SMTP_FROM_EMAIL}>`,
         to,
-        from: this.from,
         subject,
         html,
-        text: text || this.stripHtml(html),
+        text: this.stripHtml(html),
       });
-      console.log(`✅ Email enviado para: ${to}`);
+
+      console.log(`✅ Email enviado para: ${to} - ID: ${info.messageId}`);
     } catch (error: any) {
-      console.error('❌ Erro ao enviar email:', error.response?.body || error);
+      console.error('❌ Erro ao enviar email:', error);
       throw new Error('Falha ao enviar email');
     }
   }
@@ -295,9 +317,13 @@ class EmailService {
   }
 
   // Email de novo nível alcançado
-  async sendLevelUpNotification(email: string, name: string, newLevel: string, benefits: string[]): Promise<void> {
-    const benefitsList = benefits.map(b => `<li>${b}</li>`).join('');
-    
+  async sendLevelUpNotification(
+    email: string, 
+    name: string, 
+    newLevel: string, 
+    bonusAmount: number,
+    bonusDescription: string
+  ): Promise<void> {
     const html = `
       <!DOCTYPE html>
       <html>
@@ -310,7 +336,8 @@ class EmailService {
           .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
           .level-badge { background: linear-gradient(135deg, #F9A60C 0%, #FC6E22 100%); color: white; padding: 30px; border-radius: 10px; text-align: center; margin: 20px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
           .level-badge h2 { margin: 0; font-size: 36px; }
-          .benefits { background: white; border-left: 4px solid #F9A60C; padding: 20px; margin: 20px 0; }
+          .bonus { background: white; border-left: 4px solid #F9A60C; padding: 20px; margin: 20px 0; }
+          .bonus-amount { font-size: 28px; color: #123450; font-weight: bold; margin: 10px 0; }
           .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
         </style>
       </head>
@@ -326,12 +353,13 @@ class EmailService {
               <p style="margin: 0; font-size: 16px;">Seu Novo Nível:</p>
               <h2>🌟 ${newLevel}</h2>
             </div>
-            <div class="benefits">
-              <h3>🎁 Novos Benefícios Desbloqueados:</h3>
-              <ul>
-                ${benefitsList}
-              </ul>
+            ${bonusAmount > 0 ? `
+            <div class="bonus">
+              <h3>🎁 Bônus de Avanço:</h3>
+              <div class="bonus-amount">R$ ${bonusAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+              <p>${bonusDescription}</p>
             </div>
+            ` : ''}
             <p>Continue vendendo e alcançando suas metas para desbloquear ainda mais benefícios!</p>
             <p style="text-align: center; margin-top: 30px;">
               <a href="${ENV.FRONTEND_URL}/benefits" style="display: inline-block; padding: 15px 30px; background: #FC6E22; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">Ver Benefícios</a>

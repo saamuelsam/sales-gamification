@@ -1,5 +1,5 @@
 // src/modules/notifications/notifications.service.ts
-import { pool } from '../../config/database';
+import { pool } from '@config/database';
 import { logger } from '../../utils/logger';
 
 

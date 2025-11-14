@@ -1,4 +1,4 @@
-import { pool } from '../../config/database';
+import { pool } from '@config/database';
 import { logActivity } from '../../utils/activityLogger';
 
 export class RewardsService {

@@ -1,5 +1,5 @@
 // backend/src/modules/team/team.service.ts
-import { pool } from '../../config/database';
+import { pool } from '@config/database';
 import bcrypt from 'bcryptjs';
 import { logger } from '../../utils/logger';
 import { logActivity, ActivityAction } from '../../utils/activityLogger';

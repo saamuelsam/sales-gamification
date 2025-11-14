@@ -1,5 +1,6 @@
 // backend/src/modules/users/user.service.ts
-import { pool } from '../../config/database';
+import { logger } from '@utils/logger';
+import { pool } from '@config/database';
 import bcrypt from 'bcryptjs';
 import { dashboardService } from '../dashboard/dashboard.service';
 

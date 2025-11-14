@@ -13,6 +13,7 @@ import teamRoutes from './modules/team/team.routes';
 import commissionRoutes from './modules/commissions/commission.routes';
 import adminRoutes from './modules/admin/admin.routes';
 import benefitRoutes from './modules/benefits/benefit.routes';
+import appointmentRoutes from './modules/appointments/appointment.routes';
 
 
 dotenv.config();
@@ -24,9 +25,11 @@ app.use(cors({
   origin: function(origin, callback) {
     const allowedOrigins = [
   'http://localhost:5173',
-  'http://127.0.0.1:5173',
   'http://localhost:3000',
   'http://localhost:4000',
+  'http://localhost',        // Nginx servindo na porta 80
+  'http://127.0.0.1',        // Nginx IP local
+  'http://127.0.0.1:5173',
   'https://sales-gamification-indol.vercel.app',
   'https://sales.sesfortal.com.br', // 👈 adiciona o domínio de produção
   process.env.FRONTEND_URL
@@ -101,6 +104,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/commissions', commissionRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/benefits', benefitRoutes);
+app.use('/api/appointments', appointmentRoutes);
 
 // ✅ Middleware de erro global
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

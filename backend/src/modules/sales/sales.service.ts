@@ -1,8 +1,10 @@
-import { pool } from '../../config/database';
+import { pool } from '@config/database';
 import { rewardsService } from '../rewards/rewards.service';
 import { LevelService, levelService } from '../levels/level.service';
 import { CommissionService } from '../commissions/commission.service';
 import { logActivity } from '../../utils/activityLogger';
+import { monthlyTargetService } from '../../services/monthlyTarget.service';
+import { rewardsService as advancementRewardsService } from '../../services/rewards.service';
 
 interface CreateSaleData {
   client_id?: string;
@@ -88,9 +90,6 @@ export class SalesService {
         [userId, sale.id, points, newAccumulatedPoints, description]
       );
 
-      // ✅ Verificar promoção de nível após registrar pontos
-      await levelService.checkLevelUp(userId, newAccumulatedPoints, client);
-
       // 5. Buscar nível do usuário
       const userResult = await client.query('SELECT role FROM users WHERE id = $1', [userId]);
       const userRole = userResult.rows[0].role;
@@ -146,9 +145,8 @@ export class SalesService {
         [userId, sale.id, saleCommission, insuranceCommissionValue, totalCommission]
       );
 
-      // 8. VERIFICAR PREMIAÇÃO (400 kW = Cesta Básica)
-      await this.checkRewardEligibility(userId, client);
-      await rewardsService.checkMonthlyReward(userId, client);
+      // 8. ATUALIZAR CONTADORES MENSAIS
+      await monthlyTargetService.updateUserMonthlyStats(userId, data.kilowatts);
 
       // 9. Atualizar pontos do usuário (1 ponto por kW)
       const pointsEarned = Math.floor(data.kilowatts);
@@ -159,6 +157,9 @@ export class SalesService {
 
       await client.query('COMMIT');
 
+      // ✅ Verificar promoção de nível APÓS commit (evita deadlocks)
+      await levelService.checkLevelUp(userId, newAccumulatedPoints, client);
+
       // 📝 LOG: Venda criada
       await logActivity(userId, 'Registrou nova venda', {
         sale_id: sale.id,
@@ -168,6 +169,14 @@ export class SalesService {
         sale_type: data.sale_type || 'direct',
         points_earned: points,
       });
+
+      // ✅ Verificar premiações APÓS commit (evita deadlocks)
+      try {
+        await this.checkRewardEligibility(userId, client);
+        await advancementRewardsService.checkAndAwardBasicBasket(userId);
+      } catch (rewardError) {
+        console.error('Erro ao verificar premiações (não crítico):', rewardError);
+      }
 
       return {
         sale,

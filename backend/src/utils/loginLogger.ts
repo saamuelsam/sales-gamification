@@ -13,8 +13,8 @@ export async function logUserAccess(
 ) {
   try {
     await pool.query(
-      `INSERT INTO login_logs (user_id, ip_address, user_agent, action, created_at)
-       VALUES ($1, $2, $3, $4, NOW())`,
+      `INSERT INTO login_logs (user_id, ip_address, user_agent, action, success, created_at)
+       VALUES ($1, $2, $3, $4, true, NOW())`,
       [userId, ip || null, userAgent || null, action]
     );
 
@@ -31,10 +31,18 @@ export async function logUserAccess(
  */
 export async function logFailedLogin(email: string, ip?: string, userAgent?: string) {
   try {
+    // Busca o user_id pelo email para registrar corretamente
+    const userResult = await pool.query(
+      'SELECT id FROM users WHERE email = $1',
+      [email]
+    );
+    
+    const userId = userResult.rows.length > 0 ? userResult.rows[0].id : null;
+
     await pool.query(
-      `INSERT INTO login_logs (user_id, ip_address, user_agent, action, created_at)
-       VALUES (NULL, $1, $2, 'failed_login', NOW())`,
-      [ip || null, userAgent || null]
+      `INSERT INTO login_logs (user_id, ip_address, user_agent, action, success, created_at)
+       VALUES ($1, $2, $3, 'failed_login', false, NOW())`,
+      [userId, ip || null, userAgent || null]
     );
 
     logger.warn(`⚠️ [LOGIN_FAIL] Tentativa de login falhou para o email: ${email}`);
@@ -49,8 +57,8 @@ export async function logFailedLogin(email: string, ip?: string, userAgent?: str
 export async function logPasswordReset(userId: string, ip?: string, userAgent?: string) {
   try {
     await pool.query(
-      `INSERT INTO login_logs (user_id, ip_address, user_agent, action, created_at)
-       VALUES ($1, $2, $3, 'password_reset', NOW())`,
+      `INSERT INTO login_logs (user_id, ip_address, user_agent, action, success, created_at)
+       VALUES ($1, $2, $3, 'password_reset', true, NOW())`,
       [userId, ip || null, userAgent || null]
     );
 

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { SalesService } from './sales.service';
 import { ApiResponse } from '../../utils/responses';
-import { pool } from '../../config/database';
+import { pool } from '@config/database';
 import { levelService } from '../levels/level.service';
 
 
@@ -13,6 +13,10 @@ export class SalesController {
    */
   async createSale(req: Request, res: Response) {
     try {
+      console.log('🔵 [BACKEND] Recebendo requisição POST /sales');
+      console.log('🔵 [BACKEND] User ID:', req.user?.userId);
+      console.log('🔵 [BACKEND] Body:', req.body);
+      
       const userId = req.user?.userId;
       if (!userId) return ApiResponse.error(res, 'Usuário não autenticado', 401);
 
@@ -60,6 +64,8 @@ export class SalesController {
           return ApiResponse.error(res, 'Prazo do consórcio não pode exceder 120 meses', 400);
       }
 
+      console.log('🔵 [BACKEND] Validações OK, chamando salesService.createSale...');
+
       const result = await salesService.createSale(userId, {
         client_id,
         client_name,
@@ -75,8 +81,11 @@ export class SalesController {
         notes,
       });
 
+      console.log('✅ [BACKEND] Venda criada com sucesso:', result);
       return ApiResponse.created(res, result, 'Venda registrada com sucesso');
     } catch (error: any) {
+      console.error('❌ [BACKEND] Erro ao criar venda:', error);
+      console.error('❌ [BACKEND] Stack:', error.stack);
       return ApiResponse.error(res, error.message || 'Erro ao registrar venda', 500);
     }
   }

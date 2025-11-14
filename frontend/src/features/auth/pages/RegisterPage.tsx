@@ -39,8 +39,8 @@ export const RegisterPage = () => {
         email: formData.email,
         password: formData.password,
       });
-      toast.success('Cadastro realizado! Faça login para continuar.');
-      navigate('/login');
+      toast.success('Cadastro realizado! Verifique seu email antes de fazer login.');
+      navigate('/login', { state: { message: 'Por favor, verifique seu email antes de fazer login.' } });
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Erro ao cadastrar');
     } finally {

@@ -8,7 +8,7 @@ BEGIN;
 
 -- 🔸 Hash bcrypt da senha padrão "admin123"
 -- (Gerado via bcrypt com 10 rounds)
--- $2a$10$rY8qQWKvJZ5kXhKvYqXrHe0OZxZ5qX9pKL1pQHvFG8ZqV9qWkJYXK
+-- Senha: admin123
 
 INSERT INTO users (
   email,
@@ -19,24 +19,27 @@ INSERT INTO users (
   points,
   parent_id,
   path,
-  created_at
+  created_at,
+  email_verified
 ) VALUES (
   'admin@fortal.com',
-  '$2a$10$rY8qQWKvJZ5kXhKvYqXrHe0OZxZ5qX9pKL1pQHvFG8ZqV9qWkJYXK',
+  '$2a$10$pcrmOEis.9W1ghlRfdRub.wJZjLpvlBeshDnFbgbTWzMPAMTWWirm',
   'Administrador Fortal',
   'admin',
   TRUE,
   0,
   NULL,
   '1'::ltree,
-  NOW()
+  NOW(),
+  TRUE
 )
 ON CONFLICT (email)
 DO UPDATE SET
   name = EXCLUDED.name,
   role = EXCLUDED.role,
   is_active = TRUE,
-  password = EXCLUDED.password;
+  password = EXCLUDED.password,
+  email_verified = TRUE;
 
 COMMIT;
 

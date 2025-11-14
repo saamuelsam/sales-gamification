@@ -17,9 +17,16 @@ export const LoginForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    console.log('🚀 HANDLE SUBMIT CHAMADO!');
+    console.log('Email:', email);
+    console.log('Password length:', password.length);
+    
     setLoading(true);
 
     try {
+  console.log('📡 Fazendo requisição para /auth/login...');
+  
   // ✅ Chamada ao backend
   const { data } = await api.post('/auth/login', { email, password });
 
@@ -35,20 +42,39 @@ export const LoginForm = () => {
   // ✅ Atualiza o estado global com user/token
   login(response.user, response.token);
 
+  console.log('✅ Login executado, verificando estado...');
+  console.log('Token:', response.token.substring(0, 30) + '...');
+  console.log('User:', response.user);
+  
+  // Verificar se foi salvo IMEDIATAMENTE
+  const storedAuth = localStorage.getItem('auth-storage');
+  const storedToken = localStorage.getItem('token');
+  console.log('🗄️ IMEDIATO - LocalStorage token:', storedToken?.substring(0, 30) + '...');
+  console.log('🗄️ IMEDIATO - LocalStorage auth-storage:', storedAuth);
+
   toast.success('Login realizado com sucesso!');
 
-  // ✅ Adiciona aqui o delay de 200ms antes do redirecionamento
+  // ✅ Delay maior para garantir que o Zustand persist salvou
+  console.log('⏳ Aguardando 500ms antes de navegar...');
   setTimeout(() => {
+    const finalCheck = localStorage.getItem('auth-storage');
+    console.log('🗄️ FINAL CHECK - auth-storage:', finalCheck);
+    console.log('🚀 Navegando para /dashboard');
     navigate('/dashboard');
-  }, 200);
+  }, 500);
 
 } catch (error: any) {
   console.error('❌ Erro no login:', error);
-  toast.error(
-    error?.response?.data?.message ||
-      error?.message ||
-      'Erro ao fazer login. Verifique o servidor.'
-  );
+  const errorMessage = error?.response?.data?.message || error?.message || 'Erro ao fazer login. Verifique o servidor.';
+  
+  // Se o erro for relacionado à verificação de email, mostra mensagem específica
+  if (errorMessage.toLowerCase().includes('verifique seu email')) {
+    toast.error('⚠️ Email não verificado. Verifique sua caixa de entrada ou entre em contato com o administrador.', {
+      duration: 6000,
+    });
+  } else {
+    toast.error(errorMessage);
+  }
 } finally {
   setLoading(false);
 }

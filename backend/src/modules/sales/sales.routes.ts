@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import { salesController } from './sales.controller';
 import { verifyTokenMiddleware } from '../../middleware/auth.middleware';
-import { pool } from '../../config/database';
+import { pool } from '@config/database';
 
 const router = Router();
 

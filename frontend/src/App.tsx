@@ -14,6 +14,7 @@ import { BenefitsPage } from './features/benefits/pages/BenefitsPage';
 import { GoalsPage } from '@/features/goals/pages/GoalsPage';
 import CommissionsPage from '@/features/commissions/pages/CommissionsPage';
 import ProfilePage from '@/features/profile/pages/ProfilePage';
+import { AppointmentsPage } from '@/features/appointments/pages/AppointmentsPage';
 
 // ✅ Páginas de Admin
 import { AdminPage } from '@/features/admin/pages/AdminPage';
@@ -22,13 +23,14 @@ import ReportsPage from '@/features/reports/pages/ReportsPage';
 
 // ✅ Rota Privada (apenas autenticado)
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
-  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔐 PrivateRoute - isAuthenticated:', isAuthenticated);
+  const { isAuthenticated, user } = useAuthStore();
+  const token = localStorage.getItem('token');
+
+  if (!isAuthenticated || !token || !user) {
+    return <Navigate to="/login" replace />;
   }
-  
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+
+  return <>{children}</>;
 };
 
 // ✅ Rota Protegida (apenas admin/ceo)
@@ -95,6 +97,7 @@ function App() {
         <Route path="commissions" element={<CommissionsPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="profile" element={<ProfilePage />} />
+        <Route path="appointments" element={<AppointmentsPage />} />
         
         {/* ===== ROTA FINANCEIRO (CEO + FINANCEIRO) ===== */}
         <Route

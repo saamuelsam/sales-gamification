@@ -37,17 +37,22 @@ DATABASE_URL=postgres://admin:SUA_SENHA_SEGURA_AQUI@sales_postgres:5432/sales_ga
 # Frontend URL
 FRONTEND_URL=https://sales.sesfortal.com.br
 
-# SendGrid Email (CONFIGURAR COM EMAIL VERIFICADO)
-SENDGRID_API_KEY=SG.XXXXXXXXXXXXXXXXXXXXXXXX  # Deve começar com "SG."
-SENDGRID_FROM_EMAIL=email-verificado@sesfortal.com.br
-SENDGRID_FROM_NAME=Fortal Sales Gamification
+# SMTP Hostinger (substituiu SendGrid)
+SMTP_HOST=smtp.hostinger.com
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=contato@sesfortal.com.br
+SMTP_PASS=SUA_SENHA_DO_EMAIL_HOSTINGER
+SMTP_FROM_EMAIL=noreply@sesfortal.com.br
+SMTP_FROM_NAME=Fortal Sales Gamification
 ```
 
-> ⚠️ **IMPORTANTE sobre SendGrid:**
-> - A API Key DEVE começar com `SG.`
-> - O email em `SENDGRID_FROM_EMAIL` DEVE estar verificado no SendGrid
-> - Acesse https://app.sendgrid.com/settings/sender_auth para verificar o email
-> - Se não tiver domínio verificado, pode usar o email Gmail verificado: `contactsamans@gmail.com`
+> ⚠️ **IMPORTANTE sobre SMTP Hostinger:**
+> - **Host:** `smtp.hostinger.com`
+> - **Porta:** `465` (SSL) ou `587` (TLS)
+> - **Usuário:** Email completo da conta Hostinger
+> - **Senha:** Senha do email (não a senha do painel Hostinger)
+> - O email em `SMTP_FROM_EMAIL` deve existir na sua conta Hostinger
 
 ### 2. **Docker Compose - Alterar no Servidor**
 
@@ -175,21 +180,21 @@ docker-compose up -d --build
 
 ### ❌ "API key does not start with SG."
 
-**Causa:** SendGrid API Key inválida ou ausente.
+**Causa:** Erro antigo do SendGrid (já removido).
 
 **Solução:**
 ```bash
-# 1. Verificar se a key está no .env
-docker exec sales_backend cat /app/.env | grep SENDGRID
+# Sistema agora usa SMTP Hostinger
+# Verifique se as variáveis SMTP estão corretas no .env
+docker exec sales_backend cat /app/.env | grep SMTP
 
-# 2. A key DEVE começar com "SG."
-# Exemplo correto: SG.abc123...
+# Deve mostrar:
+# SMTP_HOST=smtp.hostinger.com
+# SMTP_PORT=465
+# SMTP_USER=seu-email@dominio.com
+# SMTP_PASS=sua-senha
 
-# 3. Se não tiver SendGrid configurado, pode comentar temporariamente
-# Edite backend/.env e adicione:
-SENDGRID_API_KEY=
-
-# 4. Restart do backend
+# Restart do backend
 docker restart sales_backend
 ```
 

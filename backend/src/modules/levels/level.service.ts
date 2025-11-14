@@ -1,6 +1,7 @@
-import { pool } from '../../config/database';
+import { pool } from '@config/database';
 import { notificationsService } from '../notifications/notifications.service';
 import { logActivity } from '../../utils/activityLogger';
+import { rewardsService as advancementRewardsService } from '../../services/rewards.service';
 
 export class LevelService {
   // 🔹 Listar todos os níveis
@@ -141,6 +142,11 @@ export class LevelService {
       console.log(
         `🎉 ${user.name} subiu de nível: ${currentRole} → ${newRole} (${newLevel.name})`
       );
+
+      // ✅ REGISTRAR BÔNUS DE AVANÇO DE NÍVEL (fire-and-forget)
+      advancementRewardsService.registerAdvancementBonus(userId, currentRole, newRole)
+        .then(() => console.log(`💰 Bônus de avanço registrado para ${user.name}`))
+        .catch(bonusError => console.error('Erro ao registrar bônus de avanço:', bonusError));
 
       // 📝 LOG: Promoção de nível
       await logActivity(userId, 'Subiu de nível', {

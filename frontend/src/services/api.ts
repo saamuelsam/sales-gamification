@@ -8,13 +8,12 @@ const baseURL =
     : `${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/api`
   ).replace(/\/+$/, ''); // remove barras duplicadas no final
 
-console.log('🌍 API Base URL:', baseURL);
-
 const api = axios.create({
   baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 segundos
 });
 
 // ✅ Interceptor para adicionar token automaticamente
@@ -31,11 +30,16 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error.response?.status;
+    const url = error.config?.url;
 
-    if (status === 401) {
+    // ❌ NÃO redirecionar se for erro na rota de login
+    if (status === 401 && url !== '/auth/login') {
       console.warn('⚠️ Token expirado ou inválido. Redirecionando para login.');
       localStorage.removeItem('token');
+      localStorage.removeItem('auth-storage');
       window.location.href = '/login';
+    } else if (status === 401 && url === '/auth/login') {
+      console.error('❌ Credenciais inválidas no login');
     } else if (status === 404) {
       console.warn(`🚫 Rota não encontrada: ${error.config?.url}`);
     } else if (status >= 500) {
