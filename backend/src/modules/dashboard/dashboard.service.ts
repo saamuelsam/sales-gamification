@@ -64,7 +64,7 @@ export class DashboardService {
       console.log('[DEBUG] Última venda:', lastSaleResult.rows[0]?.last_sale_date);
       console.log('[DEBUG] Meses sem contratos:', mesesSemContratos);
 
-      // Pontos acumulados
+      // Pontos acumulados pessoais
       const pointsResult = await client.query(
         `SELECT 
           COALESCE(MAX(accumulated_points), 0) as total_points
@@ -75,10 +75,33 @@ export class DashboardService {
 
       // 🔧 Normaliza pontos (corrige escala se vier em kW)
       const totalPointsRaw = parseFloat(pointsResult.rows[0]?.total_points || 0);
-      const totalPoints =
+      let totalPoints =
         totalPointsRaw < 10 ? Math.round(totalPointsRaw * 1000) : Math.round(totalPointsRaw);
 
-      console.log('[DEBUG] totalPointsRaw:', totalPointsRaw, '→ ajustado:', totalPoints);
+      // 🔥 Buscar role do usuário para determinar se inclui pontos da equipe
+      const roleResult = await client.query(
+        `SELECT role FROM users WHERE id = $1`,
+        [userId]
+      );
+      const currentRole = roleResult.rows[0]?.role || 'consultant';
+
+      // 🔥 A partir do Master, incluir pontos da equipe
+      const rolesComEquipe = ['master', 'seniorConsultant', 'consultorPrime', 'executive', 'diretor_comercial'];
+      let teamPoints = 0;
+      
+      if (rolesComEquipe.includes(currentRole)) {
+        const teamPointsResult = await client.query(
+          `SELECT COALESCE(SUM(points), 0)::NUMERIC as team_total
+           FROM users
+           WHERE parent_id = $1 AND is_active = true`,
+          [userId]
+        );
+        teamPoints = parseFloat(teamPointsResult.rows[0]?.team_total || '0');
+        teamPoints = teamPoints < 10 ? Math.round(teamPoints * 1000) : Math.round(teamPoints);
+        totalPoints += teamPoints;
+      }
+
+      console.log('[DEBUG] Personal Points:', totalPointsRaw, '| Team Points:', teamPoints, '| Total:', totalPoints, '| Role:', currentRole);
 
       // ⚙️ Calcula o nível baseado nos pontos ajustados
       const levelInfo = this.calculateLevelFromPoints(totalPoints);

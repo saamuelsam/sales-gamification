@@ -54,10 +54,26 @@ export class UserService {
       const currentRole = userResult.rows[0]?.role || 'consultant';
 
       // 🔧 Corrige escala (kW → pontos)
-      const totalPoints =
+      let totalPoints =
         totalPointsRaw < 10 ? Math.round(totalPointsRaw * 1000) : Math.round(totalPointsRaw);
 
-      console.log('⭐ Points:', totalPoints, '| Role:', currentRole);
+      // 🔥 A partir do Master, incluir pontos da equipe
+      const rolesComEquipe = ['master', 'seniorConsultant', 'consultorPrime', 'executive', 'diretor_comercial'];
+      let teamPoints = 0;
+      
+      if (rolesComEquipe.includes(currentRole)) {
+        const teamPointsResult = await pool.query(
+          `SELECT COALESCE(SUM(points), 0)::NUMERIC as team_total
+           FROM users
+           WHERE parent_id = $1::uuid AND is_active = true`,
+          [userId]
+        );
+        teamPoints = parseFloat(teamPointsResult.rows[0]?.team_total || '0');
+        teamPoints = teamPoints < 10 ? Math.round(teamPoints * 1000) : Math.round(teamPoints);
+        totalPoints += teamPoints;
+      }
+
+      console.log('⭐ Personal Points:', totalPointsRaw, '| Team Points:', teamPoints, '| Total:', totalPoints, '| Role:', currentRole);
 
       // ⚙️ Calcula o nível baseado nos pontos
       const levelInfo = dashboardService['calculateLevelFromPoints'](totalPoints);
@@ -583,7 +599,21 @@ export class UserService {
       }
 
       const user = userResult.rows[0];
-      const currentPoints = parseFloat(user.points || '0');
+      let currentPoints = parseFloat(user.points || '0');
+
+      // 🔥 A partir do Master, incluir pontos da equipe
+      const rolesComEquipe = ['master', 'seniorConsultant', 'consultorPrime', 'executive', 'diretor_comercial'];
+      
+      if (rolesComEquipe.includes(user.role)) {
+        const teamPointsResult = await pool.query(
+          `SELECT COALESCE(SUM(points), 0)::NUMERIC as team_total
+           FROM users
+           WHERE parent_id = $1::uuid AND is_active = true`,
+          [userId]
+        );
+        const teamPoints = parseFloat(teamPointsResult.rows[0]?.team_total || '0');
+        currentPoints += teamPoints;
+      }
 
       // Buscar próximo nível
       const nextLevelResult = await pool.query(
