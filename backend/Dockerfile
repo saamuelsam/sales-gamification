@@ -7,7 +7,7 @@ RUN npm install
 
 COPY . .
 
-RUN npm run build
+RUN chmod +x node_modules/.bin/* && npm run build
 
 EXPOSE 4000
 CMD ["npm", "start"]
