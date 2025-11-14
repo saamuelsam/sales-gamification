@@ -31,6 +31,18 @@ export class UserController {
     }
   }
 
+  async getUserLevel(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return ApiResponse.error(res, 'Usuário não autenticado', 401);
+
+      const levelProgress = await userService.getUserLevelProgress(String(userId));
+      return ApiResponse.success(res, levelProgress, 'Progresso de nível carregado');
+    } catch (error: any) {
+      return ApiResponse.error(res, error.message || 'Erro ao buscar progresso', 500);
+    }
+  }
+
   async updateProfile(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;

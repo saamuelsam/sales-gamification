@@ -564,6 +564,81 @@ export class UserService {
     );
     return true;
   }
+
+  async getUserLevelProgress(userId: string) {
+    try {
+      // Buscar pontos do usuário e nível atual
+      const userResult = await pool.query(
+        `SELECT u.points, u.role, l.id as level_id, l.name as level_name, 
+                l.min_points, l.max_points, l.commission_personal, 
+                l.commission_network, l.benefits, l.color
+         FROM users u
+         LEFT JOIN levels l ON u.role = l.role
+         WHERE u.id = $1::uuid`,
+        [userId]
+      );
+
+      if (userResult.rowCount === 0) {
+        throw new Error('Usuário não encontrado');
+      }
+
+      const user = userResult.rows[0];
+      const currentPoints = parseFloat(user.points || '0');
+
+      // Buscar próximo nível
+      const nextLevelResult = await pool.query(
+        `SELECT id, name, min_points, max_points, commission_personal,
+                commission_network, benefits, color, role
+         FROM levels
+         WHERE min_points > $1
+         ORDER BY min_points ASC
+         LIMIT 1`,
+        [currentPoints]
+      );
+
+      const nextLevel = nextLevelResult.rows[0] || null;
+
+      // Calcular progresso
+      let progressPercentage = 0;
+      let pointsToNext = 0;
+
+      if (nextLevel) {
+        const rangeSize = nextLevel.min_points - user.min_points;
+        const currentProgress = currentPoints - user.min_points;
+        progressPercentage = (currentProgress / rangeSize) * 100;
+        pointsToNext = nextLevel.min_points - currentPoints;
+      }
+
+      return {
+        currentLevel: {
+          id: user.level_id,
+          name: user.level_name,
+          min_points: parseFloat(user.min_points),
+          max_points: user.max_points ? parseFloat(user.max_points) : null,
+          commission_personal: parseFloat(user.commission_personal),
+          commission_network: parseFloat(user.commission_network),
+          benefits: user.benefits,
+          color: user.color,
+        },
+        nextLevel: nextLevel ? {
+          id: nextLevel.id,
+          name: nextLevel.name,
+          min_points: parseFloat(nextLevel.min_points),
+          max_points: nextLevel.max_points ? parseFloat(nextLevel.max_points) : null,
+          commission_personal: parseFloat(nextLevel.commission_personal),
+          commission_network: parseFloat(nextLevel.commission_network),
+          benefits: nextLevel.benefits,
+          color: nextLevel.color,
+        } : null,
+        currentPoints,
+        pointsToNext: Math.max(0, pointsToNext),
+        progressPercentage: Math.min(100, Math.max(0, progressPercentage)),
+      };
+    } catch (error: any) {
+      console.error('❌ Erro ao buscar progresso de nível:', error);
+      throw error;
+    }
+  }
 }
 
 export const userService = new UserService();

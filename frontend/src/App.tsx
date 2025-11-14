@@ -15,6 +15,7 @@ import { GoalsPage } from '@/features/goals/pages/GoalsPage';
 import CommissionsPage from '@/features/commissions/pages/CommissionsPage';
 import ProfilePage from '@/features/profile/pages/ProfilePage';
 import { AppointmentsPage } from '@/features/appointments/pages/AppointmentsPage';
+import { LevelsPage } from '@/features/levels/pages/LevelsPage';
 
 // ✅ Páginas de Admin
 import { AdminPage } from '@/features/admin/pages/AdminPage';
@@ -98,6 +99,7 @@ function App() {
         <Route path="reports" element={<ReportsPage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="appointments" element={<AppointmentsPage />} />
+        <Route path="levels" element={<LevelsPage />} />
         
         {/* ===== ROTA FINANCEIRO (CEO + FINANCEIRO) ===== */}
         <Route

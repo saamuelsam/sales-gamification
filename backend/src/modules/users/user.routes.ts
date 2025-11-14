@@ -14,6 +14,9 @@ router.get('/dashboard', (req, res) => userController.getDashboard(req, res));
 router.get('/profile', (req, res) => userController.getProfile(req, res));
 router.put('/profile', (req, res) => userController.updateProfile(req, res));
 
+// ✅ Nível do usuário
+router.get('/me/level', (req, res) => userController.getUserLevel(req, res));
+
 // ✅ Equipe
 router.post('/team/add', (req, res) => userController.addMember(req, res));
 router.get('/team/members', (req, res) => userController.getMyTeam(req, res));
