@@ -13,6 +13,15 @@ class EmailService {
 
   constructor() {
     // Configuração SMTP Hostinger
+    console.log('🔧 Configurando SMTP:', {
+      host: ENV.SMTP_HOST,
+      port: ENV.SMTP_PORT,
+      secure: ENV.SMTP_SECURE,
+      user: ENV.SMTP_USER,
+      hasPassword: !!ENV.SMTP_PASS,
+      passwordLength: ENV.SMTP_PASS?.length || 0
+    });
+
     this.transporter = nodemailer.createTransport({
       host: ENV.SMTP_HOST,
       port: ENV.SMTP_PORT,
