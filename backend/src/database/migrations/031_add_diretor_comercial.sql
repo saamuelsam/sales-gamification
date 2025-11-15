@@ -31,21 +31,23 @@ INSERT INTO levels (
     network_commission, 
     max_lines, 
     fixed_allowance, 
-    advancement_bonus, 
+    advancement_bonus,
+    monthly_sales_goal,
     created_at
 )
 VALUES (
     6,
     'Diretor Comercial',
-    'Diretor Comercial Fortal Engenharia Solar',
+    'Diretor Comercial Fortal Engenharia Solar - Expansão',
     'diretor_comercial',
     0,
     10.0,  -- 10% comissão pessoal
     5.0,   -- 5% comissão de seguro
-    2.0,   -- 2% comissão de rede
+    2.0,   -- 2% comissão 1ª linha, 0.5% resto da rede master+
     10,    -- até 10 linhas
     0,     -- sem ajuda de custo fixa
     0,     -- sem bônus de avanço
+    7,     -- META: 7 vendedores ativos na rede por mês
     NOW()
 )
 ON CONFLICT (phase_number) DO UPDATE 
@@ -53,9 +55,10 @@ SET
     personal_commission = 10.0,
     insurance_commission = 5.0,
     network_commission = 2.0,
+    monthly_sales_goal = 7,
     role = 'diretor_comercial',
     name = 'Diretor Comercial',
-    subtitle = 'Diretor Comercial Fortal Engenharia Solar';
+    subtitle = 'Diretor Comercial Fortal Engenharia Solar - Expansão';
 
 -- 4. Comentários
 COMMENT ON CONSTRAINT users_role_check ON users IS 'Roles válidos incluindo diretor_comercial';

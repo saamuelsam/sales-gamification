@@ -1,0 +1,126 @@
+# 👔 Diretor Comercial - Regras e Comissionamento
+
+## 📋 Visão Geral
+
+O **Diretor Comercial** é responsável pela expansão da rede Fortal Engenharia Solar, com foco em crescimento e desenvolvimento de equipe.
+
+## 💰 Estrutura de Comissionamento
+
+### Vendas Pessoais
+- **Comissão base**: 10% sobre o valor da venda
+- **Comissão de seguro**: 5% sobre o valor do seguro vendido
+- **Total pessoal**: 15% (10% + 5%)
+
+### Comissão de Rede
+
+#### 1ª Linha (Diretos)
+- **Taxa**: 2% sobre vendas dos consultores diretos
+
+#### Resto da Rede (Master para cima)
+- **Taxa**: 0.5% sobre vendas da rede geral (apenas níveis Master ou superior)
+- Aplica-se a partir da 2ª linha em diante
+- **Não inclui** consultores Elite
+
+## 🎯 Meta Mensal
+
+Para manutenção do cargo:
+- **7 vendedores ativos** na rede por mês (em qualquer linha)
+- Considera qualquer vendedor com pelo menos 1 venda no mês
+- Deve cumprir o padrão de pontos igual aos demais níveis
+
+## 📊 Exemplo de Comissionamento
+
+### Cenário: Venda de R$ 100.000
+
+**Venda Pessoal do Diretor:**
+- Comissão base: R$ 100.000 × 10% = **R$ 10.000**
+- Seguro (R$ 5.000): R$ 5.000 × 5% = **R$ 250**
+- **Total pessoal: R$ 10.250**
+
+**Venda de Consultor Direto (1ª linha):**
+- Comissão de rede: R$ 100.000 × 2% = **R$ 2.000**
+
+**Venda de Master na 3ª linha:**
+- Comissão de rede: R$ 100.000 × 0.5% = **R$ 500**
+
+**Venda de Elite na 4ª linha:**
+- Comissão de rede: **R$ 0** (Elite não conta)
+
+## 🔄 Regras de Progressão
+
+O Diretor Comercial segue as mesmas regras de progressão dos demais níveis:
+- ✅ Pontos pessoais + pontos da equipe (Master+)
+- ✅ Deve manter vendas mensais
+- ✅ Não pode ficar 3 meses sem contratos
+- ✅ Meta específica: 7 vendedores ativos/mês
+
+## 📈 Estrutura de Equipe
+
+- **Linhas permitidas**: Até 10 níveis de profundidade
+- **Foco**: Expansão e desenvolvimento de rede
+- **Diferencial**: Comissionamento estendido para toda rede Master+
+
+## 🔧 Implementação Técnica
+
+### Banco de Dados
+
+```sql
+-- Nível criado com:
+phase_number: 6
+role: 'diretor_comercial'
+personal_commission: 10.0
+insurance_commission: 5.0
+network_commission: 2.0 (1ª linha) / 0.5 (resto Master+)
+monthly_sales_goal: 7 (vendedores ativos)
+```
+
+### Lógica de Comissionamento
+
+```typescript
+// commission.service.ts
+if (leader.role === 'diretor_comercial' && lineLevel > 1) {
+  commissionRate = 0.5; // Resto da rede master+
+} else {
+  commissionRate = 2.0; // 1ª linha
+}
+```
+
+## ✅ Validações
+
+- [x] Comissão pessoal: 10% + 5% seguro
+- [x] Comissão 1ª linha: 2%
+- [x] Comissão resto da rede Master+: 0.5%
+- [x] Elite não gera comissão de rede
+- [x] Meta: 7 vendedores ativos/mês
+- [x] Pontos de equipe contam para progressão
+
+## 📝 Observações Importantes
+
+1. **Apenas níveis Master ou superior** na rede geram comissão de 0.5%
+2. **Consultores Elite** não contam para comissão de rede
+3. **Meta de 7 vendedores** pode ser em qualquer linha da rede
+4. **Vendedor ativo** = pelo menos 1 venda no mês
+5. Segue regras padrão de rebaixamento (3 meses sem vendas)
+
+## 🚀 Como Promover um Usuário
+
+```bash
+# 1. Atualizar constraint (se necessário)
+ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check;
+ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN (
+    'admin', 'ceo', 'director', 'executive', 'prime_consultant',
+    'senior_consultant', 'master_consultant', 'consultant', 'diretor_comercial'
+));
+
+# 2. Promover usuário
+UPDATE users 
+SET role = 'diretor_comercial', 
+    email_verified = true, 
+    is_active = true 
+WHERE email = 'usuario@email.com';
+```
+
+---
+
+**Data de Criação**: 14/11/2025  
+**Status**: ✅ Implementado e Ativo

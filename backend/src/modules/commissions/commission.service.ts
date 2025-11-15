@@ -98,15 +98,29 @@ export class CommissionService {
     const leader = leaderResult.rows[0];
     logger.info(`👤 Líder encontrado: ${leader.name} (${leader.role})`);
 
+    // Buscar line_level da hierarquia
+    const lineResult = await pool.query(
+      `SELECT line_level FROM user_hierarchy WHERE leader_id = $1 AND subordinate_id = $2`,
+      [leader.id, memberId]
+    );
+    const lineLevel = lineResult.rows[0]?.line_level || 1;
+
     const commissionRates: Record<string, number> = {
       consultant: 0,
       master_consultant: 2.0,
       senior_consultant: 1.5,
       prime_consultant: 1.5,
       executive: 1.0,
+      diretor_comercial: 2.0, // 2% para 1ª linha, 0.5% para resto da rede master+
     };
 
-    const commissionRate = commissionRates[leader.role] ?? 1.0;
+    let commissionRate = commissionRates[leader.role] ?? 1.0;
+
+    // 🔥 Diretor Comercial: 2% na 1ª linha, 0.5% no resto da rede (master+)
+    if (leader.role === 'diretor_comercial' && lineLevel > 1) {
+      commissionRate = 0.5; // Resto da rede master+
+    }
+
     const commissionAmount = parseFloat(((saleValue * commissionRate) / 100).toFixed(2));
 
     logger.info(`💰 Taxa: ${commissionRate}%, Valor: R$ ${commissionAmount}`);
