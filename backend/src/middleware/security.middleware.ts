@@ -5,7 +5,7 @@ import rateLimit from 'express-rate-limit';
 // ✅ Rate Limiter para Login/Registro (previne força bruta)
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 5, // 5 tentativas por IP
+  max: 50, // 50 tentativas por IP (aumentado de 5 para 50)
   message: {
     success: false,
     message: 'Muitas tentativas de login. Tente novamente em 15 minutos.',
