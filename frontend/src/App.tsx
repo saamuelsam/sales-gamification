@@ -21,6 +21,7 @@ import { LevelsPage } from '@/features/levels/pages/LevelsPage';
 import { AdminPage } from '@/features/admin/pages/AdminPage';
 import FinanceiroPage from '@/features/financeiro/pages/FinanceiroPage';
 import ReportsPage from '@/features/reports/pages/ReportsPage';
+import { CeoManagementPage } from '@/features/ceo/pages/CeoManagementPage';
 
 // ✅ Rota Privada (apenas autenticado)
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
@@ -107,6 +108,16 @@ function App() {
           element={
             <ProtectedRoute roles={['ceo', 'financeiro', 'diretor_comercial']}>
               <FinanceiroPage />
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* ===== ROTA CEO (APENAS CEO) ===== */}
+        <Route
+          path="ceo-management"
+          element={
+            <ProtectedRoute roles={['ceo']}>
+              <CeoManagementPage />
             </ProtectedRoute>
           }
         />

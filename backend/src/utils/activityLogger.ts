@@ -46,6 +46,15 @@ export enum ActivityAction {
   SEND_GLOBAL_NOTIFICATION = 'Enviou notificação global',
   DELETE_NOTIFICATION = 'Deletou notificação',
   
+  // Ações do CEO
+  CEO_UPDATE_USER = 'CEO atualizou dados do usuário',
+  CEO_CHANGE_ROLE = 'CEO alterou cargo do usuário',
+  CEO_ADJUST_POINTS = 'CEO ajustou pontos do usuário',
+  CEO_CREATE_SALE = 'CEO criou venda para usuário',
+  CEO_TOGGLE_USER_STATUS = 'CEO alterou status do usuário',
+  CEO_TRANSFER_USER = 'CEO transferiu usuário para outro patrocinador',
+  CEO_RESET_PASSWORD = 'CEO resetou senha do usuário',
+  
   // Ações de Autenticação
   USER_LOGIN = 'Realizou login',
   USER_LOGOUT = 'Realizou logout',

@@ -11,6 +11,7 @@ import {
   DollarSign,
   BarChart3,
   Calendar,
+  Shield,
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
@@ -26,6 +27,7 @@ const menuItems = [
   { path: '/reports', label: 'Relatórios', icon: BarChart3, roles: ['admin', 'director', 'ceo'] },
   { path: '/financeiro', label: 'Financeiro', icon: DollarSign, roles: ['ceo', 'financeiro'] },
   { path: '/admin', label: 'Administração', icon: BarChart3, roles: ['ceo', 'admin'] },
+  { path: '/ceo-management', label: 'Gestão CEO', icon: Shield, roles: ['ceo'] },
 ];
 
 export const Sidebar = () => {
