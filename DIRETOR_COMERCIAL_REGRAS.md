@@ -13,13 +13,21 @@ O **Diretor Comercial** é responsável pela expansão da rede Fortal Engenharia
 
 ### Comissão de Rede
 
-#### 1ª Linha (Diretos)
-- **Taxa**: 2% sobre vendas dos consultores diretos
+#### 🔥 Regra Geral (Master, Sênior, Prime, Executive)
+- **Recebem APENAS da 1ª linha**
+- **Recebem APENAS de consultores Elite**
+- Se o subordinado for Master ou superior, **NÃO recebe comissão**
+- Taxa: conforme nível (2%, 1.5%, 1%)
 
-#### Resto da Rede (Master para cima)
-- **Taxa**: 0.5% sobre vendas da rede geral (apenas níveis Master ou superior)
-- Aplica-se a partir da 2ª linha em diante
-- **Não inclui** consultores Elite
+#### 🎯 Diretor Comercial (EXCEÇÃO)
+
+##### 1ª Linha (Diretos)
+- **Taxa**: 2% sobre vendas de qualquer nível (Elite, Master, Sênior, etc.)
+
+##### Resto da Rede (2ª linha em diante)
+- **Taxa**: 0.5% sobre vendas de TODA a rede, qualquer nível
+- Não tem restrição de nível ou linha
+- Único cargo que recebe de toda a estrutura
 
 ## 🎯 Meta Mensal
 
@@ -30,21 +38,35 @@ Para manutenção do cargo:
 
 ## 📊 Exemplo de Comissionamento
 
-### Cenário: Venda de R$ 100.000
+### Cenário 1: Venda de R$ 100.000
 
 **Venda Pessoal do Diretor:**
 - Comissão base: R$ 100.000 × 10% = **R$ 10.000**
 - Seguro (R$ 5.000): R$ 5.000 × 5% = **R$ 250**
 - **Total pessoal: R$ 10.250**
 
-**Venda de Consultor Direto (1ª linha):**
+**Venda de Consultor Elite Direto (1ª linha):**
+- Comissão de rede: R$ 100.000 × 2% = **R$ 2.000**
+
+**Venda de Master Direto (1ª linha):**
 - Comissão de rede: R$ 100.000 × 2% = **R$ 2.000**
 
 **Venda de Master na 3ª linha:**
 - Comissão de rede: R$ 100.000 × 0.5% = **R$ 500**
 
 **Venda de Elite na 4ª linha:**
-- Comissão de rede: **R$ 0** (Elite não conta)
+- Comissão de rede: R$ 100.000 × 0.5% = **R$ 500**
+
+### Cenário 2: Master com Elite na 1ª linha
+
+**Master recebe:**
+- Venda de Elite direto (1ª linha): 2% ✅
+- Venda de Master direto (1ª linha): 0% ❌
+- Venda de Elite na 2ª linha: 0% ❌
+
+**Diretor Comercial recebe:**
+- Venda de qualquer nível na 1ª linha: 2% ✅
+- Venda de qualquer nível na 2ª+ linha: 0.5% ✅
 
 ## 🔄 Regras de Progressão
 

@@ -80,6 +80,13 @@ export class CommissionService {
   try {
     logger.info(`🔍 Iniciando processNetworkCommission para member ${memberId}, sale ${saleId}`);
 
+    // Buscar role do membro que fez a venda
+    const memberResult = await pool.query(
+      `SELECT role FROM users WHERE id = $1`,
+      [memberId]
+    );
+    const memberRole = memberResult.rows[0]?.role || 'consultant';
+
     // Buscar líder direto
     const leaderResult = await pool.query(
       `SELECT u.id, u.role, u.name
@@ -96,7 +103,7 @@ export class CommissionService {
     }
 
     const leader = leaderResult.rows[0];
-    logger.info(`👤 Líder encontrado: ${leader.name} (${leader.role})`);
+    logger.info(`👤 Líder encontrado: ${leader.name} (${leader.role}) | Membro role: ${memberRole}`);
 
     // Buscar line_level da hierarquia
     const lineResult = await pool.query(
@@ -105,20 +112,34 @@ export class CommissionService {
     );
     const lineLevel = lineResult.rows[0]?.line_level || 1;
 
+    // 🔥 REGRA PRINCIPAL: Apenas Diretor Comercial recebe de toda rede
+    // Demais (Master+) recebem APENAS da 1ª linha E APENAS de consultores Elite
+    if (leader.role !== 'diretor_comercial') {
+      // Regra padrão: apenas 1ª linha e apenas Elite
+      if (lineLevel > 1) {
+        logger.info(`⚠️ ${leader.name} (${leader.role}) não recebe de linhas > 1. Ignorando.`);
+        return;
+      }
+      if (memberRole !== 'consultant') {
+        logger.info(`⚠️ ${leader.name} (${leader.role}) só recebe de Elite. Membro é ${memberRole}. Ignorando.`);
+        return;
+      }
+    }
+
     const commissionRates: Record<string, number> = {
       consultant: 0,
       master_consultant: 2.0,
       senior_consultant: 1.5,
       prime_consultant: 1.5,
       executive: 1.0,
-      diretor_comercial: 2.0, // 2% para 1ª linha, 0.5% para resto da rede master+
+      diretor_comercial: 2.0, // 2% para 1ª linha, 0.5% para resto da rede
     };
 
     let commissionRate = commissionRates[leader.role] ?? 1.0;
 
-    // 🔥 Diretor Comercial: 2% na 1ª linha, 0.5% no resto da rede (master+)
+    // 🔥 Diretor Comercial: 2% na 1ª linha, 0.5% no resto da rede
     if (leader.role === 'diretor_comercial' && lineLevel > 1) {
-      commissionRate = 0.5; // Resto da rede master+
+      commissionRate = 0.5; // Resto da rede
     }
 
     const commissionAmount = parseFloat(((saleValue * commissionRate) / 100).toFixed(2));
@@ -132,7 +153,7 @@ export class CommissionService {
        VALUES ($1, $2, $3, $4, $5, $6, FALSE, NOW())
        ON CONFLICT (leader_id, team_member_id, sale_id) DO NOTHING
        RETURNING id`,
-      [leader.id, memberId, saleId || null, 1, commissionRate, commissionAmount]
+      [leader.id, memberId, saleId || null, lineLevel, commissionRate, commissionAmount]
     );
 
     if (result.rows.length > 0) {
