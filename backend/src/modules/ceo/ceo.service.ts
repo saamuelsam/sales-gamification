@@ -271,16 +271,28 @@ export class CeoService {
       }
 
       const { name, email, points: currentPoints } = userData.rows[0];
-      const newPoints = Math.max(0, (currentPoints || 0) + pointsChange);
+      const currentPointsNum = parseFloat(currentPoints) || 0;
+      const newPoints = Math.max(0, currentPointsNum + pointsChange);
+
+      console.log('🔹 Ajustando pontos:', {
+        userId,
+        currentPoints: currentPointsNum,
+        pointsChange,
+        newPoints
+      });
 
       // Atualizar pontos
-      await client.query('UPDATE users SET points = $1 WHERE id = $2', [newPoints, userId]);
+      const updateResult = await client.query('UPDATE users SET points = $1 WHERE id = $2 RETURNING points', [newPoints, userId]);
+      console.log('✅ Pontos atualizados:', updateResult.rows[0]);
 
       // Registrar no histórico de pontos
+      // A coluna 'points' sempre deve ser positiva (valor absoluto)
+      // O sinal de adição/remoção é indicado pela descrição
+      const pointsToRecord = Math.abs(pointsChange);
       await client.query(
-        `INSERT INTO points (user_id, accumulated_points, reason, created_at)
-         VALUES ($1, $2, $3, NOW())`,
-        [userId, pointsChange, reason]
+        `INSERT INTO points (user_id, points, accumulated_points, description, created_at)
+         VALUES ($1, $2, $3, $4, NOW())`,
+        [userId, pointsToRecord, newPoints, `${pointsChange > 0 ? '+' : '-'}${pointsToRecord} - ${reason}`]
       );
 
       // Log de auditoria
@@ -316,11 +328,14 @@ export class CeoService {
   async createSaleForConsultant(
     userId: string,
     saleData: {
-      client_id: string;
+      client_name: string;
+      client_cpf?: string;
+      client_phone?: string;
+      client_email?: string;
       value: number;
       kilowatts: number;
       status?: string;
-      description?: string;
+      notes?: string;
     },
     ceoId: string
   ) {
@@ -338,18 +353,42 @@ export class CeoService {
         throw new Error('Usuário não encontrado ou inativo');
       }
 
-      // Criar venda
+      // Criar ou atualizar cliente se CPF for fornecido
+      let clientId = null;
+      if (saleData.client_cpf) {
+        const clientResult = await client.query(
+          `INSERT INTO clients (user_id, name, cpf, phone, email, created_at)
+           VALUES ($1, $2, $3, $4, $5, NOW())
+           ON CONFLICT (cpf) DO UPDATE SET
+             name = EXCLUDED.name,
+             phone = EXCLUDED.phone,
+             email = EXCLUDED.email,
+             updated_at = NOW()
+           RETURNING id`,
+          [
+            userId,
+            saleData.client_name,
+            saleData.client_cpf,
+            saleData.client_phone || null,
+            saleData.client_email || null,
+          ]
+        );
+        clientId = clientResult.rows[0].id;
+      }
+
+      // Criar venda diretamente (CEO cria venda nova)
       const saleResult = await client.query(
-        `INSERT INTO sales (user_id, client_id, value, kilowatts, status, description, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, NOW())
+        `INSERT INTO sales (user_id, client_id, client_name, value, kilowatts, status, notes, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
          RETURNING *`,
         [
           userId,
-          saleData.client_id,
+          clientId,
+          saleData.client_name,
           saleData.value,
           saleData.kilowatts,
           saleData.status || 'approved',
-          saleData.description || 'Venda criada pelo CEO',
+          saleData.notes || 'Venda criada pelo CEO',
         ]
       );
 
@@ -363,10 +402,14 @@ export class CeoService {
       );
 
       // Registrar pontos
+      const newAccumulatedPoints = await client.query(
+        'SELECT COALESCE(points, 0) as points FROM users WHERE id = $1',
+        [userId]
+      );
       await client.query(
-        `INSERT INTO points (user_id, accumulated_points, reason, created_at)
-         VALUES ($1, $2, $3, NOW())`,
-        [userId, points, `Venda #${sale.id} - ${saleData.kilowatts}kW`]
+        `INSERT INTO points (user_id, points, accumulated_points, description, created_at)
+         VALUES ($1, $2, $3, $4, NOW())`,
+        [userId, points, newAccumulatedPoints.rows[0].points, `Venda #${sale.id} - ${saleData.kilowatts}kW`]
       );
 
       // Log de auditoria
@@ -580,6 +623,248 @@ export class CeoService {
     } finally {
       client.release();
     }
+  }
+
+  /**
+   * 📋 Buscar todos os clientes do sistema
+   */
+  async getAllClients(filters?: { search?: string; userId?: string }) {
+    let query = `
+      SELECT 
+        c.*,
+        u.name as consultant_name,
+        u.email as consultant_email,
+        (SELECT COUNT(*) FROM sales WHERE client_id = c.id) as total_sales,
+        (SELECT COALESCE(SUM(value), 0) FROM sales WHERE client_id = c.id) as total_revenue
+      FROM clients c
+      LEFT JOIN users u ON c.user_id = u.id
+      WHERE 1=1
+    `;
+
+    const params: any[] = [];
+
+    if (filters?.search) {
+      params.push(`%${filters.search}%`);
+      query += ` AND (c.name ILIKE $${params.length} OR c.cpf ILIKE $${params.length} OR c.email ILIKE $${params.length} OR c.phone ILIKE $${params.length})`;
+    }
+
+    if (filters?.userId) {
+      params.push(filters.userId);
+      query += ` AND c.user_id = $${params.length}`;
+    }
+
+    query += ' ORDER BY c.created_at DESC';
+
+    const result = await pool.query(query, params);
+    return result.rows;
+  }
+
+  /**
+   * 👤 Buscar detalhes de um cliente
+   */
+  async getClientDetails(clientId: string) {
+    const clientQuery = await pool.query(
+      `SELECT 
+        c.*,
+        u.name as consultant_name,
+        u.email as consultant_email,
+        u.role as consultant_role
+      FROM clients c
+      LEFT JOIN users u ON c.user_id = u.id
+      WHERE c.id = $1`,
+      [clientId]
+    );
+
+    if (clientQuery.rows.length === 0) {
+      throw new Error('Cliente não encontrado');
+    }
+
+    const client = clientQuery.rows[0];
+
+    // Buscar vendas do cliente
+    const salesQuery = await pool.query(
+      `SELECT s.*, u.name as consultant_name
+       FROM sales s
+       LEFT JOIN users u ON s.user_id = u.id
+       WHERE s.client_id = $1
+       ORDER BY s.created_at DESC`,
+      [clientId]
+    );
+
+    return {
+      client,
+      sales: salesQuery.rows,
+    };
+  }
+
+  /**
+   * ✏️ Atualizar dados do cliente
+   */
+  async updateClient(
+    clientId: string,
+    data: {
+      name?: string;
+      cpf?: string;
+      email?: string;
+      phone?: string;
+      address?: string;
+      city?: string;
+      state?: string;
+    },
+    ceoId: string
+  ) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // Buscar dados atuais
+      const currentData = await client.query(
+        'SELECT * FROM clients WHERE id = $1',
+        [clientId]
+      );
+
+      if (currentData.rows.length === 0) {
+        throw new Error('Cliente não encontrado');
+      }
+
+      // Construir query de atualização
+      const updates: string[] = [];
+      const values: any[] = [];
+      let paramIndex = 1;
+
+      if (data.name !== undefined) {
+        updates.push(`name = $${paramIndex++}`);
+        values.push(data.name);
+      }
+      if (data.cpf !== undefined) {
+        updates.push(`cpf = $${paramIndex++}`);
+        values.push(data.cpf);
+      }
+      if (data.email !== undefined) {
+        updates.push(`email = $${paramIndex++}`);
+        values.push(data.email);
+      }
+      if (data.phone !== undefined) {
+        updates.push(`phone = $${paramIndex++}`);
+        values.push(data.phone);
+      }
+      if (data.address !== undefined) {
+        updates.push(`address = $${paramIndex++}`);
+        values.push(data.address);
+      }
+      if (data.city !== undefined) {
+        updates.push(`city = $${paramIndex++}`);
+        values.push(data.city);
+      }
+      if (data.state !== undefined) {
+        updates.push(`state = $${paramIndex++}`);
+        values.push(data.state);
+      }
+
+      if (updates.length === 0) {
+        throw new Error('Nenhum dado para atualizar');
+      }
+
+      values.push(clientId);
+      const query = `UPDATE clients SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${paramIndex} RETURNING *`;
+
+      const result = await client.query(query, values);
+
+      // Log de auditoria
+      await logActivity(ceoId, 'CEO atualizou dados do cliente', {
+        clientId,
+        clientName: currentData.rows[0].name,
+        oldData: currentData.rows[0],
+        newData: data,
+        timestamp: new Date().toISOString(),
+      });
+
+      await client.query('COMMIT');
+      return result.rows[0];
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * 🗑️ Deletar cliente
+   */
+  async deleteClient(clientId: string, ceoId: string) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      const clientData = await client.query(
+        'SELECT name FROM clients WHERE id = $1',
+        [clientId]
+      );
+
+      if (clientData.rows.length === 0) {
+        throw new Error('Cliente não encontrado');
+      }
+
+      await client.query('DELETE FROM clients WHERE id = $1', [clientId]);
+
+      await logActivity(ceoId, 'CEO deletou cliente', {
+        clientId,
+        clientName: clientData.rows[0].name,
+        timestamp: new Date().toISOString(),
+      });
+
+      await client.query('COMMIT');
+      return { success: true, message: 'Cliente deletado com sucesso' };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * 👥 Buscar todos os membros da equipe com hierarquia completa
+   */
+  async getAllTeamMembers() {
+    const query = `
+      SELECT 
+        u.id,
+        u.name,
+        u.email,
+        u.role,
+        u.cpf,
+        u.phone,
+        u.is_active,
+        u.created_at,
+        u.points as accumulated_points,
+        parent.name as manager_name,
+        parent.id as manager_id,
+        parent.role as manager_role,
+        (SELECT COUNT(*) FROM users WHERE parent_id = u.id) as direct_reports,
+        (SELECT COUNT(*) FROM clients WHERE user_id = u.id) as clients_count,
+        (SELECT COALESCE(SUM(value), 0) FROM sales WHERE user_id = u.id) as total_sales_value,
+        (SELECT COUNT(*) FROM sales WHERE user_id = u.id) as sales_count
+      FROM users u
+      LEFT JOIN users parent ON u.parent_id = parent.id
+      ORDER BY 
+        CASE u.role
+          WHEN 'ceo' THEN 1
+          WHEN 'diretor_comercial' THEN 2
+          WHEN 'director' THEN 3
+          WHEN 'executive' THEN 4
+          WHEN 'prime_consultant' THEN 5
+          WHEN 'senior_consultant' THEN 6
+          WHEN 'master_consultant' THEN 7
+          WHEN 'consultant' THEN 8
+          ELSE 9
+        END,
+        u.name
+    `;
+
+    const result = await pool.query(query);
+    return result.rows;
   }
 }
 

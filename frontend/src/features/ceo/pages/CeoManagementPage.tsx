@@ -61,8 +61,31 @@ interface ConsultantDetails {
   }>;
 }
 
+interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  is_active: boolean;
+  created_at: string;
+  current_level: string;
+  accumulated_points: number;
+  manager_name?: string;
+  manager_id?: string;
+  director_name?: string;
+  director_id?: string;
+  direct_reports: number;
+  clients_count: number;
+  total_sales_value: number;
+  sales_count: number;
+}
+
 export function CeoManagementPage() {
+  // Tabs
+  const [activeTab, setActiveTab] = useState<'consultants' | 'team'>('consultants');
+  
   const [consultants, setConsultants] = useState<Consultant[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [selectedConsultant, setSelectedConsultant] = useState<ConsultantDetails | null>(null);
   const [loading, setLoading] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
@@ -82,16 +105,23 @@ export function CeoManagementPage() {
   const [editForm, setEditForm] = useState<Partial<Consultant>>({});
   const [pointsForm, setPointsForm] = useState({ points: 0, reason: '' });
   const [saleForm, setSaleForm] = useState({
-    client_id: '',
+    client_name: '',
+    client_cpf: '',
+    client_phone: '',
+    client_email: '',
     value: 0,
     kilowatts: 0,
-    description: '',
+    notes: '',
   });
   const [passwordForm, setPasswordForm] = useState({ newPassword: '' });
 
   useEffect(() => {
-    fetchConsultants();
-  }, [roleFilter, activeFilter]);
+    if (activeTab === 'consultants') {
+      fetchConsultants();
+    } else if (activeTab === 'team') {
+      fetchTeamMembers();
+    }
+  }, [roleFilter, activeFilter, activeTab]);
 
   const fetchConsultants = async () => {
     setLoading(true);
@@ -106,6 +136,19 @@ export function CeoManagementPage() {
     } catch (error) {
       console.error('Erro ao carregar consultores:', error);
       toast.error('Erro ao carregar consultores');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTeamMembers = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get('/ceo/team');
+      setTeamMembers(res.data?.data || []);
+    } catch (error) {
+      console.error('Erro ao carregar equipe:', error);
+      toast.error('Erro ao carregar equipe');
     } finally {
       setLoading(false);
     }
@@ -160,15 +203,18 @@ export function CeoManagementPage() {
       toast.success('Pontos ajustados com sucesso');
       setShowPointsModal(false);
       setPointsForm({ points: 0, reason: '' });
-      fetchConsultants();
-      fetchConsultantDetails(selectedConsultant.user.id);
+      
+      // Recarregar dados
+      await fetchConsultants();
+      await fetchConsultantDetails(selectedConsultant.user.id);
     } catch (error: any) {
+      console.error('Erro ao ajustar pontos:', error);
       toast.error(error.response?.data?.message || 'Erro ao ajustar pontos');
     }
   };
 
   const handleCreateSale = async () => {
-    if (!selectedConsultant || !saleForm.client_id || !saleForm.value || !saleForm.kilowatts) {
+    if (!selectedConsultant || !saleForm.client_name || !saleForm.value || !saleForm.kilowatts) {
       toast.error('Preencha todos os campos obrigatórios');
       return;
     }
@@ -177,7 +223,7 @@ export function CeoManagementPage() {
       await api.post(`/ceo/consultants/${selectedConsultant.user.id}/sales`, saleForm);
       toast.success('Venda criada com sucesso');
       setShowSaleModal(false);
-      setSaleForm({ client_id: '', value: 0, kilowatts: 0, description: '' });
+      setSaleForm({ client_name: '', client_cpf: '', client_phone: '', client_email: '', value: 0, kilowatts: 0, notes: '' });
       fetchConsultants();
       fetchConsultantDetails(selectedConsultant.user.id);
     } catch (error: any) {
@@ -241,7 +287,7 @@ export function CeoManagementPage() {
           </p>
         </div>
         <button
-          onClick={fetchConsultants}
+          onClick={activeTab === 'consultants' ? fetchConsultants : fetchTeamMembers}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
         >
           <RefreshCw className="w-4 h-4" />
@@ -249,8 +295,41 @@ export function CeoManagementPage() {
         </button>
       </div>
 
-      {/* Filtros */}
-      <Card className="p-4">
+      {/* Tabs */}
+      <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
+        <button
+          onClick={() => setActiveTab('consultants')}
+          className={`px-6 py-3 font-medium transition-colors ${
+            activeTab === 'consultants'
+              ? 'text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <User className="w-4 h-4" />
+            Consultores
+          </div>
+        </button>
+        <button
+          onClick={() => setActiveTab('team')}
+          className={`px-6 py-3 font-medium transition-colors ${
+            activeTab === 'team'
+              ? 'text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Hierarquia da Equipe
+          </div>
+        </button>
+      </div>
+
+      {/* Conteúdo da aba Consultores */}
+      {activeTab === 'consultants' && (
+        <>
+          {/* Filtros */}
+          <Card className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Busca */}
           <div className="relative">
@@ -467,6 +546,93 @@ export function CeoManagementPage() {
           </table>
         </div>
       </Card>
+        </>
+      )}
+
+      {/* Conteúdo da aba Equipe */}
+      {activeTab === 'team' && (
+        <Card className="p-6">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+            <Users className="w-6 h-6" />
+            Hierarquia Completa da Equipe
+          </h2>
+          
+          {loading ? (
+            <div className="text-center py-8 text-gray-500">Carregando...</div>
+          ) : teamMembers.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">Nenhum membro encontrado</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Nome</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Cargo</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Patrocinador</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Subordinados</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Clientes</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Vendas</th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Receita Total</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Pontos</th>
+                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {teamMembers.map((member) => (
+                    <tr key={member.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <td className="px-4 py-3">
+                        <div>
+                          <div className="font-medium text-gray-900 dark:text-white">{member.name}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">{member.email}</div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          member.role === 'CEO' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                          member.role === 'DIRETOR_COMERCIAL' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
+                          member.role === 'GERENTE' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                          'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                        }`}>
+                          {roleLabels[member.role.toLowerCase()] || member.role}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+                        {member.manager_name || '-'}
+                      </td>
+                      <td className="px-4 py-3 text-center text-sm text-gray-900 dark:text-white">
+                        {member.direct_reports}
+                      </td>
+                      <td className="px-4 py-3 text-center text-sm text-gray-900 dark:text-white">
+                        {member.clients_count}
+                      </td>
+                      <td className="px-4 py-3 text-right text-sm text-gray-900 dark:text-white">
+                        {member.sales_count}
+                      </td>
+                      <td className="px-4 py-3 text-right text-sm text-gray-900 dark:text-white">
+                        R$ {Number(member.total_sales_value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                          {member.accumulated_points || 0}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          member.is_active
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                        }`}>
+                          {member.is_active ? 'Ativo' : 'Inativo'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* Modal de Detalhes - será implementado na próxima parte */}
       {showDetails && selectedConsultant && (
@@ -485,7 +651,295 @@ export function CeoManagementPage() {
         />
       )}
 
-      {/* Modais de Edição - implementados a seguir */}
+      {/* Modal de Edição */}
+      {showEditModal && selectedConsultant && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+              Editar Consultor
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Nome
+                </label>
+                <input
+                  type="text"
+                  value={editForm.name || ''}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={editForm.email || ''}
+                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Cargo
+                </label>
+                <select
+                  value={editForm.role || ''}
+                  onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                >
+                  <option value="consultant">Consultor</option>
+                  <option value="master_consultant">Master Consultant</option>
+                  <option value="senior_consultant">Consultor Sênior</option>
+                  <option value="prime_consultant">Consultor Prime</option>
+                  <option value="executive">Executivo</option>
+                  <option value="director">Diretor</option>
+                  <option value="diretor_comercial">Diretor Comercial</option>
+                  <option value="admin">Administrador</option>
+                  <option value="financeiro">Financeiro</option>
+                </select>
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleUpdateConsultant}
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                >
+                  Salvar
+                </button>
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Ajuste de Pontos */}
+      {showPointsModal && selectedConsultant && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+              Ajustar Pontos
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Pontos (+ para adicionar, - para remover)
+                </label>
+                <input
+                  type="number"
+                  value={pointsForm.points}
+                  onChange={(e) => setPointsForm({ ...pointsForm, points: Number(e.target.value) })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="Ex: 100 ou -50"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Motivo *
+                </label>
+                <textarea
+                  value={pointsForm.reason}
+                  onChange={(e) => setPointsForm({ ...pointsForm, reason: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  rows={3}
+                  placeholder="Explique o motivo do ajuste..."
+                  required
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleAdjustPoints}
+                  className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                >
+                  Confirmar
+                </button>
+                <button
+                  onClick={() => {
+                    setShowPointsModal(false);
+                    setPointsForm({ points: 0, reason: '' });
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Criar Venda */}
+      {showSaleModal && selectedConsultant && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+              Criar Venda para {selectedConsultant.user.name}
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Nome do Cliente *
+                </label>
+                <input
+                  type="text"
+                  value={saleForm.client_name}
+                  onChange={(e) => setSaleForm({ ...saleForm, client_name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="João da Silva"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  CPF (Opcional)
+                </label>
+                <input
+                  type="text"
+                  value={saleForm.client_cpf}
+                  onChange={(e) => setSaleForm({ ...saleForm, client_cpf: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="000.000.000-00"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Telefone (Opcional)
+                </label>
+                <input
+                  type="text"
+                  value={saleForm.client_phone}
+                  onChange={(e) => setSaleForm({ ...saleForm, client_phone: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="(11) 98765-4321"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Email (Opcional)
+                </label>
+                <input
+                  type="email"
+                  value={saleForm.client_email}
+                  onChange={(e) => setSaleForm({ ...saleForm, client_email: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="joao@example.com"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Valor (R$) *
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={saleForm.value}
+                  onChange={(e) => setSaleForm({ ...saleForm, value: Number(e.target.value) })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="50000.00"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Kilowatts (kWp) *
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={saleForm.kilowatts}
+                  onChange={(e) => setSaleForm({ ...saleForm, kilowatts: Number(e.target.value) })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="10.5"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Observações
+                </label>
+                <textarea
+                  value={saleForm.notes}
+                  onChange={(e) => setSaleForm({ ...saleForm, notes: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  rows={2}
+                  placeholder="Detalhes adicionais..."
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleCreateSale}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                >
+                  Criar Venda
+                </button>
+                <button
+                  onClick={() => {
+                    setShowSaleModal(false);
+                    setSaleForm({ client_name: '', client_cpf: '', client_phone: '', client_email: '', value: 0, kilowatts: 0, notes: '' });
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Resetar Senha */}
+      {showPasswordModal && selectedConsultant && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+              Resetar Senha
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Nova Senha *
+                </label>
+                <input
+                  type="password"
+                  value={passwordForm.newPassword}
+                  onChange={(e) => setPasswordForm({ newPassword: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="Digite a nova senha..."
+                  required
+                  minLength={6}
+                />
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                A senha será alterada para o usuário <strong>{selectedConsultant.user.email}</strong>
+              </p>
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleResetPassword}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Resetar
+                </button>
+                <button
+                  onClick={() => {
+                    setShowPasswordModal(false);
+                    setPasswordForm({ newPassword: '' });
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

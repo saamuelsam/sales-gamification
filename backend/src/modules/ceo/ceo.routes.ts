@@ -76,6 +76,42 @@ router.patch('/consultants/:id/transfer', (req, res) => ceoController.transferCo
  */
 router.post('/consultants/:id/reset-password', (req, res) => ceoController.resetPassword(req, res));
 
+// ========== GESTÃO DE EQUIPE ==========
+
+/**
+ * GET /api/ceo/team
+ * Lista todos os membros da equipe com hierarquia completa
+ */
+router.get('/team', (req, res) => ceoController.getAllTeamMembers(req, res));
+
+// ========== GESTÃO DE CLIENTES ==========
+
+/**
+ * GET /api/ceo/clients
+ * Lista todos os clientes do sistema
+ * Query params: ?search=nome&userId=uuid
+ */
+router.get('/clients', (req, res) => ceoController.getAllClients(req, res));
+
+/**
+ * GET /api/ceo/clients/:id
+ * Detalhes completos de um cliente
+ */
+router.get('/clients/:id', (req, res) => ceoController.getClientDetails(req, res));
+
+/**
+ * PUT /api/ceo/clients/:id
+ * Atualizar dados do cliente
+ * Body: { name?, cpf?, email?, phone?, address?, city?, state? }
+ */
+router.put('/clients/:id', (req, res) => ceoController.updateClient(req, res));
+
+/**
+ * DELETE /api/ceo/clients/:id
+ * Deletar cliente
+ */
+router.delete('/clients/:id', (req, res) => ceoController.deleteClient(req, res));
+
 // ========== AUDITORIA ==========
 
 /**

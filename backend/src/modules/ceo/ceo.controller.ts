@@ -140,15 +140,15 @@ export class CeoController {
         return ApiResponse.error(res, 'CEO não identificado', 401);
       }
 
-      const { client_id, value, kilowatts, status, description } = req.body;
+      const { client_name, client_cpf, client_phone, client_email, value, kilowatts, status, notes } = req.body;
 
-      if (!client_id || !value || !kilowatts) {
-        return ApiResponse.error(res, 'Dados da venda incompletos', 400);
+      if (!client_name || !value || !kilowatts) {
+        return ApiResponse.error(res, 'Nome do cliente, valor e kilowatts são obrigatórios', 400);
       }
 
       const sale = await ceoService.createSaleForConsultant(
         id,
-        { client_id, value, kilowatts, status, description },
+        { client_name, client_cpf, client_phone, client_email, value, kilowatts, status, notes },
         ceoId
       );
       
@@ -255,6 +255,115 @@ export class CeoController {
     } catch (error: any) {
       console.error('❌ Erro ao resetar senha:', error);
       return ApiResponse.error(res, error.message || 'Erro ao resetar senha', 500);
+    }
+  }
+
+  // ========== GESTÃO DE EQUIPE ==========
+
+  /**
+   * GET /api/ceo/team
+   * Lista todos os membros da equipe com hierarquia completa
+   */
+  async getAllTeamMembers(req: Request, res: Response) {
+    try {
+      const team = await ceoService.getAllTeamMembers();
+      
+      return ApiResponse.success(
+        res,
+        team,
+        `${team.length} membros encontrados`
+      );
+    } catch (error: any) {
+      console.error('❌ Erro ao buscar equipe:', error);
+      return ApiResponse.error(res, error.message || 'Erro ao buscar equipe', 500);
+    }
+  }
+
+  // ========== GESTÃO DE CLIENTES ==========
+
+  /**
+   * GET /api/ceo/clients
+   * Lista todos os clientes
+   */
+  async getAllClients(req: Request, res: Response) {
+    try {
+      const { search, userId } = req.query;
+      
+      const filters = {
+        search: search as string,
+        userId: userId as string,
+      };
+
+      const clients = await ceoService.getAllClients(filters);
+      
+      return ApiResponse.success(
+        res,
+        clients,
+        `${clients.length} clientes encontrados`
+      );
+    } catch (error: any) {
+      console.error('❌ Erro ao buscar clientes:', error);
+      return ApiResponse.error(res, error.message || 'Erro ao buscar clientes', 500);
+    }
+  }
+
+  /**
+   * GET /api/ceo/clients/:id
+   * Detalhes completos de um cliente
+   */
+  async getClientDetails(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const details = await ceoService.getClientDetails(id);
+      
+      return ApiResponse.success(res, details, 'Detalhes do cliente carregados');
+    } catch (error: any) {
+      console.error('❌ Erro ao buscar detalhes do cliente:', error);
+      return ApiResponse.error(res, error.message || 'Erro ao buscar detalhes do cliente', 500);
+    }
+  }
+
+  /**
+   * PUT /api/ceo/clients/:id
+   * Atualizar dados do cliente
+   */
+  async updateClient(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const ceoId = req.user?.userId;
+      
+      if (!ceoId) {
+        return ApiResponse.error(res, 'CEO não identificado', 401);
+      }
+
+      const updatedClient = await ceoService.updateClient(id, req.body, ceoId);
+      
+      return ApiResponse.success(res, updatedClient, 'Cliente atualizado com sucesso');
+    } catch (error: any) {
+      console.error('❌ Erro ao atualizar cliente:', error);
+      return ApiResponse.error(res, error.message || 'Erro ao atualizar cliente', 500);
+    }
+  }
+
+  /**
+   * DELETE /api/ceo/clients/:id
+   * Deletar cliente
+   */
+  async deleteClient(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const ceoId = req.user?.userId;
+      
+      if (!ceoId) {
+        return ApiResponse.error(res, 'CEO não identificado', 401);
+      }
+
+      const result = await ceoService.deleteClient(id, ceoId);
+      
+      return ApiResponse.success(res, result, result.message);
+    } catch (error: any) {
+      console.error('❌ Erro ao deletar cliente:', error);
+      return ApiResponse.error(res, error.message || 'Erro ao deletar cliente', 500);
     }
   }
 }
