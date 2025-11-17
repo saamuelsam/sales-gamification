@@ -1247,7 +1247,7 @@ function ConsultantDetailsModal({
               <div className="space-y-2">
                 {consultant.recent_sales.map((sale) => (
                   <Card key={sale.id} className="p-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between gap-3">
                       <div className="flex-1">
                         <p className="font-medium text-gray-900 dark:text-white">
                           {sale.client_name || 'Cliente não identificado'}
@@ -1256,7 +1256,23 @@ function ConsultantDetailsModal({
                           {new Date(sale.created_at).toLocaleDateString('pt-BR')}
                         </p>
                       </div>
-                      <div className="text-right mr-4">
+                      <div className="text-center">
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                          sale.status === 'approved' 
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                            : sale.status === 'pending'
+                            ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                            : sale.status === 'negotiation'
+                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                            : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                        }`}>
+                          {sale.status === 'approved' ? '✓ Aprovada' 
+                            : sale.status === 'pending' ? '⏳ Pendente'
+                            : sale.status === 'negotiation' ? '💬 Negociação'
+                            : '✗ Cancelada'}
+                        </span>
+                      </div>
+                      <div className="text-right">
                         <p className="font-bold text-gray-900 dark:text-white">
                           R$ {parseFloat(String(sale.value)).toLocaleString('pt-BR')}
                         </p>
