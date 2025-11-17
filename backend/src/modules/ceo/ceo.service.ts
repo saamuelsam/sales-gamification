@@ -24,8 +24,8 @@ export class CeoService {
         u.created_at,
         u.parent_id,
         parent.name as parent_name,
-        (SELECT COUNT(*) FROM sales WHERE user_id = u.id) as total_sales,
-        (SELECT COALESCE(SUM(value), 0) FROM sales WHERE user_id = u.id) as total_revenue,
+        (SELECT COUNT(*) FROM sales WHERE user_id = u.id AND status = 'approved') as total_sales,
+        (SELECT COALESCE(SUM(value), 0) FROM sales WHERE user_id = u.id AND status = 'approved') as total_revenue,
         (SELECT COUNT(*) FROM user_hierarchy WHERE leader_id = u.id) as team_size,
         (SELECT COALESCE(SUM(commission_amount), 0) FROM personal_commissions WHERE user_id = u.id) as total_commissions
       FROM users u
@@ -66,8 +66,8 @@ export class CeoService {
         u.*,
         parent.name as parent_name,
         parent.email as parent_email,
-        (SELECT COUNT(*) FROM sales WHERE user_id = u.id) as total_sales,
-        (SELECT COALESCE(SUM(value), 0) FROM sales WHERE user_id = u.id) as total_revenue,
+        (SELECT COUNT(*) FROM sales WHERE user_id = u.id AND status = 'approved') as total_sales,
+        (SELECT COALESCE(SUM(value), 0) FROM sales WHERE user_id = u.id AND status = 'approved') as total_revenue,
         (SELECT COALESCE(SUM(commission_amount), 0) FROM personal_commissions WHERE user_id = u.id) as personal_commissions,
         (SELECT COALESCE(SUM(commission_amount), 0) FROM network_commissions WHERE leader_id = u.id) as network_commissions,
         (SELECT COUNT(*) FROM users WHERE parent_id = u.id) as team_size
@@ -658,8 +658,8 @@ export class CeoService {
         c.*,
         u.name as consultant_name,
         u.email as consultant_email,
-        (SELECT COUNT(*) FROM sales WHERE client_id = c.id) as total_sales,
-        (SELECT COALESCE(SUM(value), 0) FROM sales WHERE client_id = c.id) as total_revenue
+        (SELECT COUNT(*) FROM sales WHERE client_id = c.id AND status = 'approved') as total_sales,
+        (SELECT COALESCE(SUM(value), 0) FROM sales WHERE client_id = c.id AND status = 'approved') as total_value
       FROM clients c
       LEFT JOIN users u ON c.user_id = u.id
       WHERE 1=1
@@ -876,8 +876,8 @@ export class CeoService {
         parent.role as manager_role,
         (SELECT COUNT(*) FROM users WHERE parent_id = u.id) as direct_reports,
         (SELECT COUNT(*) FROM clients WHERE user_id = u.id) as clients_count,
-        (SELECT COALESCE(SUM(value), 0) FROM sales WHERE user_id = u.id) as total_sales_value,
-        (SELECT COUNT(*) FROM sales WHERE user_id = u.id) as sales_count
+        (SELECT COALESCE(SUM(value), 0) FROM sales WHERE user_id = u.id AND status = 'approved') as total_sales_value,
+        (SELECT COUNT(*) FROM sales WHERE user_id = u.id AND status = 'approved') as sales_count,
       FROM users u
       LEFT JOIN users parent ON u.parent_id = parent.id
       ORDER BY 

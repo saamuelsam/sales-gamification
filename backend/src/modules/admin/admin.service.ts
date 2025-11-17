@@ -311,16 +311,15 @@ class AdminService {
           u.name,
           u.email,
           u.role,
-          COUNT(s.id) AS total_sales,
+          COUNT(DISTINCT s.id) AS total_sales,
           COALESCE(SUM(s.value), 0) AS total_revenue,
-          COALESCE(MAX(p.accumulated_points), 0) AS total_points
+          COALESCE(u.points, 0) AS total_points
         FROM users u
-        LEFT JOIN sales s ON s.user_id = u.id
-        LEFT JOIN points p ON p.user_id = u.id
+        LEFT JOIN sales s ON s.user_id = u.id AND s.status = 'approved'
         WHERE u.is_active = true
         GROUP BY u.id, u.name, u.email, u.role
-        HAVING COUNT(s.id) > 0
-        ORDER BY total_revenue DESC
+        HAVING COUNT(DISTINCT s.id) > 0
+        ORDER BY COUNT(DISTINCT s.id) DESC, total_revenue DESC
         LIMIT 5
       `);
 
