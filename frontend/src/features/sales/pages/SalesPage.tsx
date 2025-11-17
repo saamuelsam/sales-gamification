@@ -740,28 +740,30 @@ interface SaleDetailsModalProps {
 }
 
 const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) => {
-  const [isEditingStatus, setIsEditingStatus] = useState(false);
-  const [newStatus, setNewStatus] = useState<SaleStatus>(sale.status);
-  const [loading, setLoading] = useState(false);
-
   const invalidateDashboard = useInvalidateDashboard();
+  const [showEditClientModal, setShowEditClientModal] = useState(false);
+  const [editingClientName, setEditingClientName] = useState(sale.client_name);
+  const [savingClient, setSavingClient] = useState(false);
 
-  const handleUpdateStatus = async () => {
-    if (newStatus === sale.status) {
-      setIsEditingStatus(false);
+  const handleUpdateClient = async () => {
+    if (!editingClientName || editingClientName.trim().length === 0) {
+      toast.error('Nome do cliente é obrigatório');
       return;
     }
-    setLoading(true);
+
     try {
-      await api.put(`/sales/${sale.id}/status`, { status: newStatus });
-      toast.success('Status atualizado!');
-      setIsEditingStatus(false);
-      invalidateDashboard();
+      setSavingClient(true);
+      await api.put(`/sales/${sale.id}/client`, {
+        client_name: editingClientName.trim()
+      });
+      toast.success('Cliente atualizado com sucesso!');
+      setShowEditClientModal(false);
       onUpdate();
+      invalidateDashboard();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erro ao atualizar status');
+      toast.error(error.response?.data?.message || 'Erro ao atualizar cliente');
     } finally {
-      setLoading(false);
+      setSavingClient(false);
     }
   };
 
@@ -780,56 +782,18 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
           <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 border dark:border-gray-700">
             <div className="flex justify-between items-start mb-2">
               <p className="text-xs text-gray-600 dark:text-gray-300 font-semibold">Status da Venda</p>
-              {!isEditingStatus && (
-                <button
-                  onClick={() => setIsEditingStatus(true)}
-                  className="text-xs text-primary hover:text-highlight font-medium"
-                >
-                  ✏️ Editar
-                </button>
-              )}
             </div>
 
-            {isEditingStatus ? (
-              <div className="space-y-2">
-                <select
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value as SaleStatus)}
-                  className="w-full px-3 py-2 text-sm border dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                >
-                  <option value="negotiation">🔵 Negociação</option>
-                  <option value="pending">🟡 Pendente</option>
-                  <option value="approved">🟢 Aprovado</option>
-                  <option value="financing_denied">🔴 Financiamento Negado</option>
-                  <option value="cancelled">⚫ Cancelado</option>
-                  <option value="delivered">🟣 Entregue</option>
-                </select>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setIsEditingStatus(false)}
-                    className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    onClick={handleUpdateStatus}
-                    disabled={loading}
-                    className="flex-1 px-3 py-2 bg-primary hover:bg-highlight text-white rounded-lg text-sm font-medium disabled:opacity-50"
-                  >
-                    {loading ? 'Salvando...' : 'Salvar'}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <span
-                className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold border ${
-                  statusConfig[sale.status]?.color || 'bg-gray-100 text-gray-800'
-                }`}
-              >
-                {statusConfig[sale.status]?.label || sale.status}
-              </span>
-            )}
+            <span
+              className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-bold border ${
+                statusConfig[sale.status]?.color || 'bg-gray-100 text-gray-800'
+              }`}
+            >
+              {statusConfig[sale.status]?.label || sale.status}
+            </span>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              💡 Apenas Financeiro e CEO podem alterar o status da venda
+            </p>
           </div>
 
           {sale.sale_type && (
@@ -888,7 +852,15 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
           </div>
 
           <div>
-            <h3 className="text-sm font-semibold mb-2 text-primary dark:text-primary-400">Informações do Cliente</h3>
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-sm font-semibold text-primary dark:text-primary-400">Informações do Cliente</h3>
+              <button
+                onClick={() => setShowEditClientModal(true)}
+                className="px-3 py-1 text-xs bg-primary/10 hover:bg-primary/20 text-primary rounded-lg font-medium transition-colors"
+              >
+                ✏️ Editar Cliente
+              </button>
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="bg-gray-50 dark:bg-gray-900 rounded p-2.5">
                 <p className="text-xs text-gray-600 dark:text-gray-300 mb-0.5">Nome</p>
@@ -937,6 +909,48 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
 
           <div className="h-4"></div>
         </div>
+
+        {/* Modal de Editar Cliente */}
+        {showEditClientModal && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-2xl" style={{ zIndex: 10000 }}>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-11/12 max-w-md shadow-2xl">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+                ✏️ Editar Nome do Cliente
+              </h3>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Nome do Cliente
+                </label>
+                <input
+                  type="text"
+                  value={editingClientName}
+                  onChange={(e) => setEditingClientName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="Digite o nome do cliente"
+                  autoFocus
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleUpdateClient}
+                  disabled={savingClient}
+                  className="flex-1 px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {savingClient ? 'Salvando...' : 'Salvar'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowEditClientModal(false);
+                    setEditingClientName(sale.client_name);
+                  }}
+                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-medium"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="px-4 py-3 border-t bg-white shrink-0 rounded-b-2xl">
           <button onClick={onClose} className="w-full bg-primary hover:bg-highlight text-white py-3 rounded-lg font-medium transition-colors shadow-md">

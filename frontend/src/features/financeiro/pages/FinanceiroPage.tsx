@@ -56,8 +56,10 @@ export default function FinanceiroPage() {
   const [selectedSale, setSelectedSale] = useState<PendingSale | null>(null);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
   const [approvalNotes, setApprovalNotes] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
+  const [newStatus, setNewStatus] = useState('');
 
   useEffect(() => {
     if (activeTab === 'commissions') {
@@ -105,7 +107,13 @@ export default function FinanceiroPage() {
       });
       const data = await response.json();
       if (data.success) {
-        setPendingSales(data.data || []);
+        // Garantir que os valores são números
+        const validSales = (data.data || []).map((sale: any) => ({
+          ...sale,
+          value: parseFloat(sale.value) || 0,
+          kilowatts: parseFloat(sale.kilowatts) || 0
+        }));
+        setPendingSales(validSales);
       } else {
         toast.error(data.message || 'Erro ao carregar vendas pendentes');
       }
@@ -179,6 +187,40 @@ export default function FinanceiroPage() {
     } catch (error) {
       console.error('Erro ao rejeitar venda:', error);
       toast.error('Erro ao rejeitar venda');
+    }
+  };
+
+  const handleUpdateStatus = async () => {
+    if (!selectedSale || !newStatus) {
+      toast.error('Por favor, selecione um status');
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('token');
+      const baseURL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000/api' : '/api');
+      const response = await fetch(`${baseURL}/sales/${selectedSale.id}/status`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      
+      const data = await response.json();
+      if (data.success || response.ok) {
+        toast.success('Status atualizado com sucesso');
+        setShowStatusModal(false);
+        setSelectedSale(null);
+        setNewStatus('');
+        fetchPendingSales();
+      } else {
+        toast.error(data.message || 'Erro ao atualizar status');
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error);
+      toast.error('Erro ao atualizar status');
     }
   };
 
@@ -392,7 +434,7 @@ export default function FinanceiroPage() {
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Valor Total Pendente</p>
                 <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                  R$ {pendingSales.reduce((sum, s) => sum + s.value, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(pendingSales.reduce((sum, s) => sum + s.value, 0))}
                 </p>
               </div>
               <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
@@ -635,6 +677,17 @@ export default function FinanceiroPage() {
                   <button
                     onClick={() => {
                       setSelectedSale(sale);
+                      setNewStatus(sale.status);
+                      setShowStatusModal(true);
+                    }}
+                    className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+                  >
+                    <Clock className="w-5 h-5" />
+                    Alterar Status
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedSale(sale);
                       setShowApproveModal(true);
                     }}
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors"
@@ -746,6 +799,55 @@ export default function FinanceiroPage() {
                   setShowRejectModal(false);
                   setSelectedSale(null);
                   setRejectionReason('');
+                }}
+                className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Alterar Status */}
+      {showStatusModal && selectedSale && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+              🔄 Alterar Status da Venda
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Venda de <strong>{selectedSale.client_name}</strong> no valor de <strong>R$ {selectedSale.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>.
+            </p>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Novo Status
+              </label>
+              <select
+                value={newStatus}
+                onChange={(e) => setNewStatus(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              >
+                <option value="negotiation">🔵 Negociação</option>
+                <option value="pending">🟡 Pendente</option>
+                <option value="approved">🟢 Aprovado</option>
+                <option value="financing_denied">🔴 Financiamento Negado</option>
+                <option value="cancelled">⚫ Cancelado</option>
+                <option value="delivered">🟣 Entregue</option>
+              </select>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleUpdateStatus}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+              >
+                Confirmar
+              </button>
+              <button
+                onClick={() => {
+                  setShowStatusModal(false);
+                  setSelectedSale(null);
+                  setNewStatus('');
                 }}
                 className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
               >

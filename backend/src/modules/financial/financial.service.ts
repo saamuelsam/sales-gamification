@@ -31,7 +31,7 @@ export class FinancialService {
         c.cpf as client_cpf,
         c.phone as client_phone,
         c.email as client_email,
-        (SELECT COUNT(*) FROM sales WHERE user_id = u.id AND status = 'pending') as seller_pending_count,
+        (SELECT COUNT(*) FROM sales WHERE user_id = u.id AND status IN ('pending', 'negotiation')) as seller_pending_count,
         (SELECT COUNT(*) FROM sales WHERE user_id = u.id AND status = 'approved') as seller_approved_count
       FROM sales s
       JOIN users u ON s.user_id = u.id

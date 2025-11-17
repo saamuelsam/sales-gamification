@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { salesController } from './sales.controller';
 import { verifyTokenMiddleware } from '../../middleware/auth.middleware';
 import { checkFinancialPermission, preventSaleEdit } from '../../middleware/checkFinancialPermission';
+import { updateClientController } from './updateClient.controller';
 import { pool } from '@config/database';
 
 const router = Router();
@@ -51,6 +52,9 @@ router.get('/', (req, res) => salesController.listSales(req, res));
 
 // ✅ Atualizar STATUS da venda - APENAS FINANCEIRO/CEO (gera comissão automaticamente)
 router.put('/:id/status', checkFinancialPermission, (req, res) => salesController.updateStatus(req, res));
+
+// ✅ Atualizar CLIENTE da venda - CONSULTORES podem editar suas vendas
+router.put('/:id/client', (req, res) => updateClientController.updateSaleClient(req, res));
 
 // Buscar venda por ID
 router.get('/:id', (req, res) => salesController.getSale(req, res));
