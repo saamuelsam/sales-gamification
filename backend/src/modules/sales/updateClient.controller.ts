@@ -50,15 +50,15 @@ export class UpdateClientController {
             // Verificar se o usuário é superior hierárquico
             const hierarchyResult = await client.query(
               `WITH RECURSIVE hierarchy AS (
-                SELECT id, leader_id, role
+                SELECT id, parent_id, role
                 FROM users
                 WHERE id = $1
                 
                 UNION ALL
                 
-                SELECT u.id, u.leader_id, u.role
+                SELECT u.id, u.parent_id, u.role
                 FROM users u
-                INNER JOIN hierarchy h ON u.leader_id = h.id
+                INNER JOIN hierarchy h ON u.parent_id = h.id
               )
               SELECT id FROM hierarchy WHERE id = $2`,
               [sale.user_id, userId]

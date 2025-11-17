@@ -877,9 +877,10 @@ export class CeoService {
         (SELECT COUNT(*) FROM users WHERE parent_id = u.id) as direct_reports,
         (SELECT COUNT(*) FROM clients WHERE user_id = u.id) as clients_count,
         (SELECT COALESCE(SUM(value), 0) FROM sales WHERE user_id = u.id AND status = 'approved') as total_sales_value,
-        (SELECT COUNT(*) FROM sales WHERE user_id = u.id AND status = 'approved') as sales_count,
+        (SELECT COUNT(*) FROM sales WHERE user_id = u.id AND status = 'approved') as sales_count
       FROM users u
       LEFT JOIN users parent ON u.parent_id = parent.id
+      WHERE u.is_active = true
       ORDER BY 
         CASE u.role
           WHEN 'ceo' THEN 1

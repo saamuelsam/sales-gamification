@@ -66,31 +66,11 @@ export class SalesService {
 
       const sale = saleResult.rows[0];
 
-      // 2. Calcular pontos SEMPRE pelos kW (1 kW = 1 ponto)
-      const points = data.kilowatts;
+      // ⏳ PONTOS SERÃO ATRIBUÍDOS APENAS APÓS APROVAÇÃO FINANCEIRA
+      // Essa mudança garante que pontos só sejam dados para vendas aprovadas
+      // e não para vendas pendentes ou rejeitadas
 
-      // 3. Buscar pontos acumulados
-      const currentPointsResult = await client.query(
-        'SELECT COALESCE(MAX(accumulated_points), 0) as total FROM points WHERE user_id = $1',
-        [userId]
-      );
-      const currentPoints = parseFloat(currentPointsResult.rows[0].total);
-      const newAccumulatedPoints = currentPoints + points;
-
-      // 4. Registrar pontos com descrição específica por tipo
-      const description =
-        data.sale_type === 'consortium' ? `Consórcio: ${data.client_name}` :
-          data.sale_type === 'cash' ? `Venda à vista: ${data.client_name}` :
-            data.sale_type === 'card' ? `Venda no cartão: ${data.client_name}` :
-              `Venda: ${data.client_name}`;
-
-      await client.query(
-        `INSERT INTO points (user_id, sale_id, points, accumulated_points, description)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [userId, sale.id, points, newAccumulatedPoints, description]
-      );
-
-      // 5. Buscar nível do usuário
+      // 2. Buscar nível do usuário
       const userResult = await client.query('SELECT role FROM users WHERE id = $1', [userId]);
       const userRole = userResult.rows[0].role;
 
@@ -112,62 +92,32 @@ export class SalesService {
 
       const level = levelResult.rows[0];
 
-      // 6. Calcular comissões
-      let saleCommission = 0;
-      let insuranceCommissionValue = 0;
+      // ⏳ COMISSÕES NÃO SÃO MAIS CALCULADAS OU REGISTRADAS NA CRIAÇÃO
+      // Comissões (pessoal + rede) serão calculadas e registradas APENAS quando
+      // o financeiro aprovar a venda através do endpoint /financial/approve/:saleId
+      // Isso garante que:
+      // - Comissões só existem para vendas aprovadas
+      // - Não há duplicação de comissões
+      // - Vendas rejeitadas não geram comissões
 
-      if (data.sale_type === 'consortium') {
-        // CONSÓRCIO: 5% sobre consortium_value, SEM comissão de seguro
-        if (data.consortium_value) {
-          saleCommission = (data.consortium_value * 5.0) / 100;
-        }
-        insuranceCommissionValue = 0;
-      } else {
-        // VENDA NORMAL (direct, cash, card): usar comissão do nível do usuário
-        const personalCommission = parseFloat(level.personal_commission);
-        saleCommission = (data.value * personalCommission) / 100;
-
-        // Comissão de seguro (se tiver)
-        if (data.insurance_value) {
-          const insuranceCommission = parseFloat(level.insurance_commission);
-          insuranceCommissionValue = (data.insurance_value * insuranceCommission) / 100;
-        }
-      }
-
-      const totalCommission = saleCommission + insuranceCommissionValue;
-
-      // 7. Registrar comissão
-      await client.query(
-        `INSERT INTO commissions (
-          user_id, sale_id, sale_commission,
-          insurance_commission, total_commission
-        ) VALUES ($1, $2, $3, $4, $5)`,
-        [userId, sale.id, saleCommission, insuranceCommissionValue, totalCommission]
-      );
-
-      // 8. ATUALIZAR CONTADORES MENSAIS
+      // ATUALIZAR CONTADORES MENSAIS
       await monthlyTargetService.updateUserMonthlyStats(userId, data.kilowatts);
 
-      // 9. Atualizar pontos do usuário (1 ponto por kW)
-      const pointsEarned = Math.floor(data.kilowatts);
-      await client.query(
-        `UPDATE users SET points = points + $1 WHERE id = $2`,
-        [pointsEarned, userId]
-      );
+      // ⏳ PONTOS NÃO SÃO MAIS ATUALIZADOS AQUI
+      // Serão atualizados apenas quando o financeiro aprovar a venda
 
       await client.query('COMMIT');
 
-      // ✅ Verificar promoção de nível APÓS commit (evita deadlocks)
-      await levelService.checkLevelUp(userId, newAccumulatedPoints, client);
+      // ⏳ Promoção de nível será verificada apenas após aprovação financeira
 
-      // 📝 LOG: Venda criada
+      // 📝 LOG: Venda criada (aguardando aprovação financeira)
       await logActivity(userId, 'Registrou nova venda', {
         sale_id: sale.id,
         client_name: data.client_name,
         value: data.value,
         kilowatts: data.kilowatts,
         sale_type: data.sale_type || 'direct',
-        points_earned: points,
+        status: 'pending_approval',
       });
 
       // ✅ Verificar premiações APÓS commit (evita deadlocks)
@@ -180,15 +130,9 @@ export class SalesService {
 
       return {
         sale,
-        points: {
-          earned: points,
-          accumulated: newAccumulatedPoints,
-        },
-        commission: {
-          sale: saleCommission,
-          insurance: insuranceCommissionValue,
-          total: totalCommission,
-        },
+        message: 'Venda criada com sucesso. Aguardando aprovação financeira para liberar pontos e comissões.',
+        status: 'pending_approval',
+        note: 'Pontos e comissões serão calculados após aprovação do setor financeiro.',
       };
     } catch (error) {
       await client.query('ROLLBACK');
@@ -484,75 +428,11 @@ export class SalesService {
       new_status: updatedSale.status,
     });
 
-    // 🟢 Se a venda foi aprovada, gerar comissões (pessoal + rede)
-    if (updatedSale.status === 'approved') {
-      console.log(`\n🎯 STATUS MUDOU PARA 'APPROVED' - Processando comissões para venda ${updatedSale.id}`);
-
-      const client = await pool.connect();
-      try {
-        await client.query('BEGIN');
-
-        // 💵 1. Comissão pessoal
-        console.log(`  1️⃣ Chamando processPersonalCommission(${updatedSale.user_id}, ${updatedSale.value}, ${updatedSale.kilowatts}, ${updatedSale.id})`);
-        
-        await this.commissionService.processPersonalCommission(
-          updatedSale.user_id,   // ID do vendedor
-          updatedSale.value,     // Valor da venda
-          updatedSale.kilowatts, // Pontos / kW
-          updatedSale.id         // ID da venda
-        );
-
-        console.log(`  ✅ Comissão pessoal gerada para venda ${updatedSale.id}`);
-
-        // 🌐 2. Comissão de rede
-        console.log(`  2️⃣ Chamando processNetworkCommission(${updatedSale.user_id}, ${updatedSale.value}, ${updatedSale.kilowatts}, ${updatedSale.id})`);
-
-        await this.commissionService.processNetworkCommission(
-          updatedSale.user_id,   // ID do vendedor
-          updatedSale.value,     // Valor da venda
-          updatedSale.kilowatts, // Pontos / kW
-          updatedSale.id         // ID da venda
-        );
-
-        console.log(`  ✅ Comissão de rede gerada para venda ${updatedSale.id}`);
-
-        // 📝 LOG: Venda aprovada
-        await logActivity(updatedSale.user_id, 'Venda aprovada', {
-          sale_id: updatedSale.id,
-          client_name: updatedSale.client_name,
-          value: updatedSale.value,
-          kilowatts: updatedSale.kilowatts,
-        });
-
-        // ✅ Verificar promoção automática após aprovar venda
-        const userPointsResult = await client.query(
-          `SELECT points FROM users WHERE id = $1`,
-          [updatedSale.user_id]
-        );
-        const currentPoints = parseFloat(userPointsResult.rows[0]?.points || 0);
-        await levelService.checkLevelUp(updatedSale.user_id, currentPoints, client);
-
-        await client.query('COMMIT');
-      } catch (error) {
-        await client.query('ROLLBACK');
-        console.error('❌ Erro ao gerar comissões:', error);
-        console.error('STACK:', error instanceof Error ? error.stack : 'sem stack');
-      } finally {
-        client.release();
-      }
-
-      // ✅ Verificar promoção automática após aprovar venda
-      try {
-        const userPointsResult = await pool.query(
-          `SELECT points FROM users WHERE id = $1`,
-          [updatedSale.user_id]
-        );
-        const currentPoints = parseFloat(userPointsResult.rows[0]?.points || 0);
-        await levelService.checkLevelUp(updatedSale.user_id, currentPoints, pool as any);
-      } catch (error) {
-        console.warn('⚠️ Erro ao verificar promoção após aprovação:', error instanceof Error ? error.message : error);
-      }
-    }
+    // ⚠️ IMPORTANTE: Comissões e pontos são processados EXCLUSIVAMENTE pelo FinancialService
+    // A aprovação/rejeição deve ser feita através dos endpoints:
+    // - POST /financial/approve/:saleId (para aprovar)
+    // - POST /financial/reject/:saleId (para rejeitar)
+    // Não processar comissões aqui para evitar duplicação e garantir controle financeiro
 
     return updatedSale;
   }

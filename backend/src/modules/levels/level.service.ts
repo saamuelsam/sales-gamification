@@ -39,6 +39,13 @@ export class LevelService {
       const user = userResult.rows[0];
       const currentRole = user.role || 'consultant';
 
+      // 🔒 PROTEÇÃO: Não alterar roles administrativos (CEO, Admin, Financeiro, Diretor Comercial)
+      const protectedRoles = ['ceo', 'admin', 'financeiro', 'diretor_comercial'];
+      if (protectedRoles.includes(currentRole.toLowerCase())) {
+        console.log(`🔒 Role protegido: ${user.name} é ${currentRole} - sem auto-promoção`);
+        return { leveledUp: false, reason: 'protected_role' };
+      }
+
       // ✅ Para Sênior+, calcular pontos totais (pessoal + equipe)
       let totalPoints = Math.max(currentPoints, parseFloat(user.points || 0));
       

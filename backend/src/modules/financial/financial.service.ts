@@ -175,15 +175,15 @@ export class FinancialService {
         timestamp: new Date().toISOString(),
       });
 
-      await client.query('COMMIT');
-
-      // 🎯 PROCESSAR COMISSÕES E PONTOS APÓS APROVAÇÃO
+      // 🎯 PROCESSAR COMISSÕES E PONTOS ANTES DO COMMIT (dentro da transação)
       try {
         await this.processCommissionsAndPoints(sale, client);
       } catch (commError: any) {
-        logger.error(`❌ Erro ao processar comissões (venda já aprovada): ${commError.message}`);
-        // Não falhamos a aprovação por erro nas comissões
+        logger.error(`❌ Erro ao processar comissões: ${commError.message}`);
+        throw commError; // Rollback se falhar
       }
+
+      await client.query('COMMIT');
 
       return {
         success: true,
@@ -267,6 +267,31 @@ export class FinancialService {
          WHERE id = $4`,
         [financialUserId, data.reason, data.ipAddress || null, saleId]
       );
+
+      // 🔴 REMOVER PONTOS se foram atribuídos anteriormente (sistema antigo)
+      // Verificar se existem pontos relacionados a esta venda
+      const pointsResult = await client.query(
+        'SELECT id, points FROM points WHERE sale_id = $1',
+        [saleId]
+      );
+
+      if (pointsResult.rows.length > 0) {
+        const pointsToRemove = pointsResult.rows[0].points;
+        
+        // Remover registro de pontos
+        await client.query(
+          'DELETE FROM points WHERE sale_id = $1',
+          [saleId]
+        );
+
+        // Remover pontos da coluna users.points
+        await client.query(
+          `UPDATE users SET points = GREATEST(points - $1, 0) WHERE id = $2`,
+          [Math.floor(pointsToRemove), sale.user_id]
+        );
+
+        logger.info(`🔴 Removidos ${pointsToRemove} pontos do usuário ${sale.user_id} devido à rejeição da venda ${saleId}`);
+      }
 
       // Registrar no histórico
       await client.query(
@@ -368,21 +393,41 @@ export class FinancialService {
     
     logger.info(`🎯 Processando comissões para venda ${sale.id}`);
     
-    // 1. CALCULAR E REGISTRAR PONTOS
+    // 1. CALCULAR E REGISTRAR PONTOS (apenas se ainda não foram dados)
     const points = sale.kilowatts;
+    let newAccumulatedPoints = 0;
     
-    const currentPointsResult = await client.query(
-      'SELECT COALESCE(MAX(accumulated_points), 0) as total FROM points WHERE user_id = $1',
-      [sale.user_id]
+    // Verificar se pontos já foram atribuídos para esta venda
+    const existingPointsResult = await client.query(
+      'SELECT id FROM points WHERE sale_id = $1',
+      [sale.id]
     );
-    const currentPoints = parseFloat(currentPointsResult.rows[0].total);
-    const newAccumulatedPoints = currentPoints + points;
     
-    await client.query(
-      `INSERT INTO points (user_id, sale_id, points, accumulated_points, description)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [sale.user_id, sale.id, points, newAccumulatedPoints, `Venda aprovada: ${sale.client_name}`]
-    );
+    if (existingPointsResult.rows.length === 0) {
+      // Pontos ainda não foram dados, atribuir agora
+      const currentPointsResult = await client.query(
+        'SELECT COALESCE(MAX(accumulated_points), 0) as total FROM points WHERE user_id = $1',
+        [sale.user_id]
+      );
+      const currentPoints = parseFloat(currentPointsResult.rows[0].total);
+      newAccumulatedPoints = currentPoints + points;
+      
+      await client.query(
+        `INSERT INTO points (user_id, sale_id, points, accumulated_points, description)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [sale.user_id, sale.id, points, newAccumulatedPoints, `Venda aprovada: ${sale.client_name}`]
+      );
+      
+      logger.info(`✅ Atribuídos ${points} pontos ao usuário ${sale.user_id} pela venda ${sale.id}`);
+    } else {
+      logger.info(`ℹ️ Pontos já foram atribuídos anteriormente para a venda ${sale.id}`);
+      // Buscar pontos acumulados atuais
+      const currentPointsResult = await client.query(
+        'SELECT COALESCE(MAX(accumulated_points), 0) as total FROM points WHERE user_id = $1',
+        [sale.user_id]
+      );
+      newAccumulatedPoints = parseFloat(currentPointsResult.rows[0].total);
+    }
     
     // 2. BUSCAR NÍVEL DO USUÁRIO
     const userResult = await client.query('SELECT role FROM users WHERE id = $1', [sale.user_id]);
@@ -429,7 +474,7 @@ export class FinancialService {
     
     const totalCommission = saleCommission + insuranceCommissionValue;
     
-    // 4. REGISTRAR COMISSÃO PESSOAL
+    // 4. REGISTRAR COMISSÃO PESSOAL (se ainda não foi registrada)
     await client.query(
       `INSERT INTO commissions (
         user_id, sale_id, sale_commission,
@@ -439,14 +484,26 @@ export class FinancialService {
       [sale.user_id, sale.id, saleCommission, insuranceCommissionValue, totalCommission]
     );
     
-    // 5. ATUALIZAR PONTOS DO USUÁRIO
+    // 5. ATUALIZAR PONTOS DO USUÁRIO (apenas se pontos foram atribuídos agora)
     const pointsEarned = Math.floor(sale.kilowatts);
-    await client.query(
-      `UPDATE users SET points = points + $1 WHERE id = $2`,
-      [pointsEarned, sale.user_id]
-    );
+    if (existingPointsResult.rows.length === 0) {
+      await client.query(
+        `UPDATE users SET points = points + $1 WHERE id = $2`,
+        [pointsEarned, sale.user_id]
+      );
+      logger.info(`✅ Atualizada coluna users.points com ${pointsEarned} pontos`);
+    }
     
-    // 6. PROCESSAR COMISSÃO DE REDE (para líder)
+    // 6. VERIFICAR PROMOÇÃO DE NÍVEL após atribuir pontos
+    try {
+      const { LevelService } = require('../levels/level.service');
+      const levelService = new LevelService();
+      await levelService.checkLevelUp(sale.user_id, newAccumulatedPoints, client);
+    } catch (levelError: any) {
+      logger.error(`❌ Erro ao verificar promoção de nível: ${levelError.message}`);
+    }
+    
+    // 7. PROCESSAR COMISSÃO DE REDE (para líder)
     await commissionService.processNetworkCommission(
       sale.user_id,
       parseFloat(sale.value),
@@ -454,12 +511,12 @@ export class FinancialService {
       sale.id
     );
     
-    logger.info(`✅ Comissões processadas: Pessoal R$ ${totalCommission.toFixed(2)}, Pontos: ${pointsEarned}`);
+    logger.info(`✅ Comissões processadas: Pessoal R$ ${totalCommission.toFixed(2)}, Pontos: ${existingPointsResult.rows.length === 0 ? pointsEarned : 0}`);
     
     // 📝 LOG: Comissões geradas
     await logActivity(sale.user_id, ActivityAction.LEVEL_UP, {
       sale_id: sale.id,
-      points_earned: pointsEarned,
+      points_earned: existingPointsResult.rows.length === 0 ? pointsEarned : 0,
       accumulated_points: newAccumulatedPoints,
       personal_commission: totalCommission,
     });

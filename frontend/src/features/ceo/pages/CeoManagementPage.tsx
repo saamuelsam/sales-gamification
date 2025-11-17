@@ -1,6 +1,7 @@
 // frontend/src/features/ceo/pages/CeoManagementPage.tsx
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
+import { TeamHierarchyView } from '../components/TeamHierarchyView';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
 import {
@@ -555,87 +556,11 @@ export function CeoManagementPage() {
 
       {/* Conteúdo da aba Equipe */}
       {activeTab === 'team' && (
-        <Card className="p-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
-            <Users className="w-6 h-6" />
-            Hierarquia Completa da Equipe
-          </h2>
-          
-          {loading ? (
-            <div className="text-center py-8 text-gray-500">Carregando...</div>
-          ) : teamMembers.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">Nenhum membro encontrado</div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 dark:bg-gray-700">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Nome</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Cargo</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Patrocinador</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Subordinados</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Clientes</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Vendas</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Receita Total</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Pontos</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {teamMembers.map((member) => (
-                    <tr key={member.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                      <td className="px-4 py-3">
-                        <div>
-                          <div className="font-medium text-gray-900 dark:text-white">{member.name}</div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">{member.email}</div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          member.role === 'CEO' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
-                          member.role === 'DIRETOR_COMERCIAL' ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' :
-                          member.role === 'GERENTE' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
-                          'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                        }`}>
-                          {roleLabels[member.role.toLowerCase()] || member.role}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                        {member.manager_name || '-'}
-                      </td>
-                      <td className="px-4 py-3 text-center text-sm text-gray-900 dark:text-white">
-                        {member.direct_reports}
-                      </td>
-                      <td className="px-4 py-3 text-center text-sm text-gray-900 dark:text-white">
-                        {member.clients_count}
-                      </td>
-                      <td className="px-4 py-3 text-right text-sm text-gray-900 dark:text-white">
-                        {member.sales_count}
-                      </td>
-                      <td className="px-4 py-3 text-right text-sm text-gray-900 dark:text-white">
-                        R$ {Number(member.total_sales_value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                          {member.accumulated_points || 0}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          member.is_active
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                        }`}>
-                          {member.is_active ? 'Ativo' : 'Inativo'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </Card>
+        <TeamHierarchyView 
+          teamMembers={teamMembers}
+          loading={loading}
+          roleLabels={roleLabels}
+        />
       )}
 
       {/* Modal de Detalhes - será implementado na próxima parte */}
@@ -991,13 +916,6 @@ export function CeoManagementPage() {
                   {new Date(selectedSale.created_at).toLocaleDateString('pt-BR')}
                 </p>
               </div>
-              {!selectedSale.client_id && (
-                <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
-                    ⚠️ Este cliente não está cadastrado no sistema. Use "Criar Venda" para cadastrar clientes automaticamente.
-                  </p>
-                </div>
-              )}
             </div>
             <button
               onClick={() => setShowClientInfoModal(false)}
@@ -1010,7 +928,7 @@ export function CeoManagementPage() {
       )}
 
       {/* Modal de Editar Cliente */}
-      {showEditClientModal && selectedSale && selectedSale.client_id && (
+      {showEditClientModal && selectedSale && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
             <div className="flex items-center justify-between mb-4">
@@ -1289,13 +1207,7 @@ function ConsultantDetailsModal({
                           <User className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => {
-                            if (!sale.client_id) {
-                              toast.error('Este cliente não está cadastrado no sistema');
-                              return;
-                            }
-                            onEditClient(sale);
-                          }}
+                          onClick={() => onEditClient(sale)}
                           className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
                           title="Editar Cliente"
                         >

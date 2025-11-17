@@ -12,6 +12,13 @@ interface UserStats {
 
 export class LevelProgressService {
   async calcularProximoNivel(user: UserStats) {
+    // 🔒 PROTEÇÃO: Não alterar roles administrativos (CEO, Admin, Financeiro, Diretor Comercial)
+    const protectedRoles = ['ceo', 'admin', 'financeiro', 'diretor_comercial'];
+    if (protectedRoles.includes(user.role.toLowerCase())) {
+      console.log(`🔒 Role protegido: ${user.id} é ${user.role} - sem auto-promoção/rebaixamento`);
+      return user.role;
+    }
+
     const nivelAtual = levelRules.find(n => n.nome === user.role);
     if (!nivelAtual) return user.role;
 
