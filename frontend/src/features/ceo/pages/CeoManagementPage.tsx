@@ -58,6 +58,7 @@ interface ConsultantDetails {
     status: string;
     created_at: string;
     client_name: string;
+    client_id?: string;
   }>;
 }
 
@@ -100,6 +101,9 @@ export function CeoManagementPage() {
   const [showPointsModal, setShowPointsModal] = useState(false);
   const [showSaleModal, setShowSaleModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showClientInfoModal, setShowClientInfoModal] = useState(false);
+  const [showEditClientModal, setShowEditClientModal] = useState(false);
+  const [selectedSale, setSelectedSale] = useState<any>(null);
 
   // Forms
   const [editForm, setEditForm] = useState<Partial<Consultant>>({});
@@ -411,7 +415,7 @@ export function CeoManagementPage() {
             <div>
               <p className="text-sm text-gray-600 dark:text-gray-400">Total Vendas</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {consultants.reduce((acc, c) => acc + c.total_sales, 0)}
+                {consultants.reduce((acc, c) => acc + Number(c.total_sales || 0), 0)}
               </p>
             </div>
             <ShoppingCart className="w-10 h-10 text-purple-600" />
@@ -648,6 +652,14 @@ export function CeoManagementPage() {
           onResetPassword={() => setShowPasswordModal(true)}
           onChangeRole={handleChangeRole}
           roleLabels={roleLabels}
+          onViewClientInfo={(sale) => {
+            setSelectedSale(sale);
+            setShowClientInfoModal(true);
+          }}
+          onEditClient={(sale) => {
+            setSelectedSale(sale);
+            setShowEditClientModal(true);
+          }}
         />
       )}
 
@@ -940,6 +952,168 @@ export function CeoManagementPage() {
           </div>
         </div>
       )}
+
+      {/* Modal de Informações do Cliente/Venda */}
+      {showClientInfoModal && selectedSale && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                {selectedSale.client_id ? '📋 Detalhes do Cliente' : '📋 Informações da Venda'}
+              </h3>
+              <button
+                onClick={() => setShowClientInfoModal(false)}
+                className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-3">
+              <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Cliente</p>
+                <p className="font-medium text-gray-900 dark:text-white">{selectedSale.client_name}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Valor</p>
+                  <p className="font-bold text-gray-900 dark:text-white">
+                    R$ {parseFloat(String(selectedSale.value)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  </p>
+                </div>
+                <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Potência</p>
+                  <p className="font-bold text-gray-900 dark:text-white">{selectedSale.kilowatts} kW</p>
+                </div>
+              </div>
+              <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <p className="text-sm text-gray-600 dark:text-gray-400">Data</p>
+                <p className="font-medium text-gray-900 dark:text-white">
+                  {new Date(selectedSale.created_at).toLocaleDateString('pt-BR')}
+                </p>
+              </div>
+              {!selectedSale.client_id && (
+                <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                    ⚠️ Este cliente não está cadastrado no sistema. Use "Criar Venda" para cadastrar clientes automaticamente.
+                  </p>
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => setShowClientInfoModal(false)}
+              className="w-full mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Fechar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Editar Cliente */}
+      {showEditClientModal && selectedSale && selectedSale.client_id && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">✏️ Editar Cliente</h3>
+              <button
+                onClick={() => setShowEditClientModal(false)}
+                className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              >
+                ✕
+              </button>
+            </div>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const name = formData.get('name') as string;
+                const cpf = formData.get('cpf') as string;
+                const phone = formData.get('phone') as string;
+                const email = formData.get('email') as string;
+
+                try {
+                  await api.put(`/ceo/clients/${selectedSale.client_id}`, {
+                    name,
+                    cpf: cpf || undefined,
+                    phone: phone || undefined,
+                    email: email || undefined,
+                  });
+                  toast.success('Cliente atualizado com sucesso!');
+                  setShowEditClientModal(false);
+                  if (selectedConsultant) {
+                    await api.get(`/ceo/consultants/${selectedConsultant.user.id}`)
+                      .then(res => setSelectedConsultant(res.data?.data || null));
+                  }
+                } catch (error) {
+                  toast.error('Erro ao atualizar cliente');
+                }
+              }}
+              className="space-y-4"
+            >
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Nome *
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  defaultValue={selectedSale.client_name}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  CPF
+                </label>
+                <input
+                  type="text"
+                  name="cpf"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="000.000.000-00"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Telefone
+                </label>
+                <input
+                  type="text"
+                  name="phone"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="(11) 98765-4321"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  placeholder="cliente@exemplo.com"
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <button
+                  type="submit"
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                >
+                  Salvar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowEditClientModal(false)}
+                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -954,6 +1128,8 @@ function ConsultantDetailsModal({
   onResetPassword,
   onChangeRole,
   roleLabels,
+  onViewClientInfo,
+  onEditClient,
 }: {
   consultant: ConsultantDetails;
   onClose: () => void;
@@ -963,6 +1139,8 @@ function ConsultantDetailsModal({
   onResetPassword: () => void;
   onChangeRole: (role: string) => void;
   roleLabels: Record<string, string>;
+  onViewClientInfo: (sale: any) => void;
+  onEditClient: (sale: any) => void;
 }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -1070,7 +1248,7 @@ function ConsultantDetailsModal({
                 {consultant.recent_sales.map((sale) => (
                   <Card key={sale.id} className="p-3">
                     <div className="flex items-center justify-between">
-                      <div>
+                      <div className="flex-1">
                         <p className="font-medium text-gray-900 dark:text-white">
                           {sale.client_name || 'Cliente não identificado'}
                         </p>
@@ -1078,13 +1256,35 @@ function ConsultantDetailsModal({
                           {new Date(sale.created_at).toLocaleDateString('pt-BR')}
                         </p>
                       </div>
-                      <div className="text-right">
+                      <div className="text-right mr-4">
                         <p className="font-bold text-gray-900 dark:text-white">
                           R$ {parseFloat(String(sale.value)).toLocaleString('pt-BR')}
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                           {sale.kilowatts} kW
                         </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => onViewClientInfo(sale)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                          title="Ver Informações"
+                        >
+                          <User className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (!sale.client_id) {
+                              toast.error('Este cliente não está cadastrado no sistema');
+                              return;
+                            }
+                            onEditClient(sale);
+                          }}
+                          className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
+                          title="Editar Cliente"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
                   </Card>

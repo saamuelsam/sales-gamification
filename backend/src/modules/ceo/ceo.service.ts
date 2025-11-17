@@ -69,7 +69,8 @@ export class CeoService {
         (SELECT COUNT(*) FROM sales WHERE user_id = u.id) as total_sales,
         (SELECT COALESCE(SUM(value), 0) FROM sales WHERE user_id = u.id) as total_revenue,
         (SELECT COALESCE(SUM(commission_amount), 0) FROM personal_commissions WHERE user_id = u.id) as personal_commissions,
-        (SELECT COALESCE(SUM(commission_amount), 0) FROM network_commissions WHERE leader_id = u.id) as network_commissions
+        (SELECT COALESCE(SUM(commission_amount), 0) FROM network_commissions WHERE leader_id = u.id) as network_commissions,
+        (SELECT COUNT(*) FROM users WHERE parent_id = u.id) as team_size
       FROM users u
       LEFT JOIN users parent ON u.parent_id = parent.id
       WHERE u.id = $1`,
@@ -93,7 +94,14 @@ export class CeoService {
 
     // Buscar vendas recentes
     const salesQuery = await pool.query(
-      `SELECT s.*, c.name as client_name
+      `SELECT 
+        s.id,
+        s.value,
+        s.kilowatts,
+        s.status,
+        s.created_at,
+        COALESCE(c.name, s.client_name) as client_name,
+        s.client_id
        FROM sales s
        LEFT JOIN clients c ON s.client_id = c.id
        WHERE s.user_id = $1
@@ -353,9 +361,11 @@ export class CeoService {
         throw new Error('Usuário não encontrado ou inativo');
       }
 
-      // Criar ou atualizar cliente se CPF for fornecido
+      // Sempre criar ou atualizar cliente
       let clientId = null;
+      
       if (saleData.client_cpf) {
+        // Se tem CPF, usar ON CONFLICT para atualizar caso já exista
         const clientResult = await client.query(
           `INSERT INTO clients (user_id, name, cpf, phone, email, created_at)
            VALUES ($1, $2, $3, $4, $5, NOW())
@@ -369,6 +379,20 @@ export class CeoService {
             userId,
             saleData.client_name,
             saleData.client_cpf,
+            saleData.client_phone || null,
+            saleData.client_email || null,
+          ]
+        );
+        clientId = clientResult.rows[0].id;
+      } else {
+        // Se não tem CPF, criar cliente sem CPF (permitindo duplicatas)
+        const clientResult = await client.query(
+          `INSERT INTO clients (user_id, name, phone, email, created_at)
+           VALUES ($1, $2, $3, $4, NOW())
+           RETURNING id`,
+          [
+            userId,
+            saleData.client_name,
             saleData.client_phone || null,
             saleData.client_email || null,
           ]
@@ -769,6 +793,14 @@ export class CeoService {
       const query = `UPDATE clients SET ${updates.join(', ')}, updated_at = NOW() WHERE id = $${paramIndex} RETURNING *`;
 
       const result = await client.query(query, values);
+
+      // Se o nome foi atualizado, atualizar também o client_name nas vendas
+      if (data.name) {
+        await client.query(
+          'UPDATE sales SET client_name = $1 WHERE client_id = $2',
+          [data.name, clientId]
+        );
+      }
 
       // Log de auditoria
       await logActivity(ceoId, 'CEO atualizou dados do cliente', {
