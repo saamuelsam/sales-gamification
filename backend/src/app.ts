@@ -18,6 +18,7 @@ import adminRoutes from './modules/admin/admin.routes';
 import benefitRoutes from './modules/benefits/benefit.routes';
 import appointmentRoutes from './modules/appointments/appointment.routes';
 import ceoRoutes from './modules/ceo/ceo.routes';
+import financialRoutes from './modules/financial/financial.routes';
 
 
 dotenv.config();
@@ -125,6 +126,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/benefits', benefitRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/ceo', ceoRoutes);
+app.use('/api/financial', financialRoutes);
 
 // ✅ Middleware de erro global
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {

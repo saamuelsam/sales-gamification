@@ -25,16 +25,47 @@ interface Commission {
   created_at: string;
 }
 
+interface PendingSale {
+  id: string;
+  value: number;
+  kilowatts: number;
+  status: string;
+  created_at: string;
+  notes?: string;
+  client_name: string;
+  client_id?: string;
+  seller_id: string;
+  seller_name: string;
+  seller_email: string;
+  seller_role: string;
+  client_cpf?: string;
+  client_phone?: string;
+  client_email?: string;
+  seller_pending_count: number;
+  seller_approved_count: number;
+}
+
 export default function FinanceiroPage() {
   const { user } = useAuthStore();
+  const [activeTab, setActiveTab] = useState<'commissions' | 'approvals'>('commissions');
   const [commissions, setCommissions] = useState<Commission[]>([]);
+  const [pendingSales, setPendingSales] = useState<PendingSale[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedSale, setSelectedSale] = useState<PendingSale | null>(null);
+  const [showApproveModal, setShowApproveModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [approvalNotes, setApprovalNotes] = useState('');
+  const [rejectionReason, setRejectionReason] = useState('');
 
   useEffect(() => {
-    fetchCommissions();
-  }, []);
+    if (activeTab === 'commissions') {
+      fetchCommissions();
+    } else {
+      fetchPendingSales();
+    }
+  }, [activeTab]);
 
   const fetchCommissions = async () => {
     try {
@@ -61,6 +92,93 @@ export default function FinanceiroPage() {
       toast.error('Erro ao carregar comissões');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPendingSales = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem('token');
+      const baseURL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000/api' : '/api');
+      const response = await fetch(`${baseURL}/financial/pending-sales`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (data.success) {
+        setPendingSales(data.data || []);
+      } else {
+        toast.error(data.message || 'Erro ao carregar vendas pendentes');
+      }
+    } catch (error) {
+      console.error('Erro ao carregar vendas:', error);
+      toast.error('Erro ao carregar vendas pendentes');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApproveSale = async () => {
+    if (!selectedSale) return;
+    
+    try {
+      const token = localStorage.getItem('token');
+      const baseURL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000/api' : '/api');
+      const response = await fetch(`${baseURL}/financial/approve/${selectedSale.id}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ notes: approvalNotes })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        toast.success('Venda aprovada com sucesso!');
+        setShowApproveModal(false);
+        setSelectedSale(null);
+        setApprovalNotes('');
+        fetchPendingSales();
+      } else {
+        toast.error(data.message || 'Erro ao aprovar venda');
+      }
+    } catch (error) {
+      console.error('Erro ao aprovar venda:', error);
+      toast.error('Erro ao aprovar venda');
+    }
+  };
+
+  const handleRejectSale = async () => {
+    if (!selectedSale || !rejectionReason || rejectionReason.length < 10) {
+      toast.error('Por favor, forneça um motivo detalhado (mínimo 10 caracteres)');
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('token');
+      const baseURL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000/api' : '/api');
+      const response = await fetch(`${baseURL}/financial/reject/${selectedSale.id}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ reason: rejectionReason })
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        toast.success('Venda rejeitada');
+        setShowRejectModal(false);
+        setSelectedSale(null);
+        setRejectionReason('');
+        fetchPendingSales();
+      } else {
+        toast.error(data.message || 'Erro ao rejeitar venda');
+      }
+    } catch (error) {
+      console.error('Erro ao rejeitar venda:', error);
+      toast.error('Erro ao rejeitar venda');
     }
   };
 
@@ -158,8 +276,48 @@ export default function FinanceiroPage() {
         </div>
       </div>
 
+      {/* Tabs */}
+      <div className="mb-6">
+        <div className="border-b border-gray-200 dark:border-gray-700">
+          <nav className="-mb-px flex gap-6">
+            <button
+              onClick={() => setActiveTab('commissions')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'commissions'
+                  ? 'border-primary-600 text-primary-600 dark:text-primary-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <DollarSign className="w-5 h-5" />
+                Comissões
+              </div>
+            </button>
+            <button
+              onClick={() => setActiveTab('approvals')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'approvals'
+                  ? 'border-primary-600 text-primary-600 dark:text-primary-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5" />
+                Aprovar Vendas
+                {pendingSales.length > 0 && (
+                  <span className="ml-2 px-2 py-0.5 text-xs font-semibold rounded-full bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+                    {pendingSales.length}
+                  </span>
+                )}
+              </div>
+            </button>
+          </nav>
+        </div>
+      </div>
+
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      {activeTab === 'commissions' && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div>
@@ -210,8 +368,57 @@ export default function FinanceiroPage() {
           </div>
         </div>
       </div>
+      )}
+
+      {/* Approval Sales Stats */}
+      {activeTab === 'approvals' && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Vendas Pendentes</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {pendingSales.length}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center">
+                <Clock className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Valor Total Pendente</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  R$ {pendingSales.reduce((sum, s) => sum + s.value, 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Vendedores Únicos</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {new Set(pendingSales.map(s => s.seller_id)).size}
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                <Users className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Filters */}
+      {activeTab === 'commissions' && (
       <div className="bg-white dark:bg-gray-800 p-6 rounded-xl border border-gray-200 dark:border-gray-700 mb-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
@@ -258,8 +465,10 @@ export default function FinanceiroPage() {
           </div>
         </div>
       </div>
+      )}
 
       {/* Commissions Table */}
+      {activeTab === 'commissions' && (
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -343,6 +552,209 @@ export default function FinanceiroPage() {
           </div>
         )}
       </div>
+      )}
+
+      {/* Pending Sales Table */}
+      {activeTab === 'approvals' && (
+        <div className="space-y-4">
+          {pendingSales.length === 0 ? (
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
+              <CheckCircle className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400 text-lg">
+                Nenhuma venda pendente de aprovação
+              </p>
+            </div>
+          ) : (
+            pendingSales.map((sale) => (
+              <div key={sale.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+                        {sale.client_name}
+                      </h3>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        sale.status === 'pending'
+                          ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                          : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                      }`}>
+                        {sale.status === 'pending' ? '⏳ Pendente' : '💬 Negociação'}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Vendedor</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{sale.seller_name}</p>
+                        <p className="text-xs text-gray-500">{sale.seller_email}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Valor</p>
+                        <p className="font-bold text-green-600 dark:text-green-400">
+                          R$ {sale.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Potência</p>
+                        <p className="font-medium text-gray-900 dark:text-white">{sale.kilowatts} kW</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Data</p>
+                        <p className="font-medium text-gray-900 dark:text-white">
+                          {new Date(sale.created_at).toLocaleDateString('pt-BR')}
+                        </p>
+                      </div>
+                    </div>
+                    {sale.client_cpf && (
+                      <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Dados do Cliente:</p>
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <span className="text-gray-500">CPF:</span> <span className="text-gray-900 dark:text-white">{sale.client_cpf}</span>
+                          </div>
+                          {sale.client_phone && (
+                            <div>
+                              <span className="text-gray-500">Telefone:</span> <span className="text-gray-900 dark:text-white">{sale.client_phone}</span>
+                            </div>
+                          )}
+                          {sale.client_email && (
+                            <div>
+                              <span className="text-gray-500">Email:</span> <span className="text-gray-900 dark:text-white">{sale.client_email}</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <p className="text-sm text-blue-800 dark:text-blue-200">
+                        📊 Este vendedor tem <strong>{sale.seller_pending_count} vendas pendentes</strong> e <strong>{sale.seller_approved_count} aprovadas</strong>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <button
+                    onClick={() => {
+                      setSelectedSale(sale);
+                      setShowApproveModal(true);
+                    }}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors"
+                  >
+                    <CheckCircle className="w-5 h-5" />
+                    Aprovar Venda
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedSale(sale);
+                      setShowRejectModal(true);
+                    }}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
+                  >
+                    <XCircle className="w-5 h-5" />
+                    Rejeitar Venda
+                  </button>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Modal de Aprovação */}
+      {showApproveModal && selectedSale && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+              ✅ Aprovar Venda
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Você está prestes a aprovar a venda de <strong>{selectedSale.client_name}</strong> no valor de <strong>R$ {selectedSale.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>.
+            </p>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Observações (opcional)
+              </label>
+              <textarea
+                value={approvalNotes}
+                onChange={(e) => setApprovalNotes(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                rows={3}
+                placeholder="Ex: Documentação conferida e aprovada..."
+              />
+            </div>
+            <p className="text-sm text-blue-600 dark:text-blue-400 mb-4">
+              ⚠️ Após aprovação, as comissões serão automaticamente liberadas para o vendedor e sua rede.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleApproveSale}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium"
+              >
+                Confirmar Aprovação
+              </button>
+              <button
+                onClick={() => {
+                  setShowApproveModal(false);
+                  setSelectedSale(null);
+                  setApprovalNotes('');
+                }}
+                className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Rejeição */}
+      {showRejectModal && selectedSale && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+              ❌ Rejeitar Venda
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Você está prestes a rejeitar a venda de <strong>{selectedSale.client_name}</strong> no valor de <strong>R$ {selectedSale.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>.
+            </p>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Motivo da Rejeição (obrigatório) *
+              </label>
+              <textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                rows={4}
+                placeholder="Ex: Documentação incompleta. Falta comprovante de residência do cliente..."
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">Mínimo 10 caracteres</p>
+            </div>
+            <p className="text-sm text-red-600 dark:text-red-400 mb-4">
+              ⚠️ O vendedor será notificado com este motivo. Nenhuma comissão será gerada.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleRejectSale}
+                disabled={rejectionReason.length < 10}
+                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Confirmar Rejeição
+              </button>
+              <button
+                onClick={() => {
+                  setShowRejectModal(false);
+                  setSelectedSale(null);
+                  setRejectionReason('');
+                }}
+                className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

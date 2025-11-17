@@ -2,6 +2,7 @@
 import { Router } from 'express';
 import { salesController } from './sales.controller';
 import { verifyTokenMiddleware } from '../../middleware/auth.middleware';
+import { checkFinancialPermission, preventSaleEdit } from '../../middleware/checkFinancialPermission';
 import { pool } from '@config/database';
 
 const router = Router();
@@ -48,14 +49,14 @@ router.post('/', (req, res) => salesController.createSale(req, res));
 // Listar vendas
 router.get('/', (req, res) => salesController.listSales(req, res));
 
-// ✅ Atualizar STATUS da venda (gera comissão automaticamente)
-router.put('/:id/status', (req, res) => salesController.updateStatus(req, res));
+// ✅ Atualizar STATUS da venda - APENAS FINANCEIRO/CEO (gera comissão automaticamente)
+router.put('/:id/status', checkFinancialPermission, (req, res) => salesController.updateStatus(req, res));
 
 // Buscar venda por ID
 router.get('/:id', (req, res) => salesController.getSale(req, res));
 
-// ✅ Atualizar dados da venda
-router.put('/:id', (req, res) => salesController.updateSale(req, res));
+// ✅ Atualizar dados da venda - BLOQUEADO PARA CONSULTORES
+router.put('/:id', preventSaleEdit, (req, res) => salesController.updateSale(req, res));
 
 // Deletar venda
 router.delete('/:id', (req, res) => salesController.deleteSale(req, res));

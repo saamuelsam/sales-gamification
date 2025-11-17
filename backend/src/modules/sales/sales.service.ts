@@ -38,14 +38,14 @@ export class SalesService {
         }
       }
 
-      // 1. Inserir venda
+      // 1. Inserir venda - SEMPRE começa como 'pending' para aprovação do financeiro
       const saleResult = await client.query(
         `INSERT INTO sales (
           user_id, client_id, client_name, value, kilowatts,
           insurance_value, sale_type, consortium_value, consortium_term,
           consortium_monthly_payment, consortium_admin_fee,
-          template_type, notes, status
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'negotiation')
+          template_type, notes, status, value_locked
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, 'pending', TRUE)
         RETURNING *`,
         [
           userId,
