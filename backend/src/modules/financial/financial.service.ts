@@ -81,7 +81,19 @@ export class FinancialService {
   ) {
     const client = await pool.connect();
     try {
+      // Validar parâmetros obrigatórios
+      if (!saleId || typeof saleId !== 'string') {
+        throw new Error('ID da venda inválido');
+      }
+
+      if (!financialUserId || typeof financialUserId !== 'string') {
+        logger.error(`❌ financialUserId inválido: ${financialUserId} (tipo: ${typeof financialUserId})`);
+        throw new Error('ID do usuário inválido. Faça login novamente.');
+      }
+
       await client.query('BEGIN');
+
+      logger.info(`🔍 Aprovando venda ${saleId} por usuário ${financialUserId}`);
 
       // Buscar venda e validar
       const saleResult = await client.query(
@@ -104,19 +116,21 @@ export class FinancialService {
       }
 
       // Buscar dados do aprovador
-      logger.info(`🔍 Buscando usuário com ID: ${financialUserId}`);
+      logger.info(`🔍 Buscando usuário aprovador com ID: ${financialUserId}`);
       const userResult = await client.query(
-        'SELECT name, email, role FROM users WHERE id = $1',
+        'SELECT id, name, email, role FROM users WHERE id = $1',
         [financialUserId]
       );
 
-      logger.info(`📊 Resultado da query: ${userResult.rows.length} linhas`);
+      logger.info(`📊 Query users resultado: ${userResult.rows.length} linhas encontradas`);
       
       if (userResult.rows.length === 0) {
-        throw new Error(`Usuário não encontrado com ID: ${financialUserId}`);
+        logger.error(`❌ Nenhum usuário encontrado com ID: ${financialUserId}`);
+        throw new Error(`Usuário não encontrado. Faça login novamente.`);
       }
 
       const approver = userResult.rows[0];
+      logger.info(`✅ Aprovador encontrado: ${approver.name} (${approver.role})`);
 
       // Validar permissão
       if (!['ceo', 'financeiro', 'admin'].includes(approver.role)) {
@@ -392,9 +406,16 @@ export class FinancialService {
     const commissionService = new CommissionService();
     
     logger.info(`🎯 Processando comissões para venda ${sale.id}`);
+    logger.info(`📊 Dados da venda: value=${sale.value}, kilowatts=${sale.kilowatts}, type=${sale.sale_type}`);
     
     // 1. CALCULAR E REGISTRAR PONTOS (apenas se ainda não foram dados)
-    const points = sale.kilowatts;
+    // Validar kilowatts para evitar overflow
+    const rawKilowatts = parseFloat(sale.kilowatts);
+    if (isNaN(rawKilowatts) || rawKilowatts < 0 || rawKilowatts > 2147483647) {
+      logger.error(`❌ Valor de kilowatts inválido: ${sale.kilowatts}`);
+      throw new Error(`Valor de kilowatts inválido: ${sale.kilowatts}. Deve ser entre 0 e 2.147.483.647`);
+    }
+    const points = rawKilowatts;
     let newAccumulatedPoints = 0;
     
     // Verificar se pontos já foram atribuídos para esta venda
@@ -455,34 +476,52 @@ export class FinancialService {
     let saleCommission = 0;
     let insuranceCommissionValue = 0;
     
+    // Validar valores monetários
+    const saleValue = parseFloat(sale.value) || 0;
+    const consortiumValue = parseFloat(sale.consortium_value) || 0;
+    const insuranceValue = parseFloat(sale.insurance_value) || 0;
+    
+    logger.info(`💰 Valores: sale=${saleValue}, consortium=${consortiumValue}, insurance=${insuranceValue}`);
+    
     if (sale.sale_type === 'consortium') {
       // CONSÓRCIO: 5% sobre consortium_value
-      if (sale.consortium_value) {
-        saleCommission = (sale.consortium_value * 5.0) / 100;
+      if (consortiumValue > 0) {
+        saleCommission = (consortiumValue * 5.0) / 100;
       }
     } else {
       // VENDA NORMAL: usar comissão do nível
-      const personalCommission = parseFloat(level.personal_commission);
-      saleCommission = (sale.value * personalCommission) / 100;
+      const personalCommission = parseFloat(level.personal_commission) || 0;
+      saleCommission = (saleValue * personalCommission) / 100;
       
       // Comissão de seguro (se tiver)
-      if (sale.insurance_value) {
-        const insuranceCommission = parseFloat(level.insurance_commission);
-        insuranceCommissionValue = (sale.insurance_value * insuranceCommission) / 100;
+      if (insuranceValue > 0) {
+        const insuranceCommission = parseFloat(level.insurance_commission) || 0;
+        insuranceCommissionValue = (insuranceValue * insuranceCommission) / 100;
       }
     }
     
     const totalCommission = saleCommission + insuranceCommissionValue;
     
+    logger.info(`💵 Comissões calculadas: venda=${saleCommission.toFixed(2)}, seguro=${insuranceCommissionValue.toFixed(2)}, total=${totalCommission.toFixed(2)}`);
+    
     // 4. REGISTRAR COMISSÃO PESSOAL (se ainda não foi registrada)
-    await client.query(
-      `INSERT INTO commissions (
-        user_id, sale_id, sale_commission,
-        insurance_commission, total_commission
-      ) VALUES ($1, $2, $3, $4, $5)
-      ON CONFLICT (user_id, sale_id) DO NOTHING`,
-      [sale.user_id, sale.id, saleCommission, insuranceCommissionValue, totalCommission]
+    const existingCommissionResult = await client.query(
+      'SELECT id FROM commissions WHERE user_id = $1 AND sale_id = $2',
+      [sale.user_id, sale.id]
     );
+    
+    if (existingCommissionResult.rows.length === 0) {
+      await client.query(
+        `INSERT INTO commissions (
+          user_id, sale_id, sale_commission,
+          insurance_commission, total_commission
+        ) VALUES ($1, $2, $3, $4, $5)`,
+        [sale.user_id, sale.id, saleCommission, insuranceCommissionValue, totalCommission]
+      );
+      logger.info(`✅ Comissão registrada: R$ ${totalCommission.toFixed(2)}`);
+    } else {
+      logger.info(`ℹ️ Comissão já foi registrada anteriormente para a venda ${sale.id}`);
+    }
     
     // 5. ATUALIZAR PONTOS DO USUÁRIO (apenas se pontos foram atribuídos agora)
     const pointsEarned = Math.floor(sale.kilowatts);

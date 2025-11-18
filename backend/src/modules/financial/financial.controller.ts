@@ -46,12 +46,24 @@ export class FinancialController {
       const { notes } = req.body;
       const user = (req as any).user;
 
-      console.log('🔍 DEBUG Controller - user object:', JSON.stringify(user, null, 2));
-      console.log('🔍 DEBUG Controller - userId:', user.userId);
-      console.log('🔍 DEBUG Controller - id:', user.id);
-      console.log('🔍 DEBUG Controller - usando:', user.userId || user.id);
+      // Validar autenticação
+      if (!user || !user.userId) {
+        console.error('❌ Usuário não autenticado ou sem userId');
+        return res.status(401).json({
+          success: false,
+          message: 'Usuário não autenticado',
+        });
+      }
 
-      const result = await financialService.approveSale(saleId, user.userId || user.id, {
+      console.log('🔍 DEBUG Controller - Aprovando venda:', {
+        saleId,
+        userId: user.userId,
+        userRole: user.role,
+        userEmail: user.email,
+        notes: notes || 'sem observações'
+      });
+
+      const result = await financialService.approveSale(saleId, user.userId, {
         notes,
         ipAddress: req.ip || req.connection.remoteAddress,
         userAgent: req.get('user-agent'),
@@ -60,6 +72,7 @@ export class FinancialController {
       res.json(result);
     } catch (error: any) {
       console.error('❌ Erro ao aprovar venda:', error.message);
+      console.error('Stack:', error.stack);
       res.status(400).json({
         success: false,
         message: error.message || 'Erro ao aprovar venda',
@@ -77,6 +90,15 @@ export class FinancialController {
       const { reason } = req.body;
       const user = (req as any).user;
 
+      // Validar autenticação
+      if (!user || !user.userId) {
+        console.error('❌ Usuário não autenticado ou sem userId');
+        return res.status(401).json({
+          success: false,
+          message: 'Usuário não autenticado',
+        });
+      }
+
       if (!reason) {
         return res.status(400).json({
           success: false,
@@ -84,7 +106,14 @@ export class FinancialController {
         });
       }
 
-      const result = await financialService.rejectSale(saleId, user.userId || user.id, {
+      console.log('🔍 DEBUG Controller - Rejeitando venda:', {
+        saleId,
+        userId: user.userId,
+        userRole: user.role,
+        reasonLength: reason.length
+      });
+
+      const result = await financialService.rejectSale(saleId, user.userId, {
         reason,
         ipAddress: req.ip || req.connection.remoteAddress,
         userAgent: req.get('user-agent'),
@@ -93,6 +122,7 @@ export class FinancialController {
       res.json(result);
     } catch (error: any) {
       console.error('❌ Erro ao rejeitar venda:', error.message);
+      console.error('Stack:', error.stack);
       res.status(400).json({
         success: false,
         message: error.message || 'Erro ao rejeitar venda',

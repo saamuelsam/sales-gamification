@@ -131,6 +131,14 @@ export default function FinanceiroPage() {
     try {
       const token = localStorage.getItem('token');
       const baseURL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:4000/api' : '/api');
+      
+      console.log('🔍 Aprovando venda:', {
+        saleId: selectedSale.id,
+        baseURL,
+        hasToken: !!token,
+        tokenPreview: token ? `${token.substring(0, 20)}...` : 'null'
+      });
+      
       const response = await fetch(`${baseURL}/financial/approve/${selectedSale.id}`, {
         method: 'POST',
         headers: {
@@ -141,18 +149,27 @@ export default function FinanceiroPage() {
       });
       
       const data = await response.json();
-      if (data.success) {
+      
+      console.log('📡 Resposta do servidor:', {
+        status: response.status,
+        ok: response.ok,
+        data
+      });
+      
+      if (response.ok && data.success) {
         toast.success('Venda aprovada com sucesso!');
         setShowApproveModal(false);
         setSelectedSale(null);
         setApprovalNotes('');
         fetchPendingSales();
       } else {
-        toast.error(data.message || 'Erro ao aprovar venda');
+        const errorMessage = data.message || `Erro ${response.status}: ${response.statusText}`;
+        console.error('❌ Erro na resposta:', errorMessage);
+        toast.error(errorMessage);
       }
-    } catch (error) {
-      console.error('Erro ao aprovar venda:', error);
-      toast.error('Erro ao aprovar venda');
+    } catch (error: any) {
+      console.error('❌ Erro ao aprovar venda:', error);
+      toast.error(error.message || 'Erro ao aprovar venda');
     }
   };
 
