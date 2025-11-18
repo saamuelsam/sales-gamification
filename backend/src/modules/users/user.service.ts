@@ -142,6 +142,36 @@ export class UserService {
         [userId]
       );
 
+      // 💰 Buscar comissões do usuário
+      const commissionsResult = await pool.query(
+        `SELECT 
+          COALESCE(SUM(total_commission), 0)::NUMERIC as total_personal_commissions,
+          COUNT(*)::INT as total_commission_count
+         FROM commissions
+         WHERE user_id = $1::uuid`,
+        [userId]
+      );
+
+      // 🔗 Buscar comissões de rede (para Diretor Comercial e líderes)
+      const networkCommissionsResult = await pool.query(
+        `SELECT 
+          COALESCE(SUM(commission_amount), 0)::NUMERIC as total_network_commissions,
+          COUNT(*)::INT as network_commission_count
+         FROM network_commissions
+         WHERE leader_id = $1::uuid`,
+        [userId]
+      );
+
+      const totalPersonalCommissions = parseFloat(commissionsResult.rows[0]?.total_personal_commissions || '0');
+      const totalNetworkCommissions = parseFloat(networkCommissionsResult.rows[0]?.total_network_commissions || '0');
+      const totalCommissions = totalPersonalCommissions + totalNetworkCommissions;
+
+      console.log('💰 Comissões:', {
+        personal: totalPersonalCommissions,
+        network: totalNetworkCommissions,
+        total: totalCommissions
+      });
+
       // ✅ Monta o dashboard final
       const dashboardData = {
         total_sales: parseInt(salesData?.total_sales || '0'),
@@ -154,6 +184,12 @@ export class UserService {
         last_sale_date: salesData?.last_sale_date || null,
         meses_sem_contratos,
         team_members: parseInt(teamResult.rows[0]?.team_members || '0'),
+        // 💰 Adicionar comissões ao dashboard
+        total_commissions: totalCommissions,
+        personal_commissions: totalPersonalCommissions,
+        network_commissions: totalNetworkCommissions,
+        commission_count: parseInt(commissionsResult.rows[0]?.total_commission_count || '0'),
+        network_commission_count: parseInt(networkCommissionsResult.rows[0]?.network_commission_count || '0'),
         charts: {
           byStatus: statusResult.rows.map((row: any) => ({
             name: row.status,

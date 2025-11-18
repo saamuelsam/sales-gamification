@@ -454,6 +454,8 @@ export class FinancialService {
     const userResult = await client.query('SELECT role FROM users WHERE id = $1', [sale.user_id]);
     const userRole = userResult.rows[0].role;
     
+    logger.info(`👤 Usuário role: ${userRole}`);
+    
     const levelResult = await client.query(
       `SELECT personal_commission, insurance_commission
        FROM levels
@@ -464,6 +466,7 @@ export class FinancialService {
            WHEN $1 = 'senior_consultant' THEN 3
            WHEN $1 = 'prime_consultant' THEN 4
            WHEN $1 = 'executive' THEN 5
+           WHEN $1 = 'diretor_comercial' THEN 6
            ELSE 1
          END
        )`,
@@ -471,6 +474,7 @@ export class FinancialService {
     );
     
     const level = levelResult.rows[0];
+    logger.info(`📊 Comissões do nível: pessoal=${level.personal_commission}%, seguro=${level.insurance_commission}%`);
     
     // 3. CALCULAR COMISSÕES
     let saleCommission = 0;

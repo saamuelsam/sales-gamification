@@ -279,6 +279,11 @@ export function DashboardPage() {
             value={totalSales}
           />
           <StatsCard
+            icon={<DollarSign className="w-6 h-6 text-green-500" />}
+            title="Comissões"
+            value={parseNumberFromAny(dashboardData?.total_commissions || 0)}
+          />
+          <StatsCard
             icon={<Zap className="w-6 h-6 text-accent" />}
             title="Pontos"
             value={currentPoints}

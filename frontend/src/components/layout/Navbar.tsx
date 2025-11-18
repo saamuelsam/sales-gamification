@@ -73,12 +73,12 @@ export const Navbar = () => {
   }, []);
 
   return (
-    <nav className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-3 sm:px-6 py-3 sm:py-4 transition-colors">
+    <nav className="bg-gradient-to-r from-highlight via-orange-600 to-gray-900 border-b border-orange-500/30 px-3 sm:px-6 py-3 sm:py-4 shadow-lg">
       <div className="flex items-center justify-between">
-        {/* Logo */}
+        {/* Título */}
         <div className="min-w-0">
-          <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 truncate">Fortal Energia Solar</h2>
-          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">Sistema de Gestão de Vendas</p>
+          <h2 className="text-lg sm:text-xl font-bold text-white truncate drop-shadow-md">Fortal Energia Solar</h2>
+          <p className="text-xs sm:text-sm text-orange-100 truncate">Sistema de Gestão de Vendas</p>
         </div>
 
         {/* Direita */}
@@ -93,13 +93,13 @@ export const Navbar = () => {
                 setNotifOpen(!notifOpen);
                 if (!notifOpen) loadNotifications();
               }}
-              className="relative p-2 rounded-lg border border-gray-300 hover:bg-gray-100 transition-all active:bg-gray-200"
+              className="relative p-2 rounded-lg border border-white/30 bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all active:bg-white/30"
               title="Notificações"
             >
               {notifLoading ? (
-                <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600 animate-spin" />
+                <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 text-white animate-spin" />
               ) : (
-                <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-gray-600" />
+                <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               )}
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 sm:w-6 sm:h-6 flex items-center justify-center leading-none">
@@ -247,14 +247,14 @@ export const Navbar = () => {
           </div>
 
           {/* Perfil */}
-          <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 border-l border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 border-l border-white/30">
             <div className="text-right hidden sm:block">
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user?.name}</p>
-              <p className="text-xs text-gray-600 dark:text-gray-400 capitalize">{user?.role?.replace('_', ' ')}</p>
+              <p className="text-sm font-medium text-white drop-shadow-md">{user?.name}</p>
+              <p className="text-xs text-orange-100 capitalize">{user?.role?.replace('_', ' ')}</p>
             </div>
             <button
               onClick={() => navigate('/profile')}
-              className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary-500 to-accent rounded-full flex items-center justify-center flex-shrink-0 hover:opacity-90 transition-opacity overflow-hidden border-2 border-white dark:border-gray-700 shadow-sm"
+              className="w-8 h-8 sm:w-10 sm:h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center flex-shrink-0 hover:bg-white/30 transition-all overflow-hidden border-2 border-white/50 shadow-lg"
               title="Meu Perfil"
             >
               {avatarUrl ? (
@@ -272,7 +272,7 @@ export const Navbar = () => {
           {/* Logout */}
           <button
             onClick={logout}
-            className="p-2 hover:bg-red-50 rounded-lg transition text-red-600 active:bg-red-100"
+            className="p-2 hover:bg-red-500/20 rounded-lg transition-all text-white border border-white/30 backdrop-blur-sm active:bg-red-500/30"
             title="Sair"
           >
             <LogOut className="w-5 h-5 sm:w-6 sm:h-6" />

@@ -26,6 +26,7 @@ export class CommissionService {
              WHEN (SELECT role FROM users WHERE id = $1) = 'senior_consultant' THEN 3
              WHEN (SELECT role FROM users WHERE id = $1) = 'prime_consultant' THEN 4
              WHEN (SELECT role FROM users WHERE id = $1) = 'executive' THEN 5
+             WHEN (SELECT role FROM users WHERE id = $1) = 'diretor_comercial' THEN 6
              ELSE 1
            END
          )`,
@@ -69,7 +70,7 @@ export class CommissionService {
   }
 
   /**
-   * ✅ Processar comissão de rede — Insere em network_commissions
+   * ✅ Processar comissão de rede — Insere em network_commissions (CASCATA ATÉ 10 NÍVEIS)
    */
   async processNetworkCommission(
   memberId: string,
@@ -87,44 +88,22 @@ export class CommissionService {
     );
     const memberRole = memberResult.rows[0]?.role || 'consultant';
 
-    // Buscar líder direto
-    const leaderResult = await pool.query(
-      `SELECT u.id, u.role, u.name
+    // Buscar TODOS os líderes da hierarquia (até 10 níveis para Diretor Comercial)
+    const hierarchyResult = await pool.query(
+      `SELECT u.id, u.role, u.name, uh.line_level
        FROM user_hierarchy uh
        JOIN users u ON uh.leader_id = u.id
-       WHERE uh.subordinate_id = $1 AND uh.line_level = 1
-       LIMIT 1`,
+       WHERE uh.subordinate_id = $1 AND uh.line_level <= 10
+       ORDER BY uh.line_level ASC`,
       [memberId]
     );
 
-    if (leaderResult.rows.length === 0) {
+    if (hierarchyResult.rows.length === 0) {
       logger.warn(`⚠️ Nenhum líder encontrado para o membro ${memberId}`);
       return;
     }
 
-    const leader = leaderResult.rows[0];
-    logger.info(`👤 Líder encontrado: ${leader.name} (${leader.role}) | Membro role: ${memberRole}`);
-
-    // Buscar line_level da hierarquia
-    const lineResult = await pool.query(
-      `SELECT line_level FROM user_hierarchy WHERE leader_id = $1 AND subordinate_id = $2`,
-      [leader.id, memberId]
-    );
-    const lineLevel = lineResult.rows[0]?.line_level || 1;
-
-    // 🔥 REGRA PRINCIPAL: Apenas Diretor Comercial recebe de toda rede
-    // Demais (Master+) recebem APENAS da 1ª linha E APENAS de consultores Elite
-    if (leader.role !== 'diretor_comercial') {
-      // Regra padrão: apenas 1ª linha e apenas Elite
-      if (lineLevel > 1) {
-        logger.info(`⚠️ ${leader.name} (${leader.role}) não recebe de linhas > 1. Ignorando.`);
-        return;
-      }
-      if (memberRole !== 'consultant') {
-        logger.info(`⚠️ ${leader.name} (${leader.role}) só recebe de Elite. Membro é ${memberRole}. Ignorando.`);
-        return;
-      }
-    }
+    logger.info(`👥 Encontrados ${hierarchyResult.rows.length} líderes na hierarquia`);
 
     const commissionRates: Record<string, number> = {
       consultant: 0,
@@ -132,47 +111,75 @@ export class CommissionService {
       senior_consultant: 1.5,
       prime_consultant: 1.5,
       executive: 1.0,
-      diretor_comercial: 2.0, // 2% para 1ª linha, 0.5% para resto da rede
+      diretor_comercial: 2.0, // 2% para 1ª linha, 0.5% para linhas 2-10
     };
 
-    let commissionRate = commissionRates[leader.role] ?? 1.0;
+    // Processar comissão para cada líder na hierarquia
+    for (const leader of hierarchyResult.rows) {
+      const lineLevel = leader.line_level;
 
-    // 🔥 Diretor Comercial: 2% na 1ª linha, 0.5% no resto da rede
-    if (leader.role === 'diretor_comercial' && lineLevel > 1) {
-      commissionRate = 0.5; // Resto da rede
-    }
+      logger.info(`👤 Processando líder: ${leader.name} (${leader.role}) | Linha: ${lineLevel} | Membro role: ${memberRole}`);
 
-    const commissionAmount = parseFloat(((saleValue * commissionRate) / 100).toFixed(2));
+      // 🔥 REGRA PRINCIPAL: Apenas Diretor Comercial recebe de múltiplas linhas
+      // Demais (Master+) recebem APENAS da 1ª linha E APENAS de Consultores Elite
+      if (leader.role !== 'diretor_comercial') {
+        // Regra padrão: apenas 1ª linha e apenas Elite
+        if (lineLevel > 1) {
+          logger.info(`⚠️ ${leader.name} (${leader.role}) não recebe de linha ${lineLevel} > 1. Ignorando.`);
+          continue;
+        }
+        if (memberRole !== 'consultant') {
+          logger.info(`⚠️ ${leader.name} (${leader.role}) só recebe de Elite. Membro é ${memberRole}. Ignorando.`);
+          continue;
+        }
+      }
 
-    logger.info(`💰 Taxa: ${commissionRate}%, Valor: R$ ${commissionAmount}`);
+      let commissionRate = commissionRates[leader.role] ?? 1.0;
 
-    // Inserir em network_commissions
-    const result = await pool.query(
-      `INSERT INTO network_commissions
-       (leader_id, team_member_id, sale_id, line_level, commission_percentage, commission_amount, paid, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, FALSE, NOW())
-       ON CONFLICT (leader_id, team_member_id, sale_id) DO NOTHING
-       RETURNING id`,
-      [leader.id, memberId, saleId || null, lineLevel, commissionRate, commissionAmount]
-    );
+      // 🔥 Diretor Comercial: 2% na 1ª linha, 0.5% nas linhas 2-10, 0% além da 10ª
+      if (leader.role === 'diretor_comercial') {
+        if (lineLevel === 1) {
+          commissionRate = 2.0; // 1ª linha: 2%
+        } else if (lineLevel >= 2 && lineLevel <= 10) {
+          commissionRate = 0.5; // Linhas 2-10: 0.5%
+        } else {
+          logger.info(`⚠️ Diretor Comercial não recebe de linha ${lineLevel} (máx: 10). Ignorando.`);
+          continue; // Além da 10ª linha não recebe
+        }
+      }
 
-    if (result.rows.length > 0) {
-      logger.info(
-        `✅ Comissão de rede criada: ID ${result.rows[0].id}, líder ${leader.name}, membro ${memberId}, R$ ${commissionAmount}`
+      const commissionAmount = parseFloat(((saleValue * commissionRate) / 100).toFixed(2));
+
+      logger.info(`💰 Taxa: ${commissionRate}%, Valor: R$ ${commissionAmount}, Linha: ${lineLevel}`);
+
+      // Inserir em network_commissions
+      const result = await pool.query(
+        `INSERT INTO network_commissions
+         (leader_id, team_member_id, sale_id, line_level, commission_percentage, commission_amount, paid, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, FALSE, NOW())
+         ON CONFLICT (leader_id, team_member_id, sale_id) DO NOTHING
+         RETURNING id`,
+        [leader.id, memberId, saleId || null, lineLevel, commissionRate, commissionAmount]
       );
-      
-      // 📝 LOG: Comissão de rede gerada
-      await logActivity(leader.id, 'Recebeu nova comissão da rede', {
-        commission_id: result.rows[0].id,
-        team_member_id: memberId,
-        sale_id: saleId,
-        line_level: 1,
-        percentage: commissionRate,
-        amount: commissionAmount,
-        team_member_name: leader.name
-      });
-    } else {
-      logger.warn(`⚠️ Comissão de rede já existe (ON CONFLICT): líder ${leader.id}, membro ${memberId}`);
+
+      if (result.rows.length > 0) {
+        logger.info(
+          `✅ Comissão de rede criada: ID ${result.rows[0].id}, líder ${leader.name} (linha ${lineLevel}), membro ${memberId}, R$ ${commissionAmount}`
+        );
+        
+        // 📝 LOG: Comissão de rede gerada
+        await logActivity(leader.id, 'Recebeu nova comissão da rede', {
+          commission_id: result.rows[0].id,
+          team_member_id: memberId,
+          sale_id: saleId,
+          line_level: lineLevel,
+          percentage: commissionRate,
+          amount: commissionAmount,
+          team_member_name: leader.name
+        });
+      } else {
+        logger.warn(`⚠️ Comissão de rede já existe (ON CONFLICT): líder ${leader.id}, membro ${memberId}`);
+      }
     }
   } catch (error: any) {
     logger.error(`❌ Erro ao processar comissão de rede: ${error.message}`, error);

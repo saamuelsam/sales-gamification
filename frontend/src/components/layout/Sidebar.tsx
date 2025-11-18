@@ -42,9 +42,11 @@ export const Sidebar = () => {
     <aside className="w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 h-screen sticky top-0">
       <div className="p-6">
         <div className="flex items-center gap-3 mb-8">
-          <div className="w-12 h-12 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center">
-            <Award className="w-6 h-6 text-white" />
-          </div>
+          <img 
+            src="/logo-fortal.svg" 
+            alt="Fortal Energia Solar" 
+            className="w-12 h-12 flex-shrink-0 drop-shadow-lg"
+          />
           <div>
             <h1 className="font-bold text-lg text-gray-900 dark:text-gray-100">Fortal</h1>
             <p className="text-xs text-gray-600 dark:text-gray-400">Energia Solar</p>
