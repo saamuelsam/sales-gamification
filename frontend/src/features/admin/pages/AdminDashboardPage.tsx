@@ -150,7 +150,7 @@ export function AdminDashboardPage() {
                 <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">{card.label}</p>
                 <p className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mt-1">{card.value}</p>
                 {card.subtitle && (
-                  <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">{card.subtitle}</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 font-medium">{card.subtitle}</p>
                 )}
               </div>
               <div className="ml-4">{card.icon}</div>
@@ -182,12 +182,18 @@ export function AdminDashboardPage() {
           <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Vendas por Mês</h2>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={reports?.charts.sales_per_month || []}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-              <XAxis dataKey="month" stroke="#9ca3af" />
-              <YAxis stroke="#9ca3af" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="month" stroke="#6b7280" />
+              <YAxis stroke="#6b7280" />
               <Tooltip 
-                contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
-                labelStyle={{ color: '#f3f4f6' }}
+                contentStyle={{ 
+                  backgroundColor: '#ffffff', 
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '0.5rem',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                }}
+                labelStyle={{ color: '#111827', fontWeight: 600 }}
+                itemStyle={{ color: '#374151' }}
               />
               <Bar dataKey="count" fill="#10b981" radius={[8, 8, 0, 0]} />
             </BarChart>
@@ -214,7 +220,13 @@ export function AdminDashboardPage() {
                 ))}
               </Pie>
               <Tooltip 
-                contentStyle={{ backgroundColor: '#1f2937', border: '1px solid #374151' }}
+                contentStyle={{ 
+                  backgroundColor: 'rgb(255 255 255 / 0.95)', 
+                  border: '1px solid rgb(229 231 235)',
+                  borderRadius: '0.5rem',
+                  boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                }}
+                itemStyle={{ color: '#374151' }}
               />
               <Legend />
             </PieChart>
