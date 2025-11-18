@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { userController } from './user.controller';
 import { verifyTokenMiddleware } from '../../middleware/auth.middleware';
+import { uploadAvatar } from '../../config/multer';
 
 const router = Router();
 
@@ -13,6 +14,8 @@ router.get('/dashboard', (req, res) => userController.getDashboard(req, res));
 // ✅ Perfil
 router.get('/profile', (req, res) => userController.getProfile(req, res));
 router.put('/profile', (req, res) => userController.updateProfile(req, res));
+router.post('/avatar', uploadAvatar.single('avatar'), (req, res) => userController.uploadAvatar(req, res));
+router.delete('/avatar', (req, res) => userController.deleteAvatar(req, res));
 
 // ✅ Nível do usuário
 router.get('/me/level', (req, res) => userController.getUserLevel(req, res));

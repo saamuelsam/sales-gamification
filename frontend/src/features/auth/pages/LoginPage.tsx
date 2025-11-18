@@ -15,9 +15,11 @@ export const LoginPage = () => {
       <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-6 sm:p-8">
         {/* Logo e Título */}
         <div className="flex flex-col items-center mb-6 sm:mb-8">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-accent to-highlight rounded-full flex items-center justify-center mb-4 shadow-lg">
-            <Award className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
-          </div>
+          <img 
+            src="/logo-fortal.svg" 
+            alt="Fortal Engenharia Solar" 
+            className="w-48 sm:w-64 h-auto mb-4"
+          />
           <h1 className="text-2xl sm:text-3xl font-bold text-primary dark:text-primary-400 text-center">
             Fortal Energia Solar
           </h1>

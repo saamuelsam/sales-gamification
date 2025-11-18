@@ -55,6 +55,36 @@ export class UserController {
     }
   }
 
+  async uploadAvatar(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return ApiResponse.error(res, 'Usuário não autenticado', 401);
+
+      if (!req.file) {
+        return ApiResponse.error(res, 'Nenhum arquivo enviado', 400);
+      }
+
+      const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+      const profile = await userService.updateAvatar(String(userId), avatarUrl);
+      
+      return ApiResponse.success(res, profile, 'Avatar atualizado com sucesso');
+    } catch (error: any) {
+      return ApiResponse.error(res, error.message || 'Erro ao fazer upload do avatar', 500);
+    }
+  }
+
+  async deleteAvatar(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return ApiResponse.error(res, 'Usuário não autenticado', 401);
+
+      const profile = await userService.deleteAvatar(String(userId));
+      return ApiResponse.success(res, profile, 'Avatar removido com sucesso');
+    } catch (error: any) {
+      return ApiResponse.error(res, error.message || 'Erro ao remover avatar', 500);
+    }
+  }
+
   // ========== EQUIPE ==========
 
   /**

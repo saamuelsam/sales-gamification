@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
   User, 
   MapPin, 
@@ -10,7 +10,10 @@ import {
   Calendar,
   Key,
   Building2,
-  Hash
+  Hash,
+  Camera,
+  X,
+  Upload
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import toast from 'react-hot-toast';
@@ -51,7 +54,9 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState<'personal' | 'address' | 'banking'>('personal');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -161,6 +166,67 @@ export default function ProfilePage() {
     setFormData(prev => ({ ...prev, [field]: maskedValue }));
   };
 
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validação de tipo e tamanho
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor, selecione uma imagem válida');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('A imagem deve ter no máximo 5MB');
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      await api.post('/users/avatar', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      toast.success('Foto atualizada com sucesso!');
+      fetchProfile();
+    } catch (error: any) {
+      console.error('Erro ao fazer upload da foto:', error);
+      toast.error(error.response?.data?.message || 'Erro ao atualizar foto');
+    } finally {
+      setUploadingAvatar(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleDeleteAvatar = async () => {
+    if (!confirm('Tem certeza que deseja remover sua foto de perfil?')) {
+      return;
+    }
+
+    setUploadingAvatar(true);
+    try {
+      await api.delete('/users/avatar');
+      toast.success('Foto removida com sucesso!');
+      fetchProfile();
+    } catch (error: any) {
+      console.error('Erro ao remover foto:', error);
+      toast.error(error.response?.data?.message || 'Erro ao remover foto');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   const tabs = [
     { id: 'personal', label: 'Dados Pessoais', icon: User },
     { id: 'address', label: 'Endereço', icon: MapPin },
@@ -235,6 +301,65 @@ export default function ProfilePage() {
               <User className="w-5 h-5" />
               Dados Pessoais
             </h2>
+
+            {/* Avatar Upload Section */}
+            <div className="flex flex-col items-center gap-4 pb-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="relative">
+                <div className="w-32 h-32 rounded-full overflow-hidden bg-gradient-to-br from-primary-500 to-accent border-4 border-white dark:border-gray-800 shadow-lg">
+                  {profile?.personal_data?.avatar_url ? (
+                    <img
+                      src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${profile.personal_data.avatar_url}`}
+                      alt={profile.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <User className="w-16 h-16 text-white" />
+                    </div>
+                  )}
+                </div>
+                
+                {uploadingAvatar && (
+                  <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 text-white animate-spin" />
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleAvatarClick}
+                  disabled={uploadingAvatar}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 text-sm"
+                >
+                  <Camera className="w-4 h-4" />
+                  {profile?.personal_data?.avatar_url ? 'Alterar Foto' : 'Adicionar Foto'}
+                </button>
+
+                {profile?.personal_data?.avatar_url && (
+                  <button
+                    onClick={handleDeleteAvatar}
+                    disabled={uploadingAvatar}
+                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 text-sm"
+                  >
+                    <X className="w-4 h-4" />
+                    Remover
+                  </button>
+                )}
+              </div>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="hidden"
+              />
+
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                Tamanho máximo: 5MB • Formatos: JPG, PNG, GIF, WebP
+              </p>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>

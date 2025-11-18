@@ -13,6 +13,7 @@ export const Navbar = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   // Detectar tamanho da tela
   useEffect(() => {
@@ -55,6 +56,20 @@ export const Navbar = () => {
     loadNotifications();
     const id = setInterval(loadNotifications, 30000);
     return () => clearInterval(id);
+  }, []);
+
+  // Carregar avatar do usuário
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      try {
+        const response = await api.get('/users/profile');
+        const profile = response.data.data;
+        setAvatarUrl(profile?.personal_data?.avatar_url);
+      } catch (error) {
+        console.error('Erro ao carregar perfil:', error);
+      }
+    };
+    loadUserProfile();
   }, []);
 
   return (
@@ -232,17 +247,25 @@ export const Navbar = () => {
           </div>
 
           {/* Perfil */}
-          <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 border-l border-gray-200">
+          <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-4 border-l border-gray-200 dark:border-gray-700">
             <div className="text-right hidden sm:block">
               <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{user?.name}</p>
               <p className="text-xs text-gray-600 dark:text-gray-400 capitalize">{user?.role?.replace('_', ' ')}</p>
             </div>
             <button
               onClick={() => navigate('/profile')}
-              className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+              className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-primary-500 to-accent rounded-full flex items-center justify-center flex-shrink-0 hover:opacity-90 transition-opacity overflow-hidden border-2 border-white dark:border-gray-700 shadow-sm"
               title="Meu Perfil"
             >
-              <User className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 dark:text-blue-400" />
+              {avatarUrl ? (
+                <img
+                  src={`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}${avatarUrl}`}
+                  alt={user?.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <User className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              )}
             </button>
           </div>
 

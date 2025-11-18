@@ -326,6 +326,55 @@ export class UserService {
     return this.getProfile(userId);
   }
 
+  /**
+   * 🔥 Atualizar apenas o avatar do usuário
+   */
+  async updateAvatar(userId: string, avatarUrl: string) {
+    // Buscar avatar antigo para deletar
+    const oldProfile = await pool.query(
+      'SELECT avatar_url FROM users WHERE id = $1',
+      [userId]
+    );
+
+    // Deletar arquivo antigo se existir
+    if (oldProfile.rows[0]?.avatar_url) {
+      const { deleteOldAvatar } = require('../../config/multer');
+      deleteOldAvatar(oldProfile.rows[0].avatar_url);
+    }
+
+    // Atualizar com novo avatar
+    await pool.query(
+      'UPDATE users SET avatar_url = $1, updated_at = NOW() WHERE id = $2',
+      [avatarUrl, userId]
+    );
+
+    return this.getProfile(userId);
+  }
+
+  /**
+   * 🔥 Remover avatar do usuário
+   */
+  async deleteAvatar(userId: string) {
+    // Buscar avatar atual para deletar arquivo
+    const profile = await pool.query(
+      'SELECT avatar_url FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (profile.rows[0]?.avatar_url) {
+      const { deleteOldAvatar } = require('../../config/multer');
+      deleteOldAvatar(profile.rows[0].avatar_url);
+    }
+
+    // Remover do banco
+    await pool.query(
+      'UPDATE users SET avatar_url = NULL, updated_at = NOW() WHERE id = $1',
+      [userId]
+    );
+
+    return this.getProfile(userId);
+  }
+
   // ========== MÉTODOS DE EQUIPE ==========
 
   /**
