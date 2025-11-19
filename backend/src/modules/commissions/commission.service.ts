@@ -15,25 +15,39 @@ export class CommissionService {
     try {
         logger.info(`🔍 Iniciando processPersonalCommission para consultant ${consultantId}, sale ${saleId}`);
 
-      // Buscar percentual de comissão baseado no nível do usuário
+      // Buscar role do usuário primeiro para logs e debugging
+      const userResult = await pool.query(
+        `SELECT role, name FROM users WHERE id = $1`,
+        [consultantId]
+      );
+      
+      if (userResult.rows.length === 0) {
+        logger.error(`❌ Usuário ${consultantId} não encontrado!`);
+        return;
+      }
+      
+      const userRole = userResult.rows[0].role;
+      const userName = userResult.rows[0].name;
+      
+      logger.info(`👤 Processando comissão para: ${userName} | Role: ${userRole}`);
+
+      // Buscar percentual de comissão baseado no role do usuário
       const levelResult = await pool.query(
         `SELECT personal_commission
          FROM levels
-         WHERE phase_number = (
-           CASE
-             WHEN (SELECT role FROM users WHERE id = $1) = 'consultant' THEN 1
-             WHEN (SELECT role FROM users WHERE id = $1) = 'master_consultant' THEN 2
-             WHEN (SELECT role FROM users WHERE id = $1) = 'senior_consultant' THEN 3
-             WHEN (SELECT role FROM users WHERE id = $1) = 'prime_consultant' THEN 4
-             WHEN (SELECT role FROM users WHERE id = $1) = 'executive' THEN 5
-             WHEN (SELECT role FROM users WHERE id = $1) = 'diretor_comercial' THEN 6
-             ELSE 1
-           END
-         )`,
-        [consultantId]
+         WHERE role = $1`,
+        [userRole]
       );
 
+      if (levelResult.rows.length === 0) {
+        logger.error(`❌ Nível não encontrado para role: ${userRole}. Usando fallback 5%`);
+      }
+
+      // Fallback para 5% apenas se não encontrar configuração
+      // ⚠️ IMPORTANTE: Diretor Comercial DEVE estar configurado com 10% na tabela levels
       const commissionPercentage = parseFloat(levelResult.rows[0]?.personal_commission ?? 5);
+      
+      logger.info(`🔢 Percentual configurado para ${userRole}: ${commissionPercentage}%`);
       const commissionAmount = parseFloat(((saleValue * commissionPercentage) / 100).toFixed(2));
 
         logger.info(`💰 Percentual: ${commissionPercentage}%, Valor: R$ ${commissionAmount}`);

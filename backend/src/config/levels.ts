@@ -156,6 +156,31 @@ export const LEVELS_CONFIG = {
       networkBonusLines: 9,
     },
   },
+  diretorComercial: {
+    name: 'Diretor Comercial',
+    phaseName: 'diretor_comercial',
+    phaseNumber: 7,
+    minPoints: 0,
+    nextLevelPoints: null, // Cargo fixo, não há progressão
+    minContracts: 0, // Sem meta mínima (cargo de gestão)
+    minKilowatts: 0, // Sem meta mínima (cargo de gestão)
+    includeTeamPoints: false,
+    includeUsinasPoints: false,
+    commission: {
+      personal: 10, // ⚠️ 10% comissão pessoal - VALOR CORRETO
+      insurance: 5, // 5% sobre seguro
+      network: 2, // 2% sobre 1ª linha, 0.5% linhas 2-10
+    },
+    benefits: {
+      fixedAllowance: 0, // Sem ajuda de custo fixa
+    },
+    advancementBonus: 0,
+    advancementReward: null,
+    teamStructure: {
+      maxDepth: 10, // Até 10 linhas na rede
+      networkBonusLines: 0,
+    },
+  },
 };
 
 // Premiações especiais (independentes dos níveis)
@@ -197,6 +222,7 @@ export const ROLE_TO_LEVEL_MAP: Record<string, keyof typeof LEVELS_CONFIG> = {
   prime_consultant: 'consultorPrime',
   executive: 'executive',
   ceo: 'ceo',
+  diretor_comercial: 'diretorComercial',
 };
 
 // Helper function para obter configuração por role
