@@ -70,6 +70,25 @@ interface PaymentData {
   commission_ids: string[];
 }
 
+interface PaymentHistoryItem {
+  id: string;
+  user_id: string;
+  user_name: string;
+  user_email: string;
+  amount: number;
+  pix_type: string;
+  pix_key: string;
+  qr_code: string;
+  status: string;
+  transaction_id: string | null;
+  paid_by: string | null;
+  paid_by_name: string | null;
+  paid_at: string | null;
+  created_at: string;
+  notes: string | null;
+  metadata: any;
+}
+
 export const CommissionPaymentsPage = () => {
   // Estados principais
   const [pendingCommissions, setPendingCommissions] = useState<PendingCommission[]>([]);
@@ -79,16 +98,20 @@ export const CommissionPaymentsPage = () => {
   const [selectedCommissions, setSelectedCommissions] = useState<string[]>([]);
   const [userBankData, setUserBankData] = useState<UserBankData | null>(null);
   const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
+  const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([]);
+  const [selectedHistoryPayment, setSelectedHistoryPayment] = useState<PaymentHistoryItem | null>(null);
   
   // Estados de controle
   const [loading, setLoading] = useState(true);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPixStatus, setFilterPixStatus] = useState<'all' | 'with_pix' | 'without_pix'>('all');
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showHistoryDetailsModal, setShowHistoryDetailsModal] = useState(false);
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -98,6 +121,28 @@ export const CommissionPaymentsPage = () => {
   useEffect(() => {
     filterCommissions();
   }, [searchTerm, filterPixStatus, pendingCommissions]);
+
+  const loadPaymentHistory = async () => {
+    try {
+      setHistoryLoading(true);
+      const response = await api.get('/financial/commission-payments/history', {
+        params: {
+          status: 'paid',
+          limit: 100
+        }
+      });
+      const data = (response.data.data || []).map((item: any) => ({
+        ...item,
+        amount: parseFloat(item.amount) || 0,
+      }));
+      setPaymentHistory(data);
+    } catch (error) {
+      console.error('Erro ao carregar histórico de pagamentos:', error);
+      toast.error('Erro ao carregar histórico de pagamentos');
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
 
   const loadPendingCommissions = async () => {
     try {
@@ -310,7 +355,10 @@ export const CommissionPaymentsPage = () => {
               </div>
             </div>
             <button
-              onClick={() => setShowHistoryModal(true)}
+              onClick={() => {
+                setShowHistoryModal(true);
+                loadPaymentHistory();
+              }}
               className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
             >
               <History className="w-5 h-5" />
@@ -839,25 +887,247 @@ export const CommissionPaymentsPage = () => {
         {/* Modal de Histórico */}
         {showHistoryModal && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
-              <div className="bg-gradient-to-r from-gray-700 to-gray-900 p-6 text-white">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-7xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+              <div className="bg-gradient-to-r from-gray-700 to-gray-900 p-6 text-white flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <div>
                     <h2 className="text-2xl font-bold mb-1">Histórico de Pagamentos</h2>
-                    <p className="text-gray-300">Pagamentos realizados</p>
+                    <p className="text-gray-300">
+                      {paymentHistory.length} pagamento(s) realizado(s)
+                    </p>
                   </div>
                   <button
                     onClick={() => setShowHistoryModal(false)}
-                    className="p-2 hover:bg-white/20 rounded-lg"
+                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                   >
                     <X className="w-6 h-6" />
                   </button>
                 </div>
               </div>
-              <div className="p-6">
-                <p className="text-center text-gray-500 dark:text-gray-400 py-12">
-                  Em breve você poderá visualizar o histórico completo de pagamentos
-                </p>
+              
+              <div className="flex-1 overflow-y-auto p-6">
+                {historyLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : paymentHistory.length === 0 ? (
+                  <div className="text-center py-12">
+                    <History className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500 dark:text-gray-400 text-lg">
+                      Nenhum pagamento realizado ainda
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {paymentHistory.map((payment) => (
+                      <div
+                        key={payment.id}
+                        className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-5 border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all cursor-pointer"
+                        onClick={() => {
+                          setSelectedHistoryPayment(payment);
+                          setShowHistoryDetailsModal(true);
+                        }}
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                                <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
+                              </div>
+                              <div>
+                                <h3 className="font-semibold text-gray-900 dark:text-white text-lg">
+                                  {payment.user_name}
+                                </h3>
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                  {payment.user_email}
+                                </p>
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                              <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Valor Pago</p>
+                                <p className="font-bold text-green-600 dark:text-green-400 text-lg">
+                                  R$ {payment.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </p>
+                              </div>
+                              
+                              <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Chave PIX</p>
+                                <p className="font-medium text-gray-900 dark:text-white text-sm">
+                                  {payment.pix_type === 'cpf' ? 'CPF' :
+                                   payment.pix_type === 'email' ? 'E-mail' :
+                                   payment.pix_type === 'phone' ? 'Telefone' :
+                                   payment.pix_type === 'random' ? 'Aleatória' : payment.pix_type}
+                                </p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                                  {payment.pix_key}
+                                </p>
+                              </div>
+                              
+                              <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Pago em</p>
+                                <p className="font-medium text-gray-900 dark:text-white text-sm">
+                                  {new Date(payment.paid_at || payment.created_at).toLocaleDateString('pt-BR')}
+                                </p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400">
+                                  {new Date(payment.paid_at || payment.created_at).toLocaleTimeString('pt-BR')}
+                                </p>
+                              </div>
+                              
+                              <div>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Confirmado por</p>
+                                <p className="font-medium text-gray-900 dark:text-white text-sm">
+                                  {payment.paid_by_name || 'Sistema'}
+                                </p>
+                                {payment.transaction_id && (
+                                  <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                                    ID: {payment.transaction_id.substring(0, 12)}...
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0 mt-2" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Detalhes do Histórico */}
+        {showHistoryDetailsModal && selectedHistoryPayment && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+              <div className="bg-gradient-to-r from-green-600 to-green-700 p-6 text-white flex-shrink-0">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold mb-1">Detalhes do Pagamento</h2>
+                    <p className="text-green-100">Pagamento Confirmado</p>
+                  </div>
+                  <button
+                    onClick={() => setShowHistoryDetailsModal(false)}
+                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                  >
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                {/* Informações do Beneficiário */}
+                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-5">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <User className="w-5 h-5" />
+                    Beneficiário
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Nome</p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {selectedHistoryPayment.user_name}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">E-mail</p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {selectedHistoryPayment.user_email}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Informações do Pagamento */}
+                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-5">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <DollarSign className="w-5 h-5" />
+                    Dados do Pagamento
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Valor Total</p>
+                      <p className="font-bold text-green-600 dark:text-green-400 text-2xl">
+                        R$ {selectedHistoryPayment.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Tipo de Chave</p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {selectedHistoryPayment.pix_type === 'cpf' ? 'CPF' :
+                         selectedHistoryPayment.pix_type === 'email' ? 'E-mail' :
+                         selectedHistoryPayment.pix_type === 'phone' ? 'Telefone' :
+                         selectedHistoryPayment.pix_type === 'random' ? 'Chave Aleatória' : 
+                         selectedHistoryPayment.pix_type}
+                      </p>
+                    </div>
+                    <div className="col-span-2">
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Chave PIX</p>
+                      <p className="font-mono text-gray-900 dark:text-white bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+                        {selectedHistoryPayment.pix_key}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Data de Criação</p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {new Date(selectedHistoryPayment.created_at).toLocaleString('pt-BR')}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Data de Pagamento</p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {selectedHistoryPayment.paid_at ? new Date(selectedHistoryPayment.paid_at).toLocaleString('pt-BR') : '-'}
+                      </p>
+                    </div>
+                    {selectedHistoryPayment.transaction_id && (
+                      <div className="col-span-2">
+                        <p className="text-sm text-gray-600 dark:text-gray-400">ID da Transação</p>
+                        <p className="font-mono text-sm text-gray-900 dark:text-white bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-600">
+                          {selectedHistoryPayment.transaction_id}
+                        </p>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Confirmado por</p>
+                      <p className="font-medium text-gray-900 dark:text-white">
+                        {selectedHistoryPayment.paid_by_name || 'Sistema Automático'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">Status</p>
+                      <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-sm font-medium">
+                        <CheckCircle className="w-4 h-4" />
+                        Pago
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notas */}
+                {selectedHistoryPayment.notes && (
+                  <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-5">
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                      <FileText className="w-5 h-5" />
+                      Observações
+                    </h3>
+                    <p className="text-gray-700 dark:text-gray-300">
+                      {selectedHistoryPayment.notes}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-gray-200 dark:border-gray-700 p-6 flex-shrink-0">
+                <button
+                  onClick={() => setShowHistoryDetailsModal(false)}
+                  className="w-full px-6 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-xl font-medium transition-colors"
+                >
+                  Fechar
+                </button>
               </div>
             </div>
           </div>
