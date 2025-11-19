@@ -1,12 +1,14 @@
 // frontend/src/pages/SalesPage.tsx
 
 import { useState, useEffect } from 'react';
-import { Plus, X, Eye, Trash } from 'lucide-react';
+import { Plus, X, Eye, Trash, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
 import { CurrencyInput } from '@/components/ui/CurrencyInput';
 import { useInvalidateDashboard } from '@/features/dashboard/hooks/useDashboard';
+import { useAuthStore } from '@/store/authStore';
+import { getAvailableStatusOptions, allStatusOptions } from '../utils/statusPermissions';
 
 type SaleStatus = 'negotiation' | 'pending' | 'approved' | 'financing_denied' | 'cancelled' | 'delivered';
 type SaleType = 'direct' | 'consortium' | 'cash' | 'card';
@@ -38,14 +40,11 @@ interface Sale {
   neighborhood?: string;
 }
 
-const statusConfig: Record<SaleStatus, { label: string; color: string }> = {
-  negotiation: { label: 'Negociação', color: 'bg-primary/10 text-primary border-primary/30' },
-  pending: { label: 'Pendente', color: 'bg-accent/10 text-accent border-accent/30' },
-  approved: { label: 'Aprovado', color: 'bg-green-100 text-green-800 border-green-300' },
-  financing_denied: { label: 'Negado', color: 'bg-red-100 text-red-800 border-red-300' },
-  cancelled: { label: 'Cancelado', color: 'bg-gray-100 text-gray-800 border-gray-300' },
-  delivered: { label: 'Entregue', color: 'bg-highlight/10 text-highlight border-highlight/30' },
-};
+// Criar statusConfig a partir dos status disponíveis
+const statusConfig: Record<SaleStatus, { label: string; color: string }> = allStatusOptions.reduce((acc, option) => {
+  acc[option.value] = { label: option.label, color: option.color };
+  return acc;
+}, {} as Record<SaleStatus, { label: string; color: string }>);
 
 export const SalesPage = () => {
   const [sales, setSales] = useState<Sale[]>([]);
@@ -741,9 +740,13 @@ interface SaleDetailsModalProps {
 
 const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) => {
   const invalidateDashboard = useInvalidateDashboard();
+  const { user } = useAuthStore();
   const [showEditClientModal, setShowEditClientModal] = useState(false);
   const [editingClientName, setEditingClientName] = useState(sale.client_name);
   const [savingClient, setSavingClient] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [newStatus, setNewStatus] = useState<string>('');
+  const [updatingStatus, setUpdatingStatus] = useState(false);
 
   const handleUpdateClient = async () => {
     if (!editingClientName || editingClientName.trim().length === 0) {
@@ -767,6 +770,28 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
     }
   };
 
+  const handleUpdateStatus = async () => {
+    if (!newStatus) {
+      toast.error('Por favor, selecione um status');
+      return;
+    }
+
+    try {
+      setUpdatingStatus(true);
+      await api.put(`/sales/${sale.id}/status`, { status: newStatus });
+      toast.success('Status atualizado com sucesso');
+      setShowStatusModal(false);
+      setNewStatus('');
+      onUpdate();
+      invalidateDashboard();
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || 'Erro ao atualizar status';
+      toast.error(errorMessage);
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 flex items-end sm:items-center justify-center" style={{ zIndex: 9999 }}>
       <div className="absolute inset-0 bg-black/60" onClick={onClose} />
@@ -782,6 +807,16 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
           <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-3 border dark:border-gray-700">
             <div className="flex justify-between items-start mb-2">
               <p className="text-xs text-gray-600 dark:text-gray-300 font-semibold">Status da Venda</p>
+              <button
+                onClick={() => {
+                  setNewStatus(sale.status);
+                  setShowStatusModal(true);
+                }}
+                className="px-3 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-1"
+              >
+                <RefreshCw className="w-3 h-3" />
+                Alterar Status
+              </button>
             </div>
 
             <span
@@ -791,9 +826,6 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
             >
               {statusConfig[sale.status]?.label || sale.status}
             </span>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-              💡 Apenas Financeiro e CEO podem alterar o status da venda
-            </p>
           </div>
 
           {sale.sale_type && (
@@ -944,6 +976,63 @@ const SaleDetailsModal = ({ sale, onClose, onUpdate }: SaleDetailsModalProps) =>
                     setEditingClientName(sale.client_name);
                   }}
                   className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-medium"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de Alterar Status */}
+        {showStatusModal && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-2xl" style={{ zIndex: 10000 }}>
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-11/12 max-w-md shadow-2xl">
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+                🔄 Alterar Status da Venda
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Venda de <strong>{sale.client_name}</strong> no valor de{' '}
+                <strong>
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(sale.value)}
+                </strong>
+              </p>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Novo Status
+                </label>
+                <select
+                  value={newStatus}
+                  onChange={(e) => setNewStatus(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {getAvailableStatusOptions(user?.role).map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.emoji} {option.label}
+                    </option>
+                  ))}
+                </select>
+                {user?.role && !['ceo', 'admin', 'financeiro'].includes(user.role) && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
+                    ⚠️ Consultores não podem aprovar vendas. Apenas Financeiro, CEO e Admin.
+                  </p>
+                )}
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleUpdateStatus}
+                  disabled={updatingStatus}
+                  className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {updatingStatus ? 'Atualizando...' : 'Confirmar'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowStatusModal(false);
+                    setNewStatus('');
+                  }}
+                  disabled={updatingStatus}
+                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 font-medium disabled:opacity-50"
                 >
                   Cancelar
                 </button>
