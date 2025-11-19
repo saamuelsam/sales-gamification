@@ -902,12 +902,12 @@ export function CeoManagementPage() {
                 <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <p className="text-sm text-gray-600 dark:text-gray-400">Valor</p>
                   <p className="font-bold text-gray-900 dark:text-white">
-                    R$ {parseFloat(String(selectedSale.value)).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                    R$ {parseFloat(String(selectedSale.value)).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
                 <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
                   <p className="text-sm text-gray-600 dark:text-gray-400">Potência</p>
-                  <p className="font-bold text-gray-900 dark:text-white">{selectedSale.kilowatts} kW</p>
+                  <p className="font-bold text-gray-900 dark:text-white">{parseFloat(String(selectedSale.kilowatts)).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kW</p>
                 </div>
               </div>
               <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -1192,10 +1192,10 @@ function ConsultantDetailsModal({
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-gray-900 dark:text-white">
-                          R$ {parseFloat(String(sale.value)).toLocaleString('pt-BR')}
+                          R$ {parseFloat(String(sale.value)).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {sale.kilowatts} kW
+                          {parseFloat(String(sale.kilowatts)).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} kW
                         </p>
                       </div>
                       <div className="flex gap-2">
