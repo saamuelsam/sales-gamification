@@ -15,21 +15,35 @@ export const checkFinancialPermission = (req: Request, res: Response, next: Next
     });
   }
 
-  // Apenas CEO e Financeiro podem aprovar/rejeitar vendas
-  const allowedRoles = ['ceo', 'financeiro', 'admin'];
+  // Verificar se está tentando aprovar
+  const { status } = req.body;
   
-  if (!allowedRoles.includes(user.role)) {
-    return res.status(403).json({
-      success: false,
-      message: 'Acesso negado. Apenas o departamento financeiro e CEO podem aprovar vendas.',
-      error: {
-        code: 'INSUFFICIENT_PERMISSIONS',
-        userRole: user.role,
-        requiredRoles: allowedRoles,
-      }
-    });
+  console.log('🔍 [checkFinancialPermission] Status recebido:', status);
+  console.log('🔍 [checkFinancialPermission] User role:', user.role);
+  
+  const isApprovingStatus = status === 'approved';
+
+  // Se está tentando aprovar, apenas CEO, Financeiro e Admin podem
+  if (isApprovingStatus) {
+    const allowedRoles = ['ceo', 'financeiro', 'admin'];
+    
+    if (!allowedRoles.includes(user.role)) {
+      console.log('❌ [checkFinancialPermission] Bloqueando aprovação para role:', user.role);
+      return res.status(403).json({
+        success: false,
+        message: '❌ Acesso negado. Apenas o departamento financeiro, CEO e Admin podem aprovar vendas.',
+        error: {
+          code: 'INSUFFICIENT_PERMISSIONS',
+          userRole: user.role,
+          requiredRoles: allowedRoles,
+          attemptedAction: 'approve_sale'
+        }
+      });
+    }
   }
 
+  console.log('✅ [checkFinancialPermission] Permitindo alteração de status');
+  // Para outros status, qualquer usuário autenticado pode alterar
   next();
 };
 

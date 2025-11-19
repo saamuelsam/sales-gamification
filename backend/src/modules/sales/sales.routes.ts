@@ -50,7 +50,7 @@ router.post('/', (req, res) => salesController.createSale(req, res));
 // Listar vendas
 router.get('/', (req, res) => salesController.listSales(req, res));
 
-// ✅ Atualizar STATUS da venda - APENAS FINANCEIRO/CEO (gera comissão automaticamente)
+// ✅ Atualizar STATUS da venda - Consultores podem mudar status exceto 'approved'
 router.put('/:id/status', checkFinancialPermission, (req, res) => salesController.updateStatus(req, res));
 
 // ✅ Atualizar CLIENTE da venda - CONSULTORES podem editar suas vendas
@@ -59,8 +59,8 @@ router.put('/:id/client', (req, res) => updateClientController.updateSaleClient(
 // Buscar venda por ID
 router.get('/:id', (req, res) => salesController.getSale(req, res));
 
-// ✅ Atualizar dados da venda - BLOQUEADO PARA CONSULTORES
-router.put('/:id', preventSaleEdit, (req, res) => salesController.updateSale(req, res));
+// ✅ Atualizar dados da venda - Status 'approved' apenas Financeiro/CEO/Admin
+router.put('/:id', checkFinancialPermission, preventSaleEdit, (req, res) => salesController.updateSale(req, res));
 
 // Deletar venda
 router.delete('/:id', (req, res) => salesController.deleteSale(req, res));

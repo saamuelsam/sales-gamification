@@ -16,6 +16,7 @@ import {
 import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
 import { CommissionPaymentsPage } from '@/features/financial/pages/CommissionPaymentsPage';
+import { getAvailableStatusOptions } from '@/features/sales/utils/statusPermissions';
 
 interface Commission {
   id: string;
@@ -865,12 +866,11 @@ export default function FinanceiroPage() {
                 onChange={(e) => setNewStatus(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
-                <option value="negotiation">🔵 Negociação</option>
-                <option value="pending">🟡 Pendente</option>
-                <option value="approved">🟢 Aprovado</option>
-                <option value="financing_denied">🔴 Financiamento Negado</option>
-                <option value="cancelled">⚫ Cancelado</option>
-                <option value="delivered">🟣 Entregue</option>
+                {getAvailableStatusOptions(user?.role).map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.emoji} {option.label}
+                  </option>
+                ))}
               </select>
             </div>
             <div className="flex gap-3">

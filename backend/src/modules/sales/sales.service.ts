@@ -311,11 +311,19 @@ export class SalesService {
     product_delivered?: boolean;
     delivery_date?: string;
     installation_proof_url?: string;
-  }) {
+  }, userRole?: string) {
     const validStatuses = ['negotiation', 'pending', 'approved', 'financing_denied', 'cancelled', 'delivered'];
 
     if (data.status && !validStatuses.includes(data.status)) {
       throw new Error('Status inválido');
+    }
+
+    // 🔒 SEGURANÇA: Apenas Financeiro, CEO e Admin podem aprovar vendas
+    if (data.status === 'approved') {
+      // Se userRole não foi fornecido ou não está na lista de permitidos, bloquear
+      if (!userRole || !['ceo', 'financeiro', 'admin'].includes(userRole)) {
+        throw new Error('❌ Apenas o departamento financeiro, CEO e Admin podem aprovar vendas.');
+      }
     }
 
     // Verificar se a venda pertence ao usuário

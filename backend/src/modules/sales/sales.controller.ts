@@ -97,6 +97,7 @@ export class SalesController {
   async updateStatus(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
+      const userRole = req.user?.role;
       if (!userId) return ApiResponse.error(res, 'Usuário não autenticado', 401);
 
       const { id } = req.params;
@@ -106,7 +107,7 @@ export class SalesController {
       if (!status) return ApiResponse.error(res, 'Status obrigatório', 400);
 
       // Atualiza status da venda (comissões processadas no service)
-      const sale = await salesService.updateSale(id, userId, { status });
+      const sale = await salesService.updateSale(id, userId, { status }, userRole);
 
       return ApiResponse.success(res, sale, 'Status atualizado com sucesso');
     } catch (error: any) {
@@ -175,7 +176,8 @@ export class SalesController {
       });
 
       // Atualiza venda (comissões processadas no service)
-      const updatedSale = await salesService.updateSale(id, userId, updateData);
+      const userRole = req.user?.role;
+      const updatedSale = await salesService.updateSale(id, userId, updateData, userRole);
 
       return ApiResponse.success(res, updatedSale, 'Venda atualizada com sucesso');
     } catch (error: any) {
