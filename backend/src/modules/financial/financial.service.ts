@@ -508,13 +508,14 @@ export class FinancialService {
     
     logger.info(`💵 Comissões calculadas: venda=${saleCommission.toFixed(2)}, seguro=${insuranceCommissionValue.toFixed(2)}, total=${totalCommission.toFixed(2)}`);
     
-    // 4. REGISTRAR COMISSÃO PESSOAL (se ainda não foi registrada)
+    // 4. REGISTRAR COMISSÃO PESSOAL nas tabelas (compatibilidade com sistema antigo + PIX)
     const existingCommissionResult = await client.query(
       'SELECT id FROM commissions WHERE user_id = $1 AND sale_id = $2',
       [sale.user_id, sale.id]
     );
     
     if (existingCommissionResult.rows.length === 0) {
+      // Inserir na tabela antiga (commissions) para compatibilidade
       await client.query(
         `INSERT INTO commissions (
           user_id, sale_id, sale_commission,
@@ -522,7 +523,16 @@ export class FinancialService {
         ) VALUES ($1, $2, $3, $4, $5)`,
         [sale.user_id, sale.id, saleCommission, insuranceCommissionValue, totalCommission]
       );
-      logger.info(`✅ Comissão registrada: R$ ${totalCommission.toFixed(2)}`);
+      logger.info(`✅ Comissão registrada (tabela antiga): R$ ${totalCommission.toFixed(2)}`);
+      
+      // 🔥 NOVO: Inserir também em personal_commissions (usado pelo sistema PIX)
+      logger.info(`🔄 [PIX] Criando comissão pessoal para pagamento PIX...`);
+      await commissionService.processPersonalCommission(
+        sale.user_id,
+        parseFloat(sale.value),
+        points,
+        sale.id
+      );
     } else {
       logger.info(`ℹ️ Comissão já foi registrada anteriormente para a venda ${sale.id}`);
     }
@@ -546,7 +556,8 @@ export class FinancialService {
       logger.error(`❌ Erro ao verificar promoção de nível: ${levelError.message}`);
     }
     
-    // 7. PROCESSAR COMISSÃO DE REDE (para líder)
+    // 7. PROCESSAR COMISSÃO DE REDE (para líder) - Já insere em network_commissions
+    logger.info(`🌐 [PIX] Processando comissões de rede...`);
     await commissionService.processNetworkCommission(
       sale.user_id,
       parseFloat(sale.value),

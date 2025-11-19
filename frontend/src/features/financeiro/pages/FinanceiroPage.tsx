@@ -10,10 +10,12 @@ import {
   Search,
   CheckCircle,
   XCircle,
-  Clock
+  Clock,
+  CreditCard
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import toast from 'react-hot-toast';
+import { CommissionPaymentsPage } from '@/features/financial/pages/CommissionPaymentsPage';
 
 interface Commission {
   id: string;
@@ -47,7 +49,7 @@ interface PendingSale {
 
 export default function FinanceiroPage() {
   const { user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'commissions' | 'approvals'>('commissions');
+  const [activeTab, setActiveTab] = useState<'commissions' | 'approvals' | 'payments'>('commissions');
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [pendingSales, setPendingSales] = useState<PendingSale[]>([]);
   const [loading, setLoading] = useState(true);
@@ -370,9 +372,27 @@ export default function FinanceiroPage() {
                 )}
               </div>
             </button>
+            <button
+              onClick={() => setActiveTab('payments')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                activeTab === 'payments'
+                  ? 'border-primary-600 text-primary-600 dark:text-primary-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <CreditCard className="w-5 h-5" />
+                Pagamentos PIX
+              </div>
+            </button>
           </nav>
         </div>
       </div>
+      
+      {/* Render Payment Page */}
+      {activeTab === 'payments' && (
+        <CommissionPaymentsPage />
+      )}
 
       {/* Stats Cards */}
       {activeTab === 'commissions' && (

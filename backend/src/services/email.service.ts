@@ -388,6 +388,107 @@ class EmailService {
       html,
     });
   }
+
+  // Email de pagamento PIX aprovado
+  async sendPixPaymentNotification(
+    email: string,
+    name: string,
+    amount: number,
+    paymentId: string,
+    commissionsCount: number,
+    paymentDate: Date
+  ): Promise<void> {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .payment-card { background: white; border: 2px solid #22c55e; border-radius: 10px; padding: 30px; margin: 20px 0; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+          .payment-amount { font-size: 48px; color: #16a34a; font-weight: bold; margin: 20px 0; }
+          .details { background: #f0fdf4; border-radius: 8px; padding: 20px; margin: 20px 0; }
+          .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #d1fae5; }
+          .detail-label { color: #6b7280; font-weight: 500; }
+          .detail-value { color: #111827; font-weight: 600; }
+          .cta-button { display: inline-block; padding: 15px 30px; background: #22c55e; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; margin-top: 20px; }
+          .cta-button:hover { background: #16a34a; }
+          .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+          .icon { font-size: 64px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="icon">💰</div>
+            <h1>Pagamento PIX Aprovado!</h1>
+            <p style="margin: 10px 0 0 0; font-size: 18px;">Seu pagamento foi processado com sucesso</p>
+          </div>
+          <div class="content">
+            <p>Olá <strong>${name}</strong>! 🎉</p>
+            <p>Temos uma ótima notícia! Seu pagamento via PIX foi aprovado e processado pelo financeiro.</p>
+            
+            <div class="payment-card">
+              <p style="margin: 0; color: #6b7280; font-size: 16px;">Valor Total</p>
+              <div class="payment-amount">R$ ${amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</div>
+              <p style="margin: 0; color: #22c55e; font-weight: 600; font-size: 18px;">✓ PIX Enviado</p>
+            </div>
+
+            <div class="details">
+              <h3 style="margin-top: 0; color: #111827;">📋 Detalhes do Pagamento</h3>
+              <div class="detail-row">
+                <span class="detail-label">ID do Pagamento:</span>
+                <span class="detail-value">#${paymentId.substring(0, 8).toUpperCase()}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Data e Hora:</span>
+                <span class="detail-value">${paymentDate.toLocaleString('pt-BR')}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Comissões Pagas:</span>
+                <span class="detail-value">${commissionsCount} comissão(ões)</span>
+              </div>
+              <div class="detail-row" style="border-bottom: none;">
+                <span class="detail-label">Método de Pagamento:</span>
+                <span class="detail-value">PIX</span>
+              </div>
+            </div>
+
+            <div style="background: #e0f2fe; border-left: 4px solid #0284c7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <p style="margin: 0;"><strong>ℹ️ Importante:</strong></p>
+              <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                <li>O valor será creditado em sua conta bancária em até 5 minutos</li>
+                <li>Verifique sua conta para confirmar o recebimento</li>
+                <li>Em caso de dúvidas, entre em contato com o financeiro</li>
+              </ul>
+            </div>
+
+            <p>Continue com o excelente trabalho! Suas vendas estão gerando ótimos resultados. 💪</p>
+
+            <div style="text-align: center;">
+              <a href="${ENV.FRONTEND_URL}/financeiro" class="cta-button">
+                Ver Meus Pagamentos
+              </a>
+            </div>
+          </div>
+          <div class="footer">
+            <p>© 2025 Fortal Engenharia Solar - Sales Gamification</p>
+            <p>Este é um email automático, favor não responder.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    await this.sendEmail({
+      to: email,
+      subject: '💰 Pagamento PIX Aprovado - Verifique sua Conta!',
+      html,
+    });
+  }
 }
 
 export const emailService = new EmailService();
