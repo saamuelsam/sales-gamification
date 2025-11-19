@@ -43,9 +43,15 @@ export class CommissionService {
         logger.error(`❌ Nível não encontrado para role: ${userRole}. Usando fallback 5%`);
       }
 
-      // Fallback para 5% apenas se não encontrar configuração
-      // ⚠️ IMPORTANTE: Diretor Comercial DEVE estar configurado com 10% na tabela levels
-      const commissionPercentage = parseFloat(levelResult.rows[0]?.personal_commission ?? 5);
+      // Fallback inteligente baseado no role
+      // ⚠️ IMPORTANTE: Diretor Comercial DEVE usar 10%, não o fallback de 5%
+      let defaultPercentage = 5;
+      if (userRole === 'diretor_comercial') {
+        defaultPercentage = 10;
+        logger.warn(`⚠️ Usando fallback de 10% para diretor_comercial (configuração não encontrada no banco)`);
+      }
+      
+      const commissionPercentage = parseFloat(levelResult.rows[0]?.personal_commission ?? defaultPercentage);
       
       logger.info(`🔢 Percentual configurado para ${userRole}: ${commissionPercentage}%`);
       const commissionAmount = parseFloat(((saleValue * commissionPercentage) / 100).toFixed(2));
