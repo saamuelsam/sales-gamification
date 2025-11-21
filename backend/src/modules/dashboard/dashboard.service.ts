@@ -5,21 +5,6 @@ import { logger } from '../../utils/logger';
 import { levelProgressService } from '../levels/levelProgress.service';
 
 export class DashboardService {
-  /**
-   * Calcula o nível baseado na quantidade de pontos
-   */
-  private calculateLevelFromPoints(points: number): {
-    levelId: number;
-    levelName: string;
-    phaseName: string
-  } {
-    if (points >= 2_000_000) return { levelId: 5, levelName: 'Executive', phaseName: 'executive' };
-    if (points >= 800_000) return { levelId: 4, levelName: 'Consultor Prime', phaseName: 'consultorPrime' };
-    if (points >= 10_000) return { levelId: 3, levelName: 'Consultor Sênior', phaseName: 'seniorConsultant' };
-    if (points >= 1_000) return { levelId: 2, levelName: 'Master', phaseName: 'master' };
-    return { levelId: 1, levelName: 'Consultor Elite', phaseName: 'elite' };
-  }
-
   // ========== DASHBOARD PESSOAL DO USUÁRIO ==========
   async getPersonalDashboard(userId: string) {
     const client = await pool.connect();
@@ -103,14 +88,18 @@ export class DashboardService {
 
       console.log('[DEBUG] Personal Points:', totalPointsRaw, '| Team Points:', teamPoints, '| Total:', totalPoints, '| Role:', currentRole);
 
-      // ⚙️ Calcula o nível baseado nos pontos ajustados
-      const levelInfo = this.calculateLevelFromPoints(totalPoints);
-
-      // ⚡ Atualiza o nível do usuário no banco de dados
-      await client.query('UPDATE users SET level = $1 WHERE id = $2', [
-        levelInfo.phaseName,
-        userId,
-      ]);
+      // ⚙️ Buscar informações reais do nível atual do banco de dados
+      const levelInfoResult = await client.query(
+        `SELECT l.name, l.phase_number, l.role, l.points_required
+         FROM levels l
+         WHERE l.role = $1`,
+        [currentRole]
+      );
+      
+      const currentLevelData = levelInfoResult.rows[0];
+      if (!currentLevelData) {
+        throw new Error(`Nível não encontrado para role: ${currentRole}`);
+      }
 
       // ✅ Busca quantidade de membros diretos (para regra de equipe)
       const teamResult = await client.query(
@@ -123,7 +112,7 @@ export class DashboardService {
       // 🔹 Verifica e atualiza automaticamente o nível do consultor
       const userStats = {
         id: userId,
-        role: levelInfo.phaseName,
+        role: currentRole,
         pontos: totalPoints,
         contratos_mes: parseInt(salesResult.rows[0]?.total_sales || '0'),
         meses_sem_contratos: mesesSemContratos,
@@ -132,19 +121,11 @@ export class DashboardService {
 
       await levelProgressService.calcularProximoNivel(userStats);
 
-      // 💬 Mapeia nomes amigáveis pro front
-      const levelDisplayMap: Record<string, string> = {
-        elite: 'Consultor Elite',
-        master: 'Master',
-        seniorConsultant: 'Consultor Sênior',
-        consultorPrime: 'Consultor Prime',
-        executive: 'Executive',
-      };
-
-      const displayLevel = levelDisplayMap[levelInfo.phaseName] || 'Nível Desconhecido';
+      // ✅ Usar o nome do nível diretamente do banco de dados
+      const displayLevel = currentLevelData.name;
 
       // 🧠 Log de depuração
-      console.log('⭐ Points:', totalPoints, '| Level calculado:', levelInfo.phaseName);
+      console.log('⭐ Points:', totalPoints, '| Role:', currentRole, '| Level:', displayLevel);
       console.log('📊 User Stats:', userStats);
 
       // Retorna o dashboard formatado

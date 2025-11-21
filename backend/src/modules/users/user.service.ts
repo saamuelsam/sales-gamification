@@ -75,37 +75,42 @@ export class UserService {
 
       console.log('⭐ Personal Points:', totalPointsRaw, '| Team Points:', teamPoints, '| Total:', totalPoints, '| Role:', currentRole);
 
-      // ⚙️ Calcula o nível baseado nos pontos
-      const levelInfo = dashboardService['calculateLevelFromPoints'](totalPoints);
+      // ⚙️ Buscar nível atual e próximo do banco de dados
+      const currentLevelResult = await pool.query(
+        `SELECT * FROM levels WHERE role = $1`,
+        [currentRole]
+      );
+      const currentLevel = currentLevelResult.rows[0];
+      if (!currentLevel) {
+        throw new Error(`Nível não encontrado para role: ${currentRole}`);
+      }
 
-      // 💬 Mapeia nomes legíveis
-      const levelDisplayMap: Record<string, string> = {
-        elite: 'Consultor Elite',
-        master: 'Master',
-        seniorConsultant: 'Consultor Sênior',
-        consultorPrime: 'Consultor Prime',
-        executive: 'Executivo',
-      };
+      const displayLevel = currentLevel.name;
 
-      const displayLevel = levelDisplayMap[levelInfo.phaseName] || 'Nível Desconhecido';
-
-      // 📈 Faixas de pontuação
-      const levelThresholds = {
-        elite: { min: 0, next: 1000 },
-        master: { min: 1000, next: 10000 },
-        seniorConsultant: { min: 10000, next: 800000 },
-        consultorPrime: { min: 800000, next: 2000000 },
-        executive: { min: 2000000, next: null },
-      };
-
-      const key = levelInfo.phaseName as keyof typeof levelThresholds;
-      const { min, next } = levelThresholds[key] || { min: 0, next: null };
+      // 📈 Buscar próximo nível
+      const nextLevelResult = await pool.query(
+        `SELECT * FROM levels 
+         WHERE phase_number > $1 
+         AND role NOT IN ('ceo', 'admin', 'financeiro', 'diretor_comercial')
+         ORDER BY phase_number ASC 
+         LIMIT 1`,
+        [currentLevel.phase_number]
+      );
+      const nextLevel = nextLevelResult.rows[0];
 
       // 🔢 Calcula progresso
       let progress = 0;
-      if (next) {
-        progress = ((totalPoints - min) / (next - min)) * 100;
-        progress = Math.min(Math.max(progress, 0), 100);
+      const currentRequired = parseFloat(currentLevel.points_required || 0);
+      
+      if (nextLevel) {
+        const nextRequired = parseFloat(nextLevel.points_required || 0);
+        const delta = nextRequired - currentRequired;
+        const gained = totalPoints - currentRequired;
+        
+        if (delta > 0) {
+          progress = ((gained / delta) * 100);
+          progress = Math.min(Math.max(progress, 0), 100);
+        }
       }
 
       // 📊 Equipe
@@ -180,7 +185,7 @@ export class UserService {
         total_points: totalPoints,
         level: displayLevel,
         progress: parseFloat(progress.toFixed(1)),
-        next_level_points: next,
+        next_level_points: nextLevel ? parseFloat(nextLevel.points_required) : 0,
         last_sale_date: salesData?.last_sale_date || null,
         meses_sem_contratos,
         team_members: parseInt(teamResult.rows[0]?.team_members || '0'),

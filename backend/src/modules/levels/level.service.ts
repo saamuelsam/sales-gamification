@@ -221,6 +221,7 @@ export class LevelService {
 
   /**
    * 📊 Retorna o progresso do usuário em relação ao próximo nível
+   * ✅ ATUALIZADO: Sincroniza com níveis reais do banco de dados
    */
   async getUserGoals(userId: string) {
     const userResult = await pool.query(
@@ -230,19 +231,25 @@ export class LevelService {
     const user = userResult.rows[0];
     if (!user) throw new Error('Usuário não encontrado');
 
+    // ✅ Buscar nível atual direto do banco (fonte única de verdade)
     const currentLevelResult = await pool.query(
       `SELECT * FROM levels WHERE role = $1`,
       [user.role]
     );
     const currentLevel = currentLevelResult.rows[0];
-    if (!currentLevel) throw new Error('Nível atual não encontrado');
+    if (!currentLevel) {
+      throw new Error(`Nível atual não encontrado para role: ${user.role}`);
+    }
 
+    // ✅ Buscar próximo nível baseado em phase_number (mais confiável que points_required)
+    const currentPhase = parseInt(currentLevel.phase_number);
     const nextLevelResult = await pool.query(
       `SELECT * FROM levels
-       WHERE points_required > $1
-       ORDER BY points_required ASC
+       WHERE phase_number > $1
+       AND role NOT IN ('ceo', 'admin', 'financeiro', 'diretor_comercial')
+       ORDER BY phase_number ASC
        LIMIT 1`,
-      [currentLevel.points_required]
+      [currentPhase]
     );
 
     const nextLevel = nextLevelResult.rows[0] || null;
@@ -252,11 +259,23 @@ export class LevelService {
     let pointsToNextLevel = 0;
 
     if (nextLevel) {
-      const delta = parseFloat(nextLevel.points_required) - parseFloat(currentLevel.points_required);
-      const gained = currentPoints - parseFloat(currentLevel.points_required);
-      progressPercentage = Math.min(100, Math.max(0, (gained / delta) * 100));
-      pointsToNextLevel = Math.max(0, parseFloat(nextLevel.points_required) - currentPoints);
+      const currentRequired = parseFloat(currentLevel.points_required || 0);
+      const nextRequired = parseFloat(nextLevel.points_required || 0);
+      const delta = nextRequired - currentRequired;
+      const gained = currentPoints - currentRequired;
+      
+      if (delta > 0) {
+        progressPercentage = Math.min(100, Math.max(0, (gained / delta) * 100));
+      }
+      pointsToNextLevel = Math.max(0, nextRequired - currentPoints);
     }
+
+    // ✅ Requisitos dinâmicos baseados no role atual
+    const requirements = {
+      minContracts: this.getMinContracts(user.role),
+      minSalesValue: parseFloat(currentLevel.monthly_sales_goal || 0),
+      bonusGoal: parseFloat(currentLevel.bonus_goal || 0),
+    };
 
     return {
       currentLevel,
@@ -264,7 +283,26 @@ export class LevelService {
       currentPoints,
       progressPercentage: Math.round(progressPercentage),
       pointsToNextLevel,
+      requirements,
     };
+  }
+
+  /**
+   * 🎯 Retorna requisitos mínimos de contratos por role
+   */
+  private getMinContracts(role: string): number {
+    const contractsMap: Record<string, number> = {
+      'consultant': 1,
+      'master_consultant': 2,
+      'senior_consultant': 4,
+      'prime_consultant': 5,
+      'executive': 10,
+      'ceo': 10,
+      'diretor_comercial': 0,
+      'admin': 0,
+      'financeiro': 0,
+    };
+    return contractsMap[role] || 0;
   }
 
   // 🔹 Buscar nível por ID
