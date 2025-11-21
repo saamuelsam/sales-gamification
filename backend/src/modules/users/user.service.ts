@@ -509,10 +509,10 @@ export class UserService {
       `SELECT
         u.id, u.name, u.email, u.role, u.created_at,
         COALESCE(u.points, 0) as total_points,
-        COUNT(DISTINCT s.id)::INT as total_sales,
+        COUNT(DISTINCT s.id)::INT as sales_count,
         COALESCE(SUM(s.value), 0)::NUMERIC as total_revenue
       FROM users u
-      LEFT JOIN sales s ON s.user_id = u.id AND s.status NOT IN ('cancelled', 'rejected')
+      LEFT JOIN sales s ON s.user_id = u.id AND s.status IN ('approved', 'delivered')
       WHERE u.parent_id = $1 AND u.is_active = true
       GROUP BY u.id, u.name, u.email, u.role, u.created_at, u.points
       ORDER BY u.points DESC`,
@@ -557,7 +557,7 @@ export class UserService {
         COALESCE(SUM(s.kilowatts), 0)::NUMERIC as total_kw
       FROM sales s
       INNER JOIN users u ON u.id = s.user_id
-      WHERE u.parent_id = $1 AND s.status NOT IN ('cancelled', 'rejected')`,
+      WHERE u.parent_id = $1 AND s.status IN ('approved', 'delivered')`,
       [userId]
     );
 

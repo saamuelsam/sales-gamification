@@ -45,7 +45,7 @@ export const useTeam = () => {
         total_points: parseInt(member.total_points) || 0,
         total_sales: parseInt(member.sales_count) || 0,
         sales_count: parseInt(member.sales_count) || 0,
-        total_revenue: parseFloat(member.total_sales) || 0,
+        total_revenue: parseFloat(member.total_revenue) || 0,
         is_active: member.is_active,
         created_at: member.created_at,
       }));
