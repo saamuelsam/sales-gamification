@@ -9,9 +9,14 @@ interface TeamMember {
   name: string;
   email: string;
   total_points: number;
+  personal_points?: number;
+  team_points?: number;
   total_sales: number;
   total_revenue?: number;
+  total_kilowatts?: number;
   sales_count?: number;
+  personal_commissions?: number;
+  network_commissions?: number;
   is_active?: boolean;
   created_at?: string;
 }
@@ -76,6 +81,8 @@ export const TeamMembersTable = ({ members, onMemberRemoved }: TeamMembersTableP
                   <th className="text-center py-3 px-3 sm:px-4 font-semibold text-gray-700 dark:text-gray-300">Pontos</th>
                   <th className="text-center py-3 px-3 sm:px-4 font-semibold text-gray-700 dark:text-gray-300">Vendas</th>
                   <th className="text-right py-3 px-3 sm:px-4 font-semibold text-gray-700 dark:text-gray-300">Receita</th>
+                  <th className="text-right py-3 px-3 sm:px-4 font-semibold text-gray-700 dark:text-gray-300">Com. Pessoal</th>
+                  <th className="text-right py-3 px-3 sm:px-4 font-semibold text-gray-700 dark:text-gray-300">Com. Rede</th>
                   <th className="text-center py-3 px-3 sm:px-4 font-semibold text-gray-700 dark:text-gray-300">Ação</th>
                 </tr>
               </thead>
@@ -108,8 +115,20 @@ export const TeamMembersTable = ({ members, onMemberRemoved }: TeamMembersTableP
                     </td>
 
                     <td className="py-3 sm:py-4 px-3 sm:px-4 text-right">
-                      <span className="font-semibold text-green-600">
+                      <span className="font-semibold text-green-600 dark:text-green-400">
                         {formatCurrency(member.total_revenue || 0)}
+                      </span>
+                    </td>
+
+                    <td className="py-3 sm:py-4 px-3 sm:px-4 text-right">
+                      <span className="font-semibold text-blue-600 dark:text-blue-400">
+                        {formatCurrency(member.personal_commissions || 0)}
+                      </span>
+                    </td>
+
+                    <td className="py-3 sm:py-4 px-3 sm:px-4 text-right">
+                      <span className="font-semibold text-purple-600 dark:text-purple-400">
+                        {formatCurrency(member.network_commissions || 0)}
                       </span>
                     </td>
 

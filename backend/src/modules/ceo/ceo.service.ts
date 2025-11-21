@@ -435,8 +435,8 @@ export class CeoService {
 
       const sale = saleResult.rows[0];
 
-      // Calcular e adicionar pontos
-      const points = Math.floor(saleData.kilowatts * 100); // 100 pontos por kW
+      // Calcular e adicionar pontos (1 kW = 1 ponto)
+      const points = Math.floor(saleData.kilowatts);
       await client.query(
         'UPDATE users SET points = COALESCE(points, 0) + $1 WHERE id = $2',
         [points, userId]

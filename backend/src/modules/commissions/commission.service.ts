@@ -4,7 +4,7 @@ import { logActivity } from '../../utils/activityLogger';
 
 export class CommissionService {
   /**
-   * ✅ Processar comissão pessoal — Insere em personal_commissions
+   * ✅ Processar comissão pessoal — Insere em personal_commissions (COM SEGURO)
    */
   async processPersonalCommission(
     consultantId: string,
@@ -31,9 +31,19 @@ export class CommissionService {
       
       logger.info(`👤 Processando comissão para: ${userName} | Role: ${userRole}`);
 
-      // Buscar percentual de comissão baseado no role do usuário
+      // Buscar valor do seguro da venda (se houver)
+      let insuranceValue = 0;
+      if (saleId) {
+        const saleResult = await pool.query(
+          `SELECT insurance_value FROM sales WHERE id = $1`,
+          [saleId]
+        );
+        insuranceValue = parseFloat(saleResult.rows[0]?.insurance_value || 0);
+      }
+
+      // Buscar percentuais de comissão baseado no role do usuário
       const levelResult = await pool.query(
-        `SELECT personal_commission
+        `SELECT personal_commission, insurance_commission
          FROM levels
          WHERE role = $1`,
         [userRole]
@@ -46,31 +56,36 @@ export class CommissionService {
       // Fallback inteligente baseado no role
       // ⚠️ IMPORTANTE: Diretor Comercial DEVE usar 10%, não o fallback de 5%
       let defaultPercentage = 5;
+      let defaultInsurancePercentage = 5;
       if (userRole === 'diretor_comercial') {
         defaultPercentage = 10;
         logger.warn(`⚠️ Usando fallback de 10% para diretor_comercial (configuração não encontrada no banco)`);
       }
       
       const commissionPercentage = parseFloat(levelResult.rows[0]?.personal_commission ?? defaultPercentage);
+      const insurancePercentage = parseFloat(levelResult.rows[0]?.insurance_commission ?? defaultInsurancePercentage);
       
-      logger.info(`🔢 Percentual configurado para ${userRole}: ${commissionPercentage}%`);
-      const commissionAmount = parseFloat(((saleValue * commissionPercentage) / 100).toFixed(2));
+      // Calcular comissões separadamente
+      const saleCommission = parseFloat(((saleValue * commissionPercentage) / 100).toFixed(2));
+      const insuranceCommission = insuranceValue > 0 ? parseFloat(((insuranceValue * insurancePercentage) / 100).toFixed(2)) : 0;
+      const totalCommission = saleCommission + insuranceCommission;
+      
+      logger.info(`🔢 Percentuais: venda=${commissionPercentage}%, seguro=${insurancePercentage}%`);
+      logger.info(`💰 Valores: venda=R$ ${saleCommission}, seguro=R$ ${insuranceCommission}, total=R$ ${totalCommission}`);
 
-        logger.info(`💰 Percentual: ${commissionPercentage}%, Valor: R$ ${commissionAmount}`);
-
-      // Inserir em personal_commissions
+      // Inserir em personal_commissions (agora com o total incluindo seguro)
       const result = await pool.query(
         `INSERT INTO personal_commissions
          (user_id, sale_id, commission_percentage, commission_amount, points, paid, created_at)
          VALUES ($1, $2, $3, $4, $5, FALSE, NOW())
          ON CONFLICT (user_id, sale_id) DO NOTHING
          RETURNING id`,
-        [consultantId, saleId || null, commissionPercentage, commissionAmount, points || 0]
+        [consultantId, saleId || null, commissionPercentage, totalCommission, points || 0]
       );
 
         if (result.rows.length > 0) {
           logger.info(
-            `✅ Comissão pessoal criada: ID ${result.rows[0].id}, user ${consultantId}, sale ${saleId || 'N/A'}, R$ ${commissionAmount}`
+            `✅ Comissão pessoal criada: ID ${result.rows[0].id}, user ${consultantId}, sale ${saleId || 'N/A'}, R$ ${totalCommission} (venda: R$ ${saleCommission} + seguro: R$ ${insuranceCommission})`
           );
           
           // 📝 LOG: Comissão pessoal recebida
@@ -78,7 +93,10 @@ export class CommissionService {
             commission_id: result.rows[0].id,
             sale_id: saleId,
             percentage: commissionPercentage,
-            amount: commissionAmount,
+            insurance_percentage: insurancePercentage,
+            sale_commission: saleCommission,
+            insurance_commission: insuranceCommission,
+            amount: totalCommission,
             points: points
           });
         } else {

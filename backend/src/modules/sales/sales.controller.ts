@@ -269,8 +269,13 @@ export class SalesController {
 
     await client.query('BEGIN');
 
+    // Buscar informações completas da venda
     const sale = await client.query(
-      `SELECT kilowatts, client_name, value FROM sales WHERE id = $1 AND user_id = $2`,
+      `SELECT s.id, s.kilowatts, s.client_name, s.value, s.status, s.user_id,
+              u.parent_id, u.name as consultant_name
+       FROM sales s
+       JOIN users u ON u.id = s.user_id
+       WHERE s.id = $1 AND s.user_id = $2`,
       [id, userId]
     );
 
@@ -281,28 +286,70 @@ export class SalesController {
 
     const saleData = sale.rows[0];
     const pointsToRemove = Math.floor(parseFloat(saleData.kilowatts));
+    let pointsRemovedFromLeader = 0;
     
-    await client.query(`DELETE FROM personal_commissions WHERE sale_id = $1`, [id]);
-    await client.query(`DELETE FROM network_commissions WHERE sale_id = $1`, [id]);
-    await client.query(`DELETE FROM sales WHERE id = $1 AND user_id = $2`, [id, userId]);
+    // Se a venda estava aprovada, remover pontos
+    if (saleData.status === 'approved' || saleData.status === 'delivered') {
+      // 1️⃣ Remover pontos PESSOAIS do consultor
+      await client.query(
+        `UPDATE users 
+         SET personal_points = GREATEST(0, personal_points - $1),
+             points = GREATEST(0, points - $1)
+         WHERE id = $2`,
+        [pointsToRemove, userId]
+      );
+      
+      // 2️⃣ Se tinha líder, remover pontos DE EQUIPE do líder
+      if (saleData.parent_id) {
+        await client.query(
+          `UPDATE users 
+           SET team_points = GREATEST(0, team_points - $1),
+               points = GREATEST(0, points - $1)
+           WHERE id = $2`,
+          [pointsToRemove, saleData.parent_id]
+        );
+        pointsRemovedFromLeader = pointsToRemove;
+        
+        // Recalcular nível do líder
+        const leaderPoints = await client.query(
+          'SELECT points FROM users WHERE id = $1',
+          [saleData.parent_id]
+        );
+        const newLeaderPoints = parseFloat(leaderPoints.rows[0]?.points || 0);
+        
+        try {
+          const { LevelService } = require('../levels/level.service');
+          const levelService = new LevelService();
+          await levelService.checkLevelUp(saleData.parent_id, newLeaderPoints, client);
+        } catch (levelError: any) {
+          console.error(`❌ Erro ao recalcular nível do líder: ${levelError.message}`);
+        }
+      }
+    }
     
-    await client.query(
-      `UPDATE users SET points = GREATEST(0, points - $1) WHERE id = $2`,
-      [pointsToRemove, userId]
-    );
-
-    // ✅ ADICIONAR AQUI: Recalcular nível após remover pontos
+    // 3️⃣ Deletar registros relacionados
+    await client.query('DELETE FROM points WHERE sale_id = $1 OR source_id = $1::text', [id]);
+    await client.query('DELETE FROM personal_commissions WHERE sale_id = $1', [id]);
+    await client.query('DELETE FROM network_commissions WHERE sale_id = $1', [id]);
+    await client.query('DELETE FROM sales WHERE id = $1 AND user_id = $2', [id, userId]);
+    
+    // 4️⃣ Recalcular nível do consultor
     const userResult = await client.query(
-      `SELECT points FROM users WHERE id = $1`,
+      'SELECT points FROM users WHERE id = $1',
       [userId]
     );
     const newPoints = parseFloat(userResult.rows[0]?.points || 0);
 
-    // Importar no topo: import { levelService } from '../levels/level.service';
-    await levelService.checkLevelUp(userId, newPoints, client);
+    try {
+      const { LevelService } = require('../levels/level.service');
+      const levelService = new LevelService();
+      await levelService.checkLevelUp(userId, newPoints, client);
+    } catch (levelError: any) {
+      console.error(`❌ Erro ao recalcular nível: ${levelError.message}`);
+    }
 
     await client.query('COMMIT');
-    console.log(`🗑️ Venda ${id} deletada! ${pointsToRemove} pontos removidos. Novo total: ${newPoints} pontos`);
+    console.log(`🗑️ Venda ${id} deletada! Pontos removidos: consultor=${pointsToRemove}, líder=${pointsRemovedFromLeader}`);
 
     // 📝 LOG: Venda deletada
     const { logActivity } = require('../../utils/activityLogger');
@@ -311,10 +358,16 @@ export class SalesController {
       client_name: saleData.client_name,
       value: saleData.value,
       kilowatts: saleData.kilowatts,
-      points_removed: pointsToRemove,
+      points_removed_consultant: pointsToRemove,
+      points_removed_leader: pointsRemovedFromLeader,
     });
 
-    return ApiResponse.success(res, { id, pointsRemoved: pointsToRemove, newPoints }, 'Venda deletada com sucesso');
+    return ApiResponse.success(res, { 
+      id, 
+      pointsRemovedConsultant: pointsToRemove,
+      pointsRemovedLeader: pointsRemovedFromLeader,
+      newPoints 
+    }, 'Venda deletada com sucesso');
   } catch (error: any) {
     await client.query('ROLLBACK');
     console.error('Erro ao deletar venda:', error);

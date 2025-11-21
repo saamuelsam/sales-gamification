@@ -20,6 +20,9 @@ router.delete('/avatar', (req, res) => userController.deleteAvatar(req, res));
 // ✅ Nível do usuário
 router.get('/me/level', (req, res) => userController.getUserLevel(req, res));
 
+// ✅ Histórico de pontos
+router.get('/me/points/history', (req, res) => userController.getPointsHistory(req, res));
+
 // ✅ Equipe
 router.post('/team/add', (req, res) => userController.addMember(req, res));
 router.get('/team/members', (req, res) => userController.getMyTeam(req, res));

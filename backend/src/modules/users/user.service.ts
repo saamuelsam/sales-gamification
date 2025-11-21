@@ -42,38 +42,24 @@ export class UserService {
         meses_sem_contratos = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30)); // ~30 dias/mês
       }
 
-      // 🔹 Busca pontos e cargo do usuário
+      // 🔹 Busca pontos pessoais, de equipe e cargo do usuário
       const userResult = await pool.query(
-        `SELECT COALESCE(points, 0)::NUMERIC AS total_points, role
+        `SELECT 
+           COALESCE(personal_points, 0)::NUMERIC AS personal_points,
+           COALESCE(team_points, 0)::NUMERIC AS team_points,
+           COALESCE(points, 0)::NUMERIC AS total_points,
+           role
          FROM users 
          WHERE id = $1::uuid`,
         [userId]
       );
 
-      const totalPointsRaw = parseFloat(userResult.rows[0]?.total_points || '0');
+      const personalPoints = parseFloat(userResult.rows[0]?.personal_points || '0');
+      const teamPoints = parseFloat(userResult.rows[0]?.team_points || '0');
+      const totalPoints = parseFloat(userResult.rows[0]?.total_points || '0');
       const currentRole = userResult.rows[0]?.role || 'consultant';
 
-      // 🔧 Corrige escala (kW → pontos)
-      let totalPoints =
-        totalPointsRaw < 10 ? Math.round(totalPointsRaw * 1000) : Math.round(totalPointsRaw);
-
-      // 🔥 A partir do Master, incluir pontos da equipe
-      const rolesComEquipe = ['master', 'seniorConsultant', 'consultorPrime', 'executive', 'diretor_comercial'];
-      let teamPoints = 0;
-      
-      if (rolesComEquipe.includes(currentRole)) {
-        const teamPointsResult = await pool.query(
-          `SELECT COALESCE(SUM(points), 0)::NUMERIC as team_total
-           FROM users
-           WHERE parent_id = $1::uuid AND is_active = true`,
-          [userId]
-        );
-        teamPoints = parseFloat(teamPointsResult.rows[0]?.team_total || '0');
-        teamPoints = teamPoints < 10 ? Math.round(teamPoints * 1000) : Math.round(teamPoints);
-        totalPoints += teamPoints;
-      }
-
-      console.log('⭐ Personal Points:', totalPointsRaw, '| Team Points:', teamPoints, '| Total:', totalPoints, '| Role:', currentRole);
+      console.log('⭐ Personal Points:', personalPoints, '| Team Points:', teamPoints, '| Total:', totalPoints, '| Role:', currentRole);
 
       // ⚙️ Buscar nível atual e próximo do banco de dados
       const currentLevelResult = await pool.query(
@@ -182,6 +168,9 @@ export class UserService {
         total_sales: parseInt(salesData?.total_sales || '0'),
         total_revenue: parseFloat(salesData?.total_revenue || '0'),
         total_kilowatts: parseFloat(salesData?.total_kilowatts || '0'),
+        // 🎯 Pontos separados
+        personal_points: personalPoints,
+        team_points: teamPoints,
         total_points: totalPoints,
         level: displayLevel,
         progress: parseFloat(progress.toFixed(1)),
@@ -290,6 +279,42 @@ export class UserService {
         bank_account_type: user.bank_account_type
       }
     };
+  }
+
+  /**
+   * 🎯 Buscar histórico detalhado de pontos
+   */
+  async getPointsHistory(userId: string, limit: number = 50) {
+    const result = await pool.query(
+      `SELECT 
+        p.id,
+        p.points,
+        p.source_type,
+        p.source_id,
+        p.source_info,
+        p.created_at,
+        CASE 
+          WHEN p.source_type = 'team_sale' THEN 'Venda da Equipe'
+          WHEN p.source_type = 'sale' THEN 'Venda Pessoal'
+          WHEN p.source_type = 'bonus' THEN 'Bônus'
+          WHEN p.source_type = 'adjustment' THEN 'Ajuste'
+          ELSE p.source_type
+        END as source_label
+      FROM points p
+      WHERE p.user_id = $1
+      ORDER BY p.created_at DESC
+      LIMIT $2`,
+      [userId, limit]
+    );
+
+    return result.rows.map((row: any) => ({
+      id: row.id,
+      points: parseFloat(row.points),
+      source_type: row.source_type,
+      source_label: row.source_label,
+      details: row.source_info || {},
+      created_at: row.created_at
+    }));
   }
 
   /**
@@ -509,12 +534,21 @@ export class UserService {
       `SELECT
         u.id, u.name, u.email, u.role, u.created_at,
         COALESCE(u.points, 0) as total_points,
+        COALESCE(u.personal_points, 0) as personal_points,
+        COALESCE(u.team_points, 0) as team_points,
         COUNT(DISTINCT s.id)::INT as sales_count,
-        COALESCE(SUM(s.value), 0)::NUMERIC as total_revenue
+        COALESCE(SUM(s.value), 0)::NUMERIC as total_revenue,
+        COALESCE(SUM(s.kilowatts), 0)::NUMERIC as total_kilowatts,
+        -- Comissões pessoais do membro
+        COALESCE(SUM(pc.commission_amount), 0)::NUMERIC as personal_commissions,
+        -- Comissões de rede que este membro gera para o líder
+        COALESCE(SUM(nc.commission_amount), 0)::NUMERIC as network_commissions
       FROM users u
       LEFT JOIN sales s ON s.user_id = u.id AND s.status IN ('approved', 'delivered')
+      LEFT JOIN personal_commissions pc ON pc.user_id = u.id AND pc.sale_id = s.id
+      LEFT JOIN network_commissions nc ON nc.team_member_id = u.id AND nc.leader_id = $1 AND nc.sale_id = s.id
       WHERE u.parent_id = $1 AND u.is_active = true
-      GROUP BY u.id, u.name, u.email, u.role, u.created_at, u.points
+      GROUP BY u.id, u.name, u.email, u.role, u.created_at, u.points, u.personal_points, u.team_points
       ORDER BY u.points DESC`,
       [userId]
     );

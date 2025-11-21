@@ -454,41 +454,110 @@ export class SalesService {
 
       // Buscar informações da venda antes de deletar
       const saleInfo = await client.query(
-        'SELECT user_id, client_name, value, kilowatts FROM sales WHERE id = $1',
+        `SELECT s.id, s.user_id, s.client_name, s.value, s.kilowatts, s.status,
+                u.parent_id, u.name as consultant_name
+         FROM sales s
+         JOIN users u ON u.id = s.user_id
+         WHERE s.id = $1`,
         [saleId]
       );
+
+      if (saleInfo.rows.length === 0) {
+        throw new Error('Venda não encontrada');
+      }
 
       const saleData = saleInfo.rows[0];
+      const pointsToRemove = Math.floor(parseFloat(saleData.kilowatts));
 
-      // 1️⃣ Deletar pontos associados à venda
+      // Se a venda foi aprovada/delivered, remover pontos
+      if (saleData.status === 'approved' || saleData.status === 'delivered') {
+        console.log(`🗑️ Removendo pontos da venda ${saleId}: ${pointsToRemove} pontos`);
+        
+        // 1️⃣ Remover pontos PESSOAIS do consultor
+        await client.query(
+          `UPDATE users 
+           SET personal_points = GREATEST(0, personal_points - $1),
+               points = GREATEST(0, points - $1)
+           WHERE id = $2`,
+          [pointsToRemove, saleData.user_id]
+        );
+        console.log(`✅ Removidos ${pointsToRemove} pontos pessoais de ${saleData.consultant_name}`);
+        
+        // 2️⃣ Se tinha líder, remover pontos DE EQUIPE do líder
+        if (saleData.parent_id) {
+          await client.query(
+            `UPDATE users 
+             SET team_points = GREATEST(0, team_points - $1),
+                 points = GREATEST(0, points - $1)
+             WHERE id = $2`,
+            [pointsToRemove, saleData.parent_id]
+          );
+          
+          const leaderName = await client.query(
+            'SELECT name FROM users WHERE id = $1',
+            [saleData.parent_id]
+          );
+          console.log(`✅ Removidos ${pointsToRemove} pontos de equipe do líder ${leaderName.rows[0]?.name}`);
+        }
+        
+        // 3️⃣ Recalcular níveis do consultor
+        const consultantPoints = await client.query(
+          'SELECT points FROM users WHERE id = $1',
+          [saleData.user_id]
+        );
+        const newConsultantPoints = parseFloat(consultantPoints.rows[0]?.points || 0);
+        
+        try {
+          const { LevelService } = require('../levels/level.service');
+          const levelService = new LevelService();
+          await levelService.checkLevelUp(saleData.user_id, newConsultantPoints, client);
+        } catch (levelError: any) {
+          console.error(`❌ Erro ao recalcular nível do consultor: ${levelError.message}`);
+        }
+        
+        // 4️⃣ Recalcular níveis do líder (se houver)
+        if (saleData.parent_id) {
+          const leaderPoints = await client.query(
+            'SELECT points FROM users WHERE id = $1',
+            [saleData.parent_id]
+          );
+          const newLeaderPoints = parseFloat(leaderPoints.rows[0]?.points || 0);
+          
+          try {
+            const { LevelService } = require('../levels/level.service');
+            const levelService = new LevelService();
+            await levelService.checkLevelUp(saleData.parent_id, newLeaderPoints, client);
+          } catch (levelError: any) {
+            console.error(`❌ Erro ao recalcular nível do líder: ${levelError.message}`);
+          }
+        }
+      }
+
+      // 5️⃣ Deletar registros da tabela points
       await client.query(
-        'DELETE FROM points WHERE sale_id = $1',
+        'DELETE FROM points WHERE sale_id = $1 OR source_id = $1::text',
         [saleId]
       );
 
-      // 2️⃣ Deletar a venda
-      const result = await client.query(
-        'DELETE FROM sales WHERE id = $1 RETURNING id',
-        [saleId]
-      );
+      // 6️⃣ Deletar comissões
+      await client.query('DELETE FROM personal_commissions WHERE sale_id = $1', [saleId]);
+      await client.query('DELETE FROM network_commissions WHERE sale_id = $1', [saleId]);
+
+      // 7️⃣ Deletar a venda
+      await client.query('DELETE FROM sales WHERE id = $1', [saleId]);
 
       await client.query('COMMIT');
 
       // 📝 LOG: Venda deletada
-      if (saleData) {
-        await logActivity(userId || saleData.user_id, 'Removeu venda', {
-          sale_id: saleId,
-          client_name: saleData.client_name,
-          value: saleData.value,
-          kilowatts: saleData.kilowatts,
-        });
-      }
+      await logActivity(userId || saleData.user_id, 'Removeu venda', {
+        sale_id: saleId,
+        client_name: saleData.client_name,
+        value: saleData.value,
+        kilowatts: saleData.kilowatts,
+        points_removed: pointsToRemove,
+      });
 
-      if (result.rows.length === 0) {
-        throw new Error('Venda não encontrada');
-      }
-
-      console.log('✅ Venda e pontos deletados:', saleId);
+      console.log(`✅ Venda ${saleId} deletada com sucesso! Total de pontos removidos: ${pointsToRemove}`);
     } catch (error) {
       await client.query('ROLLBACK');
       console.error('Erro ao deletar venda:', error);
