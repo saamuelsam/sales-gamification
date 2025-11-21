@@ -43,6 +43,19 @@ export class UserController {
     }
   }
 
+  async getPointsHistory(req: Request, res: Response) {
+    try {
+      const userId = req.user?.userId;
+      if (!userId) return ApiResponse.error(res, 'Usuário não autenticado', 401);
+
+      const limit = parseInt(req.query.limit as string) || 50;
+      const history = await userService.getPointsHistory(String(userId), limit);
+      return ApiResponse.success(res, history, 'Histórico de pontos carregado');
+    } catch (error: any) {
+      return ApiResponse.error(res, error.message || 'Erro ao buscar histórico', 500);
+    }
+  }
+
   async updateProfile(req: Request, res: Response) {
     try {
       const userId = req.user?.userId;
