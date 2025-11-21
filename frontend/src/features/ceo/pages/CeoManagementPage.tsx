@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { TeamHierarchyView } from '../components/TeamHierarchyView';
+import { SaleFormModal } from '@/features/sales/components/SaleFormModal';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
 import {
@@ -109,15 +110,6 @@ export function CeoManagementPage() {
   // Forms
   const [editForm, setEditForm] = useState<Partial<Consultant>>({});
   const [pointsForm, setPointsForm] = useState({ points: 0, reason: '' });
-  const [saleForm, setSaleForm] = useState({
-    client_name: '',
-    client_cpf: '',
-    client_phone: '',
-    client_email: '',
-    value: 0,
-    kilowatts: 0,
-    notes: '',
-  });
   const [passwordForm, setPasswordForm] = useState({ newPassword: '' });
 
   useEffect(() => {
@@ -218,23 +210,7 @@ export function CeoManagementPage() {
     }
   };
 
-  const handleCreateSale = async () => {
-    if (!selectedConsultant || !saleForm.client_name || !saleForm.value || !saleForm.kilowatts) {
-      toast.error('Preencha todos os campos obrigatórios');
-      return;
-    }
-    
-    try {
-      await api.post(`/ceo/consultants/${selectedConsultant.user.id}/sales`, saleForm);
-      toast.success('Venda criada com sucesso');
-      setShowSaleModal(false);
-      setSaleForm({ client_name: '', client_cpf: '', client_phone: '', client_email: '', value: 0, kilowatts: 0, notes: '' });
-      fetchConsultants();
-      fetchConsultantDetails(selectedConsultant.user.id);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Erro ao criar venda');
-    }
-  };
+  // handleCreateSale removido - agora usa SaleFormModal
 
   const handleToggleStatus = async (id: string) => {
     try {
@@ -712,123 +688,20 @@ export function CeoManagementPage() {
         </div>
       )}
 
-      {/* Modal de Criar Venda */}
+      {/* Modal de Criar Venda - Componente Reutilizável */}
       {showSaleModal && selectedConsultant && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-md w-full p-6">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              Criar Venda para {selectedConsultant.user.name}
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Nome do Cliente *
-                </label>
-                <input
-                  type="text"
-                  value={saleForm.client_name}
-                  onChange={(e) => setSaleForm({ ...saleForm, client_name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="João da Silva"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  CPF (Opcional)
-                </label>
-                <input
-                  type="text"
-                  value={saleForm.client_cpf}
-                  onChange={(e) => setSaleForm({ ...saleForm, client_cpf: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="000.000.000-00"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Telefone (Opcional)
-                </label>
-                <input
-                  type="text"
-                  value={saleForm.client_phone}
-                  onChange={(e) => setSaleForm({ ...saleForm, client_phone: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="(11) 98765-4321"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Email (Opcional)
-                </label>
-                <input
-                  type="email"
-                  value={saleForm.client_email}
-                  onChange={(e) => setSaleForm({ ...saleForm, client_email: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="joao@example.com"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Valor (R$) *
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={saleForm.value}
-                  onChange={(e) => setSaleForm({ ...saleForm, value: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="50000.00"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Kilowatts (kWp) *
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={saleForm.kilowatts}
-                  onChange={(e) => setSaleForm({ ...saleForm, kilowatts: Number(e.target.value) })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="10.5"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Observações
-                </label>
-                <textarea
-                  value={saleForm.notes}
-                  onChange={(e) => setSaleForm({ ...saleForm, notes: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  rows={2}
-                  placeholder="Detalhes adicionais..."
-                />
-              </div>
-              <div className="flex gap-3 pt-4">
-                <button
-                  onClick={handleCreateSale}
-                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                >
-                  Criar Venda
-                </button>
-                <button
-                  onClick={() => {
-                    setShowSaleModal(false);
-                    setSaleForm({ client_name: '', client_cpf: '', client_phone: '', client_email: '', value: 0, kilowatts: 0, notes: '' });
-                  }}
-                  className="flex-1 px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <SaleFormModal
+          consultantId={selectedConsultant.user.id}
+          consultantName={selectedConsultant.user.name}
+          onClose={() => {
+            setShowSaleModal(false);
+          }}
+          onSuccess={() => {
+            setShowSaleModal(false);
+            fetchConsultants();
+            fetchConsultantDetails(selectedConsultant.user.id);
+          }}
+        />
       )}
 
       {/* Modal de Resetar Senha */}

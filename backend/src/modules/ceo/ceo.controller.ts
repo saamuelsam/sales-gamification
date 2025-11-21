@@ -130,6 +130,7 @@ export class CeoController {
   /**
    * POST /api/ceo/consultants/:id/sales
    * Criar venda para um consultor
+   * ✅ Suporta todos os tipos de venda (direct, consortium, cash, card)
    */
   async createSale(req: Request, res: Response) {
     try {
@@ -140,7 +141,22 @@ export class CeoController {
         return ApiResponse.error(res, 'CEO não identificado', 401);
       }
 
-      const { client_name, client_cpf, client_phone, client_email, value, kilowatts, status, notes } = req.body;
+      const { 
+        client_name, 
+        client_cpf, 
+        client_phone, 
+        client_email, 
+        value, 
+        kilowatts, 
+        status, 
+        notes,
+        sale_type,
+        insurance_value,
+        consortium_value,
+        consortium_term,
+        consortium_monthly_payment,
+        consortium_admin_fee
+      } = req.body;
 
       if (!client_name || !value || !kilowatts) {
         return ApiResponse.error(res, 'Nome do cliente, valor e kilowatts são obrigatórios', 400);
@@ -148,7 +164,22 @@ export class CeoController {
 
       const sale = await ceoService.createSaleForConsultant(
         id,
-        { client_name, client_cpf, client_phone, client_email, value, kilowatts, status, notes },
+        { 
+          client_name, 
+          client_cpf, 
+          client_phone, 
+          client_email, 
+          value, 
+          kilowatts, 
+          status, 
+          notes,
+          sale_type,
+          insurance_value,
+          consortium_value,
+          consortium_term,
+          consortium_monthly_payment,
+          consortium_admin_fee
+        },
         ceoId
       );
       

@@ -9,6 +9,7 @@ import { CurrencyInput } from '@/components/ui/CurrencyInput';
 import { useInvalidateDashboard } from '@/features/dashboard/hooks/useDashboard';
 import { useAuthStore } from '@/store/authStore';
 import { getAvailableStatusOptions, allStatusOptions } from '../utils/statusPermissions';
+import { SaleFormModal } from '../components/SaleFormModal';
 
 type SaleStatus = 'negotiation' | 'pending' | 'approved' | 'financing_denied' | 'cancelled' | 'delivered';
 type SaleType = 'direct' | 'consortium' | 'cash' | 'card';
@@ -280,7 +281,7 @@ export const SalesPage = () => {
       </div>
 
       {showCreateModal && (
-        <CreateSaleModal
+        <SaleFormModal
           onClose={() => setShowCreateModal(false)}
           onSuccess={() => {
             setShowCreateModal(false);

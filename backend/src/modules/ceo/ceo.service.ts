@@ -344,6 +344,12 @@ export class CeoService {
       kilowatts: number;
       status?: string;
       notes?: string;
+      sale_type?: string;
+      insurance_value?: number;
+      consortium_value?: number;
+      consortium_term?: number;
+      consortium_monthly_payment?: number;
+      consortium_admin_fee?: number;
     },
     ceoId: string
   ) {
@@ -400,10 +406,15 @@ export class CeoService {
         clientId = clientResult.rows[0].id;
       }
 
-      // Criar venda diretamente (CEO cria venda nova)
+      // ✅ Criar venda com todos os campos (incluindo consortium e insurance)
       const saleResult = await client.query(
-        `INSERT INTO sales (user_id, client_id, client_name, value, kilowatts, status, notes, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+        `INSERT INTO sales (
+          user_id, client_id, client_name, value, kilowatts, status, notes, 
+          sale_type, insurance_value, 
+          consortium_value, consortium_term, consortium_monthly_payment, consortium_admin_fee,
+          created_at
+        )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
          RETURNING *`,
         [
           userId,
@@ -411,8 +422,14 @@ export class CeoService {
           saleData.client_name,
           saleData.value,
           saleData.kilowatts,
-          saleData.status || 'approved',
+          saleData.status || 'pending', // ⚠️ CEO cria venda como 'pending' (precisa aprovação do financeiro)
           saleData.notes || 'Venda criada pelo CEO',
+          saleData.sale_type || 'direct',
+          saleData.insurance_value || null,
+          saleData.consortium_value || null,
+          saleData.consortium_term || null,
+          saleData.consortium_monthly_payment || null,
+          saleData.consortium_admin_fee || null,
         ]
       );
 
