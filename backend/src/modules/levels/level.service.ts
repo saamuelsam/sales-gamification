@@ -62,18 +62,21 @@ export class LevelService {
       
       // Fases 3+ (Sênior+) exigem pontos da equipe
       if (currentPhase >= 3) {
-        const teamPointsResult = await client.query(
-          `SELECT COALESCE(SUM(u.points), 0) as team_points
-           FROM user_hierarchy uh
-           JOIN users u ON uh.subordinate_id = u.id
-           WHERE uh.leader_id = $1`,
+        // 🔥 CORREÇÃO: Usar team_points diretamente da coluna do usuário
+        const userPointsResult = await client.query(
+          `SELECT 
+            COALESCE(personal_points, 0)::NUMERIC AS personal_points,
+            COALESCE(team_points, 0)::NUMERIC AS team_points
+           FROM users
+           WHERE id = $1`,
           [userId]
         );
         
-        const teamPoints = parseFloat(teamPointsResult.rows[0]?.team_points || 0);
-        totalPoints += teamPoints;
+        const personalPoints = parseFloat(userPointsResult.rows[0]?.personal_points || 0);
+        const teamPoints = parseFloat(userPointsResult.rows[0]?.team_points || 0);
+        totalPoints = personalPoints + teamPoints;
         
-        console.log(`📊 ${user.name}: Pontos pessoais ${user.points} + Equipe ${teamPoints} = Total ${totalPoints}`);
+        console.log(`📊 ${user.name}: Pontos pessoais ${personalPoints} + Equipe ${teamPoints} = Total ${totalPoints}`);
       }
 
       // Buscar o nível mais alto atingido baseado em pontos
@@ -100,6 +103,10 @@ export class LevelService {
       }
 
       // ✅ VALIDAÇÃO DE CONTRATOS MÍNIMOS MENSAIS (Master+)
+      // 🔥 Verificar se a funcionalidade está ativada
+      const settingsService = require('../settings/settings.service').default;
+      const contractsEnabled = await settingsService.isContractsPerMonthEnabled();
+      
       const minContractsMap: Record<string, number> = {
         'master_consultant': 2,
         'senior_consultant': 4,
@@ -109,7 +116,7 @@ export class LevelService {
       
       const minContractsRequired = minContractsMap[newRole];
       
-      if (minContractsRequired) {
+      if (contractsEnabled && minContractsRequired) {
         const firstDayOfMonth = new Date();
         firstDayOfMonth.setDate(1);
         firstDayOfMonth.setHours(0, 0, 0, 0);

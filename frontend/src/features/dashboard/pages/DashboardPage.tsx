@@ -74,8 +74,8 @@ const LEVEL_THRESHOLDS = {
   elite: { display: 'Consultor Elite', points: 0 },
   master: { display: 'Master', points: 1_000 },
   seniorConsultant: { display: 'Consultor Sênior', points: 10_000 },
-  consultorPrime: { display: 'Consultor Prime', points: 800_000 },
-  executive: { display: 'Executivo', points: 2_000_000 },
+  consultorPrime: { display: 'Consultor Prime', points: 500_000 },
+  executive: { display: 'Executivo', points: 800_000 },
 };
 
 const getNextLevel = (currentLevel: string): string => {
@@ -236,8 +236,9 @@ export function DashboardPage() {
     parseNumberFromAny(dashboardData?.team_members ?? dashboardData?.teamMembers ?? 0)
   );
 
-  const progressPercentage = calculateProgressPercentage(currentPoints, currentLevel);
-  const pointsToNext = calculatePointsToNextLevel(currentPoints, currentLevel);
+  // 🔥 USAR DADOS DO BACKEND em vez de calcular localmente
+  const progressPercentage = parseFloat(dashboardData?.progress ?? 0);
+  const pointsToNext = Math.round(parseNumberFromAny(dashboardData?.next_level_points ?? 0));
   const nextLevel = getNextLevel(currentLevel);
   const barChartData = dashboardData?.charts?.monthly || [];
   const pieChartData = dashboardData?.charts?.byStatus || [];
@@ -294,6 +295,94 @@ export function DashboardPage() {
             title="Equipe"
             value={teamMembers}
           />
+        </div>
+
+        {/* ===== CARD DE PONTOS DETALHADOS ===== */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl p-4 sm:p-5 border border-gray-200 dark:border-gray-700 shadow-sm mb-6 sm:mb-8">
+          <h2 className="text-base sm:text-lg font-bold text-primary dark:text-primary-400 mb-4 flex items-center gap-2">
+            <Zap className="w-4 h-4 sm:w-5 sm:h-5 text-accent" />
+            Detalhamento de Pontos
+          </h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {/* Pontos Pessoais */}
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded-lg p-4 border-2 border-blue-300 dark:border-blue-600">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs sm:text-sm font-semibold text-blue-700 dark:text-blue-300">Pontos Pessoais</span>
+                <Zap className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              </div>
+              <p className="text-2xl sm:text-3xl font-bold text-blue-800 dark:text-blue-200">
+                {parseNumberFromAny(dashboardData?.personal_points || 0).toLocaleString('pt-BR')}
+              </p>
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Das suas vendas</p>
+            </div>
+
+            {/* Pontos de Equipe */}
+            <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 rounded-lg p-4 border-2 border-green-300 dark:border-green-600">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs sm:text-sm font-semibold text-green-700 dark:text-green-300">Pontos de Equipe</span>
+                <Users className="w-4 h-4 text-green-600 dark:text-green-400" />
+              </div>
+              <p className="text-2xl sm:text-3xl font-bold text-green-800 dark:text-green-200">
+                {parseNumberFromAny(dashboardData?.team_points || 0).toLocaleString('pt-BR')}
+              </p>
+              <p className="text-xs text-green-600 dark:text-green-400 mt-1">Das vendas da equipe</p>
+            </div>
+
+            {/* Total de Pontos */}
+            <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 rounded-lg p-4 border-2 border-purple-300 dark:border-purple-600">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs sm:text-sm font-semibold text-purple-700 dark:text-purple-300">Total de Pontos</span>
+                <TrendingUp className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+              </div>
+              <p className="text-2xl sm:text-3xl font-bold text-purple-800 dark:text-purple-200">
+                {currentPoints.toLocaleString('pt-BR')}
+              </p>
+              <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                {Math.round((parseNumberFromAny(dashboardData?.personal_points || 0) / currentPoints) * 100) || 0}% pessoal • {' '}
+                {Math.round((parseNumberFromAny(dashboardData?.team_points || 0) / currentPoints) * 100) || 0}% equipe
+              </p>
+            </div>
+          </div>
+
+          {/* Comissões Detalhadas */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+            {/* Comissões Pessoais */}
+            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/30 dark:to-yellow-800/30 rounded-lg p-4 border-2 border-yellow-300 dark:border-yellow-600">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs sm:text-sm font-semibold text-yellow-700 dark:text-yellow-300">Com. Pessoais</span>
+                <DollarSign className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+              </div>
+              <p className="text-2xl sm:text-3xl font-bold text-yellow-800 dark:text-yellow-200">
+                R$ {parseNumberFromAny(dashboardData?.personal_commissions || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">Comissões diretas</p>
+            </div>
+
+            {/* Comissões de Rede */}
+            <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30 rounded-lg p-4 border-2 border-orange-300 dark:border-orange-600">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs sm:text-sm font-semibold text-orange-700 dark:text-orange-300">Com. de Rede</span>
+                <Users className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+              </div>
+              <p className="text-2xl sm:text-3xl font-bold text-orange-800 dark:text-orange-200">
+                R$ {parseNumberFromAny(dashboardData?.network_commissions || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">Da sua equipe</p>
+            </div>
+
+            {/* Total de Comissões */}
+            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30 rounded-lg p-4 border-2 border-emerald-300 dark:border-emerald-600">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs sm:text-sm font-semibold text-emerald-700 dark:text-emerald-300">Total Comissões</span>
+                <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <p className="text-2xl sm:text-3xl font-bold text-emerald-800 dark:text-emerald-200">
+                R$ {parseNumberFromAny(dashboardData?.total_commissions || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </p>
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-1">Total acumulado</p>
+            </div>
+          </div>
         </div>
 
         {/* ===== CARD DE ATIVIDADE DO CONSULTOR ===== */}
@@ -371,7 +460,7 @@ export function DashboardPage() {
                   Nível: <strong className="text-primary dark:text-primary-400">{currentLevelDisplay}</strong>
                 </span>
                 <span className="font-bold text-primary dark:text-primary-400 text-xs sm:text-sm">
-                  {formatNumberFull(currentPoints)} / {formatNumberFull(currentPoints + pointsToNext)}
+                  {formatNumberFull(currentPoints)} / {formatNumberFull(parseNumberFromAny(dashboardData?.next_level_total || currentPoints))}
                 </span>
               </div>
 
@@ -411,6 +500,26 @@ export function DashboardPage() {
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">⚡ Complete mais vendas!</p>
               </div>
 
+              {/* 🔥 ALERTA: Contratos mínimos não atingidos */}
+              {dashboardData?.can_level_up === false && dashboardData?.level_up_block_reason === 'min_contracts_not_met' && (
+                <div className="bg-orange-50 dark:bg-orange-900/30 border-2 border-orange-300 dark:border-orange-600 rounded-lg p-3 sm:p-4">
+                  <div className="flex items-start gap-2">
+                    <span className="text-orange-600 dark:text-orange-400 text-lg">⚠️</span>
+                    <div className="flex-1">
+                      <p className="text-xs sm:text-sm font-semibold text-orange-800 dark:text-orange-200">
+                        Você já tem pontos para {nextLevelDisplay}!
+                      </p>
+                      <p className="text-xs text-orange-700 dark:text-orange-300 mt-1">
+                        Faltam <strong>{dashboardData.contracts_missing}</strong> contrato(s) este mês para subir de nível.
+                      </p>
+                      <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
+                        📊 {dashboardData.current_month_contracts}/{dashboardData.required_contracts} contratos realizados
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Estrutura de níveis */}
               <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-2">Estrutura de Níveis:</p>
@@ -429,11 +538,11 @@ export function DashboardPage() {
                   </div>
                   <div className="bg-accent/20 dark:bg-accent/30 rounded p-1 sm:p-2 text-center border-2 border-accent dark:border-accent/70">
                     <p className="text-xs font-bold text-accent">Prime</p>
-                    <p className="text-xs text-accent">800K</p>
+                    <p className="text-xs text-accent">500K</p>
                   </div>
                   <div className="bg-highlight/20 dark:bg-highlight/30 rounded p-1 sm:p-2 text-center border-2 border-highlight dark:border-highlight/70">
                     <p className="text-xs font-bold text-highlight">Exec</p>
-                    <p className="text-xs text-highlight">2M</p>
+                    <p className="text-xs text-highlight">800K</p>
                   </div>
                 </div>
               </div>

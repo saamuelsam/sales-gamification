@@ -3,8 +3,12 @@ import { verifyTokenMiddleware } from '../../middleware/auth.middleware';
 import { verifyAdminMiddleware } from '../../middleware/admin.middleware';
 import { adminController } from './admin.controller';
 import { logUserAccess } from '../../utils/loginLogger';
+import settingsRoutes from '../settings/settings.routes';
 
 const router = Router();
+
+// 🔧 Rotas de configurações do sistema
+router.use('/settings', verifyTokenMiddleware, verifyAdminMiddleware, settingsRoutes);
 
 router.get('/dashboard', verifyTokenMiddleware, verifyAdminMiddleware, (req, res, next) =>
   adminController.getDashboard(req, res).catch(next)

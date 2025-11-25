@@ -61,17 +61,39 @@ export class UserService {
 
       console.log('⭐ Personal Points:', personalPoints, '| Team Points:', teamPoints, '| Total:', totalPoints, '| Role:', currentRole);
 
-      // ⚙️ Buscar nível atual e próximo do banco de dados
-      const currentLevelResult = await pool.query(
-        `SELECT * FROM levels WHERE role = $1`,
-        [currentRole]
-      );
+      // 🔥 CORREÇÃO: Para roles administrativos, calcular progresso como consultant
+      const protectedRoles = ['ceo', 'admin', 'financeiro'];
+      const roleForProgress = protectedRoles.includes(currentRole.toLowerCase()) ? 'consultant' : currentRole;
+
+      // ⚙️ Buscar nível atual baseado em pontos (não em role para admins)
+      let currentLevelResult;
+      if (protectedRoles.includes(currentRole.toLowerCase())) {
+        // Para admins: buscar nível baseado nos pontos totais
+        currentLevelResult = await pool.query(
+          `SELECT * FROM levels 
+           WHERE points_required <= $1 
+             AND role NOT IN ('ceo', 'admin', 'financeiro', 'diretor_comercial')
+           ORDER BY points_required DESC 
+           LIMIT 1`,
+          [totalPoints]
+        );
+      } else {
+        // Para consultores normais: buscar por role
+        currentLevelResult = await pool.query(
+          `SELECT * FROM levels WHERE role = $1`,
+          [currentRole]
+        );
+      }
+      
       const currentLevel = currentLevelResult.rows[0];
       if (!currentLevel) {
         throw new Error(`Nível não encontrado para role: ${currentRole}`);
       }
 
-      const displayLevel = currentLevel.name;
+      // Exibir role real do usuário (CEO, Admin) mas calcular progresso correto
+      const displayLevel = protectedRoles.includes(currentRole.toLowerCase()) 
+        ? `${currentRole.toUpperCase()} (${currentLevel.name})`
+        : currentLevel.name;
 
       // 📈 Buscar próximo nível
       const nextLevelResult = await pool.query(
@@ -163,6 +185,51 @@ export class UserService {
         total: totalCommissions
       });
 
+      // 🔥 VERIFICAR SE PODE SUBIR DE NÍVEL (contratos mínimos)
+      const settingsService = require('../settings/settings.service').default;
+      const contractsEnabled = await settingsService.isContractsPerMonthEnabled();
+      
+      let canLevelUp = true;
+      let levelUpBlockReason = null;
+      let requiredContracts = 0;
+      let currentMonthContracts = 0;
+
+      if (contractsEnabled && nextLevel && !protectedRoles.includes(currentRole.toLowerCase())) {
+        const nextRole = nextLevel.role;
+        const minContractsMap: Record<string, number> = {
+          'master_consultant': 2,
+          'senior_consultant': 4,
+          'prime_consultant': 5,
+          'executive': 10
+        };
+        
+        requiredContracts = minContractsMap[nextRole] || 0;
+        
+        if (requiredContracts > 0 && totalPoints >= parseFloat(nextLevel.points_required)) {
+          // Usuário tem pontos suficientes, verificar contratos
+          const firstDayOfMonth = new Date();
+          firstDayOfMonth.setDate(1);
+          firstDayOfMonth.setHours(0, 0, 0, 0);
+          
+          const monthlyContractsResult = await pool.query(
+            `SELECT COUNT(*)::int as total_contracts
+             FROM sales
+             WHERE user_id = $1::uuid
+               AND created_at >= $2
+               AND status IN ('approved', 'delivered')`,
+            [userId, firstDayOfMonth]
+          );
+          
+          currentMonthContracts = monthlyContractsResult.rows[0]?.total_contracts || 0;
+          
+          if (currentMonthContracts < requiredContracts) {
+            canLevelUp = false;
+            levelUpBlockReason = 'min_contracts_not_met';
+            console.log(`⚠️ Usuário tem ${totalPoints} pontos mas faltam ${requiredContracts - currentMonthContracts} contratos para ${nextLevel.name}`);
+          }
+        }
+      }
+
       // ✅ Monta o dashboard final
       const dashboardData = {
         total_sales: parseInt(salesData?.total_sales || '0'),
@@ -174,7 +241,17 @@ export class UserService {
         total_points: totalPoints,
         level: displayLevel,
         progress: parseFloat(progress.toFixed(1)),
-        next_level_points: nextLevel ? parseFloat(nextLevel.points_required) : 0,
+        // 🔥 CORREÇÃO: Pontos faltantes = meta - pontos atuais
+        next_level_points: nextLevel ? Math.max(0, parseFloat(nextLevel.points_required) - totalPoints) : 0,
+        next_level_total: nextLevel ? parseFloat(nextLevel.points_required) : currentRequired,
+        next_level_name: nextLevel ? nextLevel.name : currentLevel.name,
+        current_level_points: currentRequired,
+        // 🔥 Informações sobre bloqueio de nível
+        can_level_up: canLevelUp,
+        level_up_block_reason: levelUpBlockReason,
+        required_contracts: requiredContracts,
+        current_month_contracts: currentMonthContracts,
+        contracts_missing: requiredContracts > 0 ? Math.max(0, requiredContracts - currentMonthContracts) : 0,
         last_sale_date: salesData?.last_sale_date || null,
         meses_sem_contratos,
         team_members: parseInt(teamResult.rows[0]?.team_members || '0'),

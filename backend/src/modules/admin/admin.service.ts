@@ -447,25 +447,25 @@ class AdminService {
    * Buscar configurações do sistema
    */
   async getSystemConfig() {
-    const result = await pool.query('SELECT key, value FROM system_settings');
+    const result = await pool.query('SELECT setting_key, setting_value FROM system_settings');
     const config: Record<string, string | number | boolean> = {};
     
     result.rows.forEach((r) => {
-      const value = r.value;
+      const value = r.setting_value;
       
       // Convert boolean strings
       if (value === 'true') {
-        config[r.key] = true;
+        config[r.setting_key] = true;
       } else if (value === 'false') {
-        config[r.key] = false;
+        config[r.setting_key] = false;
       } 
       // Convert numbers
       else if (!isNaN(value) && value !== '') {
-        config[r.key] = Number(value);
+        config[r.setting_key] = Number(value);
       } 
       // Keep as string
       else {
-        config[r.key] = value;
+        config[r.setting_key] = value;
       }
     });
     
@@ -482,10 +482,10 @@ class AdminService {
       const value = typeof data[key] === 'boolean' ? data[key].toString() : data[key].toString();
       
       await pool.query(
-        `INSERT INTO system_settings (key, value, updated_at)
-         VALUES ($1, $2, NOW())
-         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
-        [key, value]
+        `INSERT INTO system_settings (setting_key, setting_value, updated_at, updated_by)
+         VALUES ($1, $2, NOW(), $3)
+         ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = NOW(), updated_by = EXCLUDED.updated_by`,
+        [key, value, adminId]
       );
       changedKeys.push(key);
     }

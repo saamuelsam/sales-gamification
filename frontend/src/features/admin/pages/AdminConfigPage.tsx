@@ -21,6 +21,7 @@ import {
   Gift
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { SystemSettings } from '../components/SystemSettings';
 
 interface Level {
   id: string;
@@ -696,6 +697,9 @@ export function AdminConfigPage() {
       {/* System Tab */}
       {activeTab === 'system' && (
         <div className="space-y-6">
+          {/* Contratos por Mês - NOVO */}
+          <SystemSettings />
+
           <Card className="p-6 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-2 mb-4">
               <Shield className="w-5 h-5 text-red-600 dark:text-red-400" />

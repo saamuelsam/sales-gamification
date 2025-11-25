@@ -610,12 +610,34 @@ export class FinancialService {
             })
           ]
         );
+
+        // 🔥 5.6 VERIFICAR PROMOÇÃO DO LÍDER após receber team_points
+        try {
+          const { LevelService } = require('../levels/level.service');
+          const levelService = new LevelService();
+          
+          // Buscar novos totais do líder
+          const leaderPointsResult = await client.query(
+            `SELECT 
+              COALESCE(personal_points, 0)::NUMERIC AS personal_points,
+              COALESCE(team_points, 0)::NUMERIC AS team_points,
+              COALESCE(points, 0)::NUMERIC AS total_points
+             FROM users WHERE id = $1`,
+            [leaderId]
+          );
+          
+          const leaderTotalPoints = parseFloat(leaderPointsResult.rows[0]?.total_points || 0);
+          await levelService.checkLevelUp(leaderId, leaderTotalPoints, client);
+          logger.info(`✅ Verificação de nível do líder ${leaderName} concluída`);
+        } catch (levelError: any) {
+          logger.error(`❌ Erro ao verificar promoção do líder: ${levelError.message}`);
+        }
       } else {
         logger.info(`ℹ️ Consultor não tem líder (independente)`);
       }
     }
     
-    // 6. VERIFICAR PROMOÇÃO DE NÍVEL após atribuir pontos
+    // 6. VERIFICAR PROMOÇÃO DE NÍVEL DO CONSULTOR após atribuir pontos
     try {
       const { LevelService } = require('../levels/level.service');
       const levelService = new LevelService();
