@@ -56,59 +56,65 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_users_monthly_kw
 -- ========================================
 
 -- 🔸 Personal Commissions: Validar valores
-ALTER TABLE personal_commissions 
-  ADD CONSTRAINT IF NOT EXISTS check_personal_comm_amount_positive 
-  CHECK (commission_amount >= 0);
-
-ALTER TABLE personal_commissions 
-  ADD CONSTRAINT IF NOT EXISTS check_personal_comm_percentage_range 
-  CHECK (commission_percentage >= 0 AND commission_percentage <= 100);
-
-ALTER TABLE personal_commissions 
-  ADD CONSTRAINT IF NOT EXISTS check_personal_comm_points_positive 
-  CHECK (points >= 0);
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_personal_comm_amount_positive') THEN
+    ALTER TABLE personal_commissions ADD CONSTRAINT check_personal_comm_amount_positive CHECK (commission_amount >= 0);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_personal_comm_percentage_range') THEN
+    ALTER TABLE personal_commissions ADD CONSTRAINT check_personal_comm_percentage_range CHECK (commission_percentage >= 0 AND commission_percentage <= 100);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_personal_comm_points_positive') THEN
+    ALTER TABLE personal_commissions ADD CONSTRAINT check_personal_comm_points_positive CHECK (points >= 0);
+  END IF;
+END $$;
 
 -- 🔸 Network Commissions: Validar valores
-ALTER TABLE network_commissions 
-  ADD CONSTRAINT IF NOT EXISTS check_network_comm_amount_positive 
-  CHECK (commission_amount >= 0);
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_network_comm_amount_positive') THEN
+    ALTER TABLE network_commissions ADD CONSTRAINT check_network_comm_amount_positive CHECK (commission_amount >= 0);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_network_comm_percentage_range') THEN
+    ALTER TABLE network_commissions ADD CONSTRAINT check_network_comm_percentage_range CHECK (commission_percentage >= 0 AND commission_percentage <= 100);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_network_comm_line_level_range') THEN
+    ALTER TABLE network_commissions ADD CONSTRAINT check_network_comm_line_level_range CHECK (line_level >= 1 AND line_level <= 10);
+  END IF;
+END $$;
 
-ALTER TABLE network_commissions 
-  ADD CONSTRAINT IF NOT EXISTS check_network_comm_percentage_range 
-  CHECK (commission_percentage >= 0 AND commission_percentage <= 100);
-
--- 🔸 Network Commissions: Validar níveis de linha (1-10)
-ALTER TABLE network_commissions 
-  ADD CONSTRAINT IF NOT EXISTS check_network_comm_line_level_range 
-  CHECK (line_level >= 1 AND line_level <= 10);
-
--- 🔸 User Hierarchy: Validar níveis de linha (1-10)
-ALTER TABLE user_hierarchy 
-  ADD CONSTRAINT IF NOT EXISTS check_hierarchy_line_level_range 
-  CHECK (line_level >= 1 AND line_level <= 10);
-
--- 🔸 User Hierarchy: Prevenir auto-referência (usuário não pode ser líder de si mesmo)
-ALTER TABLE user_hierarchy 
-  ADD CONSTRAINT IF NOT EXISTS check_hierarchy_no_self_reference 
-  CHECK (leader_id != subordinate_id);
+-- 🔸 User Hierarchy: Validar níveis e auto-referência
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_hierarchy_line_level_range') THEN
+    ALTER TABLE user_hierarchy ADD CONSTRAINT check_hierarchy_line_level_range CHECK (line_level >= 1 AND line_level <= 10);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_hierarchy_no_self_reference') THEN
+    ALTER TABLE user_hierarchy ADD CONSTRAINT check_hierarchy_no_self_reference CHECK (leader_id != subordinate_id);
+  END IF;
+END $$;
 
 -- 🔸 Sales: Validar valores positivos
-ALTER TABLE sales 
-  ADD CONSTRAINT IF NOT EXISTS check_sales_value_positive 
-  CHECK (value >= 0);
-
-ALTER TABLE sales 
-  ADD CONSTRAINT IF NOT EXISTS check_sales_kilowatts_positive 
-  CHECK (kilowatts >= 0);
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_sales_value_positive') THEN
+    ALTER TABLE sales ADD CONSTRAINT check_sales_value_positive CHECK (value >= 0);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_sales_kilowatts_positive') THEN
+    ALTER TABLE sales ADD CONSTRAINT check_sales_kilowatts_positive CHECK (kilowatts >= 0);
+  END IF;
+END $$;
 
 -- 🔸 Users: Validar pontos não negativos
-ALTER TABLE users 
-  ADD CONSTRAINT IF NOT EXISTS check_users_points_nonnegative 
-  CHECK (points >= 0);
-
-ALTER TABLE users 
-  ADD CONSTRAINT IF NOT EXISTS check_users_monthly_kw_nonnegative 
-  CHECK (monthly_kilowatts >= 0);
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_users_points_nonnegative') THEN
+    ALTER TABLE users ADD CONSTRAINT check_users_points_nonnegative CHECK (points >= 0);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'check_users_monthly_kw_nonnegative') THEN
+    ALTER TABLE users ADD CONSTRAINT check_users_monthly_kw_nonnegative CHECK (monthly_kilowatts >= 0);
+  END IF;
+END $$;
 
 
 -- ========================================
