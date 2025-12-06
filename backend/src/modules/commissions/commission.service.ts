@@ -1,6 +1,8 @@
 import { pool } from '@config/database';
 import { logger } from '../../utils/logger';
 import { logActivity } from '../../utils/activityLogger';
+import { configService } from '../../services/config.service';
+import { hierarchyCacheService } from '../../services/hierarchyCache.service';
 
 export class CommissionService {
   /**
@@ -12,12 +14,14 @@ export class CommissionService {
     points: number,
     saleId?: string
   ) {
+    const client = await pool.connect();
     try {
-        logger.info(`🔍 Iniciando processPersonalCommission para consultant ${consultantId}, sale ${saleId}`);
+      await client.query('BEGIN');
+      logger.info(`🔍 Iniciando processPersonalCommission para consultant ${consultantId}, sale ${saleId}`);
 
-      // Buscar role do usuário primeiro para logs e debugging
-      const userResult = await pool.query(
-        `SELECT role, name FROM users WHERE id = $1`,
+      // 🔒 LOCK pessimista - previne race conditions
+      const userResult = await client.query(
+        `SELECT role, name FROM users WHERE id = $1 FOR UPDATE`,
         [consultantId]
       );
       
@@ -34,36 +38,16 @@ export class CommissionService {
       // Buscar valor do seguro da venda (se houver)
       let insuranceValue = 0;
       if (saleId) {
-        const saleResult = await pool.query(
+        const saleResult = await client.query(
           `SELECT insurance_value FROM sales WHERE id = $1`,
           [saleId]
         );
         insuranceValue = parseFloat(saleResult.rows[0]?.insurance_value || 0);
       }
 
-      // Buscar percentuais de comissão baseado no role do usuário
-      const levelResult = await pool.query(
-        `SELECT personal_commission, insurance_commission
-         FROM levels
-         WHERE role = $1`,
-        [userRole]
-      );
-
-      if (levelResult.rows.length === 0) {
-        logger.error(`❌ Nível não encontrado para role: ${userRole}. Usando fallback 5%`);
-      }
-
-      // Fallback inteligente baseado no role
-      // ⚠️ IMPORTANTE: Diretor Comercial DEVE usar 10%, não o fallback de 5%
-      let defaultPercentage = 5;
-      let defaultInsurancePercentage = 5;
-      if (userRole === 'diretor_comercial') {
-        defaultPercentage = 10;
-        logger.warn(`⚠️ Usando fallback de 10% para diretor_comercial (configuração não encontrada no banco)`);
-      }
-      
-      const commissionPercentage = parseFloat(levelResult.rows[0]?.personal_commission ?? defaultPercentage);
-      const insurancePercentage = parseFloat(levelResult.rows[0]?.insurance_commission ?? defaultInsurancePercentage);
+      // 🔧 Buscar percentuais de comissão do configService (cache automático)
+      const commissionPercentage = await configService.getPersonalCommissionRate(userRole);
+      const insurancePercentage = await configService.getInsuranceCommissionRate(userRole);
       
       // Calcular comissões separadamente
       const saleCommission = parseFloat(((saleValue * commissionPercentage) / 100).toFixed(2));
@@ -74,7 +58,7 @@ export class CommissionService {
       logger.info(`💰 Valores: venda=R$ ${saleCommission}, seguro=R$ ${insuranceCommission}, total=R$ ${totalCommission}`);
 
       // Inserir em personal_commissions (agora com o total incluindo seguro)
-      const result = await pool.query(
+      const result = await client.query(
         `INSERT INTO personal_commissions
          (user_id, sale_id, commission_percentage, commission_amount, points, paid, created_at)
          VALUES ($1, $2, $3, $4, $5, FALSE, NOW())
@@ -102,13 +86,19 @@ export class CommissionService {
         } else {
           logger.warn(`⚠️ Comissão pessoal já existe (ON CONFLICT): user ${consultantId}, sale ${saleId}`);
         }
+
+      await client.query('COMMIT');
     } catch (error: any) {
-        logger.error(`❌ Erro ao processar comissão pessoal: ${error.message}`, error);
+      await client.query('ROLLBACK');
+      logger.error(`❌ Erro ao processar comissão pessoal: ${error.message}`, error);
+      throw error;
+    } finally {
+      client.release();
     }
   }
 
   /**
-   * ✅ Processar comissão de rede — Insere em network_commissions (CASCATA ATÉ 10 NÍVEIS)
+   * ✅ Processar comissão de rede — BATCH INSERT (OTIMIZADO)
    */
   async processNetworkCommission(
   memberId: string,
@@ -116,44 +106,34 @@ export class CommissionService {
   points: number,
   saleId?: string
 ) {
+  const client = await pool.connect();
   try {
+    await client.query('BEGIN');
     logger.info(`🔍 Iniciando processNetworkCommission para member ${memberId}, sale ${saleId}`);
 
     // Buscar role do membro que fez a venda
-    const memberResult = await pool.query(
+    const memberResult = await client.query(
       `SELECT role FROM users WHERE id = $1`,
       [memberId]
     );
     const memberRole = memberResult.rows[0]?.role || 'consultant';
 
-    // Buscar TODOS os líderes da hierarquia (até 10 níveis para Diretor Comercial)
-    const hierarchyResult = await pool.query(
-      `SELECT u.id, u.role, u.name, uh.line_level
-       FROM user_hierarchy uh
-       JOIN users u ON uh.leader_id = u.id
-       WHERE uh.subordinate_id = $1 AND uh.line_level <= 10
-       ORDER BY uh.line_level ASC`,
-      [memberId]
-    );
+    // 🚀 Buscar TODOS os líderes da hierarquia com CACHE (O(1) ao invés de O(N))
+    const hierarchyResult = await hierarchyCacheService.getLeadersHierarchy(memberId, 10);
 
-    if (hierarchyResult.rows.length === 0) {
+    if (hierarchyResult.length === 0) {
       logger.warn(`⚠️ Nenhum líder encontrado para o membro ${memberId}`);
+      await client.query('COMMIT');
       return;
     }
 
-    logger.info(`👥 Encontrados ${hierarchyResult.rows.length} líderes na hierarquia`);
+    logger.info(`👥 Encontrados ${hierarchyResult.length} líderes na hierarquia (cached)`);
 
-    const commissionRates: Record<string, number> = {
-      consultant: 0,
-      master_consultant: 2.0,
-      senior_consultant: 1.5,
-      prime_consultant: 1.5,
-      executive: 1.0, // 1% na 1ª linha, 0.5% no restante da rede
-      diretor_comercial: 2.0, // 2% para 1ª linha, 0.5% para linhas 2-10
-    };
-
+    // 🚀 OTIMIZAÇÃO: Calcular todas as comissões em memória primeiro
+    const commissionsToInsert: any[] = [];
+    
     // Processar comissão para cada líder na hierarquia
-    for (const leader of hierarchyResult.rows) {
+    for (const leader of hierarchyResult) {
       const lineLevel = leader.line_level;
 
       logger.info(`👤 Processando líder: ${leader.name} (${leader.role}) | Linha: ${lineLevel} | Membro role: ${memberRole}`);
@@ -172,91 +152,87 @@ export class CommissionService {
         }
       }
 
-      let commissionRate = commissionRates[leader.role] ?? 1.0;
+      // 🔧 Buscar taxa de comissão de rede do configService
+      let commissionRate = lineLevel === 1 
+        ? await configService.getNetworkCommissionRateLine1(leader.role)
+        : await configService.getNetworkCommissionRateRest(leader.role);
 
-      // 🔥 Master: 2% na 1ª linha, 0.5% na 2ª linha (máx: 2 linhas)
-      if (leader.role === 'master_consultant') {
-        if (lineLevel === 1) {
-          commissionRate = 2.0; // 1ª linha: 2%
-        } else if (lineLevel === 2) {
-          commissionRate = 0.5; // 2ª linha: 0.5%
-        } else {
-          logger.info(`⚠️ Master não recebe de linha ${lineLevel} (máx: 2). Ignorando.`);
-          continue; // Além da 2ª linha não recebe
-        }
+      // 🔧 Verificar profundidade máxima permitida para este role
+      const maxDepth = await configService.getMaxNetworkDepth(leader.role);
+      
+      if (lineLevel > maxDepth) {
+        logger.info(`⚠️ ${leader.name} (${leader.role}) não recebe de linha ${lineLevel} (máx: ${maxDepth}). Ignorando.`);
+        continue;
       }
 
-      // 🔥 Prime: 1.5% na 1ª linha, 0.5% nas linhas 2-6
-      if (leader.role === 'prime_consultant') {
-        if (lineLevel === 1) {
-          commissionRate = 1.5; // 1ª linha: 1.5%
-        } else if (lineLevel >= 2 && lineLevel <= 6) {
-          commissionRate = 0.5; // Linhas 2-6: 0.5%
-        } else {
-          logger.info(`⚠️ Prime não recebe de linha ${lineLevel} (máx: 6). Ignorando.`);
-          continue; // Além da 6ª linha não recebe
-        }
-      }
-
-      // 🔥 Executivo: 1% na 1ª linha, 0.5% nas linhas 2-10
-      if (leader.role === 'executive') {
-        if (lineLevel === 1) {
-          commissionRate = 1.0; // 1ª linha: 1%
-        } else if (lineLevel >= 2 && lineLevel <= 10) {
-          commissionRate = 0.5; // Linhas 2-10: 0.5%
-        } else {
-          logger.info(`⚠️ Executivo não recebe de linha ${lineLevel} (máx: 10). Ignorando.`);
-          continue; // Além da 10ª linha não recebe
-        }
-      }
-
-      // 🔥 Diretor Comercial: 2% na 1ª linha, 0.5% nas linhas 2-10, 0% além da 10ª
-      if (leader.role === 'diretor_comercial') {
-        if (lineLevel === 1) {
-          commissionRate = 2.0; // 1ª linha: 2%
-        } else if (lineLevel >= 2 && lineLevel <= 10) {
-          commissionRate = 0.5; // Linhas 2-10: 0.5%
-        } else {
-          logger.info(`⚠️ Diretor Comercial não recebe de linha ${lineLevel} (máx: 10). Ignorando.`);
-          continue; // Além da 10ª linha não recebe
-        }
+      // Se a taxa for 0, pular
+      if (commissionRate === 0) {
+        logger.info(`⚠️ ${leader.name} (${leader.role}) tem taxa 0% na linha ${lineLevel}. Ignorando.`);
+        continue;
       }
 
       const commissionAmount = parseFloat(((saleValue * commissionRate) / 100).toFixed(2));
 
       logger.info(`💰 Taxa: ${commissionRate}%, Valor: R$ ${commissionAmount}, Linha: ${lineLevel}`);
 
-      // Inserir em network_commissions
-      const result = await pool.query(
+      // 🚀 Acumular para batch insert
+      commissionsToInsert.push({
+        leaderId: leader.id,
+        leaderName: leader.name,
+        memberId,
+        saleId: saleId || null,
+        lineLevel,
+        commissionRate,
+        commissionAmount
+      });
+    }
+
+    // 🚀 BATCH INSERT: Inserir todas as comissões de uma vez usando UNNEST
+    if (commissionsToInsert.length > 0) {
+      const leaderIds = commissionsToInsert.map(c => c.leaderId);
+      const memberIds = commissionsToInsert.map(c => c.memberId);
+      const saleIds = commissionsToInsert.map(c => c.saleId);
+      const lineLevels = commissionsToInsert.map(c => c.lineLevel);
+      const percentages = commissionsToInsert.map(c => c.commissionRate);
+      const amounts = commissionsToInsert.map(c => c.commissionAmount);
+
+      const result = await client.query(
         `INSERT INTO network_commissions
          (leader_id, team_member_id, sale_id, line_level, commission_percentage, commission_amount, paid, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, FALSE, NOW())
-         ON CONFLICT (leader_id, team_member_id, sale_id) DO NOTHING
-         RETURNING id`,
-        [leader.id, memberId, saleId || null, lineLevel, commissionRate, commissionAmount]
+         SELECT * FROM UNNEST(
+           $1::uuid[], $2::uuid[], $3::uuid[], $4::int[], $5::numeric[], $6::numeric[]
+         ) AS t(leader_id, team_member_id, sale_id, line_level, commission_percentage, commission_amount)
+         WHERE NOT EXISTS (
+           SELECT 1 FROM network_commissions nc 
+           WHERE nc.leader_id = t.leader_id 
+           AND nc.team_member_id = t.team_member_id 
+           AND nc.sale_id = t.sale_id
+         )
+         RETURNING id, leader_id`,
+        [leaderIds, memberIds, saleIds, lineLevels, percentages, amounts]
       );
 
-      if (result.rows.length > 0) {
-        logger.info(
-          `✅ Comissão de rede criada: ID ${result.rows[0].id}, líder ${leader.name} (linha ${lineLevel}), membro ${memberId}, R$ ${commissionAmount}`
-        );
-        
-        // 📝 LOG: Comissão de rede gerada
-        await logActivity(leader.id, 'Recebeu nova comissão da rede', {
-          commission_id: result.rows[0].id,
-          team_member_id: memberId,
-          sale_id: saleId,
-          line_level: lineLevel,
-          percentage: commissionRate,
-          amount: commissionAmount,
-          team_member_name: leader.name
+      logger.info(`✅ ${result.rows.length} comissões de rede inseridas em batch`);
+
+      // 📝 LOG: Registrar atividades em batch (otimizado)
+      for (const commission of commissionsToInsert) {
+        await logActivity(commission.leaderId, 'Recebeu nova comissão da rede', {
+          team_member_id: commission.memberId,
+          sale_id: commission.saleId,
+          line_level: commission.lineLevel,
+          percentage: commission.commissionRate,
+          amount: commission.commissionAmount
         });
-      } else {
-        logger.warn(`⚠️ Comissão de rede já existe (ON CONFLICT): líder ${leader.id}, membro ${memberId}`);
       }
     }
+
+    await client.query('COMMIT');
   } catch (error: any) {
+    await client.query('ROLLBACK');
     logger.error(`❌ Erro ao processar comissão de rede: ${error.message}`, error);
+    throw error;
+  } finally {
+    client.release();
   }
 }
 
