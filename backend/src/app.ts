@@ -4,7 +4,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import dotenv from 'dotenv';
-import { globalLimiter, timeoutMiddleware } from './middleware/security.middleware';
+import { globalLimiter, timeoutMiddleware, sanitizeLogsMiddleware } from './middleware/security.middleware';
+import { sanitizeStrings } from './middleware/validation.middleware';
 import authRoutes from './modules/auth/auth.routes';
 import salesRoutes from './modules/sales/sales.routes';
 import dashboardRoutes from './modules/dashboard/dashboard.routes';
@@ -81,6 +82,12 @@ app.use(cors({
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// ✅ SEGURANÇA: Sanitização de inputs (previne XSS)
+app.use(sanitizeStrings);
+
+// ✅ SEGURANÇA: Sanitização de logs (remove dados sensíveis)
+app.use(sanitizeLogsMiddleware);
 
 // ✅ Servir arquivos estáticos (uploads)
 app.use('/uploads', express.static('uploads'));

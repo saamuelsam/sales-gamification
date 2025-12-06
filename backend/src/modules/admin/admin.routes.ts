@@ -22,7 +22,8 @@ router.patch('/users/:id/status', verifyTokenMiddleware, verifyAdminMiddleware, 
   adminController.toggleUserStatus(req, res).catch(next)
 );
 
-router.patch('/users/:id/role', verifyTokenMiddleware, verifyAdminMiddleware, (req, res, next) =>
+const { roleChangeLimiter } = require('../../middleware/security.middleware');
+router.patch('/users/:id/role', verifyTokenMiddleware, verifyAdminMiddleware, roleChangeLimiter, (req, res, next) =>
   adminController.updateUserRole(req, res).catch(next)
 );
 

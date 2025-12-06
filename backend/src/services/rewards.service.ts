@@ -279,8 +279,10 @@ export class RewardsService {
 
   /**
    * Atualiza ajuda de custo do executivo
+   * Base: R$ 1.518
+   * Aumento: R$ 2.000 ao atingir meta de avanço de R$ 700.000
    */
-  async updateExecutiveAllowance(userId: string, salesCount: number) {
+  async updateExecutiveAllowance(userId: string, totalSalesAmount: number) {
     const userQuery = await pool.query(
       'SELECT role FROM users WHERE id = $1',
       [userId]
@@ -292,8 +294,47 @@ export class RewardsService {
       return null;
     }
 
-    // Se fez 10 ou mais vendas, ajuda de custo sobe para R$ 5.000
-    const allowance = salesCount >= 10 ? 5000 : 1518;
+    // Base: R$ 1.518 | Avanço: R$ 2.000 (ao atingir R$ 700.000 em vendas)
+    const allowance = totalSalesAmount >= 700000 ? 2000 : 1518;
+
+    const query = `
+      UPDATE users
+      SET fixed_allowance = $1
+      WHERE id = $2
+      RETURNING *
+    `;
+
+    const result = await pool.query(query, [allowance, userId]);
+    return result.rows[0];
+  }
+
+  /**
+   * Atualiza ajuda de custo do Prime (Lógica de Multiplicador)
+   * Base: R$ 1.518 ao atingir 300.000 pontos
+   * Dobrada: R$ 3.036 ao atingir 600.000 pontos (meta dobrada)
+   */
+  async updatePrimeAllowance(userId: string, totalPoints: number) {
+    const userQuery = await pool.query(
+      'SELECT role FROM users WHERE id = $1',
+      [userId]
+    );
+    
+    const user = userQuery.rows[0];
+    
+    if (user?.role !== 'prime_consultant') {
+      return null;
+    }
+
+    // Lógica de escalabilidade:
+    // >= 600k pontos (meta dobrada) = R$ 3.036 (dobro)
+    // >= 300k pontos (meta base) = R$ 1.518 (base)
+    // < 300k pontos = R$ 0 (não atingiu meta mínima)
+    let allowance = 0;
+    if (totalPoints >= 600000) {
+      allowance = 3036; // Dobro da ajuda de custo
+    } else if (totalPoints >= 300000) {
+      allowance = 1518; // Ajuda de custo base
+    }
 
     const query = `
       UPDATE users

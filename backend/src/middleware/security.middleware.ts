@@ -5,7 +5,7 @@ import rateLimit from 'express-rate-limit';
 // ✅ Rate Limiter para Login/Registro (previne força bruta)
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 50, // 50 tentativas por IP (aumentado de 5 para 50)
+  max: 10, // 10 tentativas por IP (reduzido de 50 para 10)
   message: {
     success: false,
     message: 'Muitas tentativas de login. Tente novamente em 15 minutos.',
@@ -35,6 +35,42 @@ export const strictLimiter = rateLimit({
   message: {
     success: false,
     message: 'Limite de requisições excedido. Aguarde um momento.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// ✅ Rate Limiter para criação de vendas (previne spam)
+export const salesCreationLimiter = rateLimit({
+  windowMs: 1 * 60 * 1000, // 1 minuto
+  max: 10, // 10 vendas por minuto
+  message: {
+    success: false,
+    message: 'Limite de criação de vendas excedido. Aguarde um momento.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// ✅ Rate Limiter para operações de DELETE (previne deleções em massa)
+export const deleteLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutos
+  max: 5, // 5 deleções a cada 5 minutos
+  message: {
+    success: false,
+    message: 'Limite de deleções excedido. Aguarde alguns minutos.',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// ✅ Rate Limiter para alteração de roles (previne escalonamento de privilégios)
+export const roleChangeLimiter = rateLimit({
+  windowMs: 5 * 60 * 1000, // 5 minutos
+  max: 3, // 3 alterações a cada 5 minutos
+  message: {
+    success: false,
+    message: 'Limite de alterações de cargo excedido. Aguarde alguns minutos.',
   },
   standardHeaders: true,
   legacyHeaders: false,

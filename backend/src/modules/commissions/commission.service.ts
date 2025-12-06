@@ -148,7 +148,7 @@ export class CommissionService {
       master_consultant: 2.0,
       senior_consultant: 1.5,
       prime_consultant: 1.5,
-      executive: 1.0,
+      executive: 1.0, // 1% na 1ª linha, 0.5% no restante da rede
       diretor_comercial: 2.0, // 2% para 1ª linha, 0.5% para linhas 2-10
     };
 
@@ -158,21 +158,57 @@ export class CommissionService {
 
       logger.info(`👤 Processando líder: ${leader.name} (${leader.role}) | Linha: ${lineLevel} | Membro role: ${memberRole}`);
 
-      // 🔥 REGRA PRINCIPAL: Apenas Diretor Comercial recebe de múltiplas linhas
-      // Demais (Master+) recebem APENAS da 1ª linha E APENAS de Consultores Elite
-      if (leader.role !== 'diretor_comercial') {
-        // Regra padrão: apenas 1ª linha e apenas Elite
+      // 🔥 REGRA PRINCIPAL: Diretor Comercial, Executivo, Prime e Master recebem de múltiplas linhas
+      // Sênior recebe APENAS da 1ª linha E APENAS de Consultores Elite
+      if (leader.role === 'senior_consultant') {
+        // Sênior: apenas 1ª linha e apenas Elite
         if (lineLevel > 1) {
-          logger.info(`⚠️ ${leader.name} (${leader.role}) não recebe de linha ${lineLevel} > 1. Ignorando.`);
+          logger.info(`⚠️ ${leader.name} (Sênior) não recebe de linha ${lineLevel} > 1. Ignorando.`);
           continue;
         }
         if (memberRole !== 'consultant') {
-          logger.info(`⚠️ ${leader.name} (${leader.role}) só recebe de Elite. Membro é ${memberRole}. Ignorando.`);
+          logger.info(`⚠️ ${leader.name} (Sênior) só recebe de Elite. Membro é ${memberRole}. Ignorando.`);
           continue;
         }
       }
 
       let commissionRate = commissionRates[leader.role] ?? 1.0;
+
+      // 🔥 Master: 2% na 1ª linha, 0.5% na 2ª linha (máx: 2 linhas)
+      if (leader.role === 'master_consultant') {
+        if (lineLevel === 1) {
+          commissionRate = 2.0; // 1ª linha: 2%
+        } else if (lineLevel === 2) {
+          commissionRate = 0.5; // 2ª linha: 0.5%
+        } else {
+          logger.info(`⚠️ Master não recebe de linha ${lineLevel} (máx: 2). Ignorando.`);
+          continue; // Além da 2ª linha não recebe
+        }
+      }
+
+      // 🔥 Prime: 1.5% na 1ª linha, 0.5% nas linhas 2-6
+      if (leader.role === 'prime_consultant') {
+        if (lineLevel === 1) {
+          commissionRate = 1.5; // 1ª linha: 1.5%
+        } else if (lineLevel >= 2 && lineLevel <= 6) {
+          commissionRate = 0.5; // Linhas 2-6: 0.5%
+        } else {
+          logger.info(`⚠️ Prime não recebe de linha ${lineLevel} (máx: 6). Ignorando.`);
+          continue; // Além da 6ª linha não recebe
+        }
+      }
+
+      // 🔥 Executivo: 1% na 1ª linha, 0.5% nas linhas 2-10
+      if (leader.role === 'executive') {
+        if (lineLevel === 1) {
+          commissionRate = 1.0; // 1ª linha: 1%
+        } else if (lineLevel >= 2 && lineLevel <= 10) {
+          commissionRate = 0.5; // Linhas 2-10: 0.5%
+        } else {
+          logger.info(`⚠️ Executivo não recebe de linha ${lineLevel} (máx: 10). Ignorando.`);
+          continue; // Além da 10ª linha não recebe
+        }
+      }
 
       // 🔥 Diretor Comercial: 2% na 1ª linha, 0.5% nas linhas 2-10, 0% além da 10ª
       if (leader.role === 'diretor_comercial') {
