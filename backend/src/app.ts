@@ -26,6 +26,9 @@ dotenv.config();
 
 const app = express();
 
+// ✅ Confiar no proxy (nginx) para headers X-Forwarded-*
+app.set('trust proxy', 1);
+
 // ✅ SEGURANÇA: Helmet (headers HTTP seguros)
 app.use(helmet({
   contentSecurityPolicy: false, // Desabilita CSP para não quebrar o frontend
