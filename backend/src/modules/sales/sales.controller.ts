@@ -328,7 +328,7 @@ export class SalesController {
     }
     
     // 3️⃣ Deletar registros relacionados
-    await client.query('DELETE FROM points WHERE sale_id = $1 OR source_id = $1::text', [id]);
+    await client.query('DELETE FROM points WHERE sale_id = $1', [id]);
     await client.query('DELETE FROM personal_commissions WHERE sale_id = $1', [id]);
     await client.query('DELETE FROM network_commissions WHERE sale_id = $1', [id]);
     await client.query('DELETE FROM sales WHERE id = $1 AND user_id = $2', [id, userId]);

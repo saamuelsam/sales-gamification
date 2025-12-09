@@ -535,7 +535,7 @@ export class SalesService {
 
       // 5️⃣ Deletar registros da tabela points
       await client.query(
-        'DELETE FROM points WHERE sale_id = $1 OR source_id = $1::text',
+        'DELETE FROM points WHERE sale_id = $1',
         [saleId]
       );
 
