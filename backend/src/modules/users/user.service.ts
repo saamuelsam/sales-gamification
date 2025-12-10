@@ -366,16 +366,17 @@ export class UserService {
       `SELECT 
         p.id,
         p.points,
-        p.source_type,
-        p.source_id,
+        p.sale_id,
         p.source_info,
+        p.description,
         p.created_at,
         CASE 
-          WHEN p.source_type = 'team_sale' THEN 'Venda da Equipe'
-          WHEN p.source_type = 'sale' THEN 'Venda Pessoal'
-          WHEN p.source_type = 'bonus' THEN 'Bônus'
-          WHEN p.source_type = 'adjustment' THEN 'Ajuste'
-          ELSE p.source_type
+          WHEN p.source_info->>'type' = 'team' THEN 'Venda da Equipe'
+          WHEN p.source_info->>'type' = 'personal' THEN 'Venda Pessoal'
+          WHEN p.description ILIKE '%bônus%' THEN 'Bônus'
+          WHEN p.description ILIKE '%ajuste%' THEN 'Ajuste'
+          WHEN p.sale_id IS NOT NULL THEN 'Venda'
+          ELSE 'Outros'
         END as source_label
       FROM points p
       WHERE p.user_id = $1
@@ -387,9 +388,10 @@ export class UserService {
     return result.rows.map((row: any) => ({
       id: row.id,
       points: parseFloat(row.points),
-      source_type: row.source_type,
+      source_type: row.sale_id ? 'sale' : 'other',
       source_label: row.source_label,
       details: row.source_info || {},
+      description: row.description,
       created_at: row.created_at
     }));
   }

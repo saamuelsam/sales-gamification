@@ -537,10 +537,10 @@ export class FinancialService {
       logger.info(`ℹ️ Comissão já foi registrada anteriormente para a venda ${sale.id}`);
     }
     
-    // 5. ATUALIZAR PONTOS DO USUÁRIO E DO LÍDER (apenas se pontos foram atribuídos agora)
+    // 5. ATUALIZAR CONTADORES DE PONTOS (personal_points e team_points) NA TABELA USERS
     const pointsEarned = Math.floor(sale.kilowatts);
     if (existingPointsResult.rows.length === 0) {
-      // 5.1 Atribuir pontos PESSOAIS ao consultor
+      // 5.1 Atribuir pontos PESSOAIS ao consultor (na tabela users)
       await client.query(
         `UPDATE users 
          SET personal_points = personal_points + $1,
@@ -550,19 +550,7 @@ export class FinancialService {
       );
       logger.info(`✅ Pontos pessoais atribuídos ao consultor: ${pointsEarned} pontos`);
       
-      // 5.2 Registrar na tabela points (histórico pessoal)
-      await client.query(
-        `INSERT INTO points (user_id, points, source_type, source_id, source_info, created_at)
-         VALUES ($1, $2, 'sale', $3, $4, NOW())`,
-        [
-          sale.user_id, 
-          pointsEarned, 
-          sale.id,
-          JSON.stringify({ type: 'personal', sale_value: sale.value, kilowatts: sale.kilowatts })
-        ]
-      );
-      
-      // 5.3 Buscar líder imediato do consultor
+      // 5.2 Buscar líder imediato do consultor
       const leaderResult = await client.query(
         `SELECT parent_id FROM users WHERE id = $1 AND parent_id IS NOT NULL`,
         [sale.user_id]
@@ -571,7 +559,7 @@ export class FinancialService {
       if (leaderResult.rows.length > 0) {
         const leaderId = leaderResult.rows[0].parent_id;
         
-        // 5.4 Atribuir pontos DE EQUIPE ao líder
+        // 5.3 Atribuir pontos DE EQUIPE ao líder (na tabela users)
         await client.query(
           `UPDATE users 
            SET team_points = team_points + $1,
@@ -592,26 +580,8 @@ export class FinancialService {
         const leaderName = userNames.rows[0]?.leader_name || 'Líder';
         
         logger.info(`✅ Pontos de equipe atribuídos ao líder ${leaderName}: ${pointsEarned} pontos (venda de ${consultantName})`);
-        
-        // 5.5 Registrar na tabela points (histórico do líder)
-        await client.query(
-          `INSERT INTO points (user_id, points, source_type, source_id, source_info, created_at)
-           VALUES ($1, $2, 'team_sale', $3, $4, NOW())`,
-          [
-            leaderId, 
-            pointsEarned, 
-            sale.id,
-            JSON.stringify({ 
-              type: 'team', 
-              consultant_id: sale.user_id,
-              consultant_name: consultantName,
-              sale_value: sale.value, 
-              kilowatts: sale.kilowatts 
-            })
-          ]
-        );
 
-        // 🔥 5.6 VERIFICAR PROMOÇÃO DO LÍDER após receber team_points
+        // 5.4 VERIFICAR PROMOÇÃO DO LÍDER após receber team_points
         try {
           const { LevelService } = require('../levels/level.service');
           const levelService = new LevelService();
