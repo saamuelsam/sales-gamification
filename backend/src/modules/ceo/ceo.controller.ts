@@ -397,6 +397,77 @@ export class CeoController {
       return ApiResponse.error(res, error.message || 'Erro ao deletar cliente', 500);
     }
   }
+
+  /**
+   * GET /api/ceo/users/email-verification
+   * Lista todos os usuários com status de verificação de email
+   */
+  async getUsersEmailVerification(req: Request, res: Response) {
+    try {
+      const { role, search, verified } = req.query;
+      
+      const filters = {
+        role: role as string,
+        search: search as string,
+        verified: verified === 'true' ? true : verified === 'false' ? false : undefined,
+      };
+
+      const users = await ceoService.getAllUsersWithEmailStatus(filters);
+      
+      return ApiResponse.success(
+        res,
+        users,
+        `${users.length} usuários encontrados`
+      );
+    } catch (error: any) {
+      console.error('❌ Erro ao buscar usuários:', error);
+      return ApiResponse.error(res, error.message || 'Erro ao buscar usuários', 500);
+    }
+  }
+
+  /**
+   * PATCH /api/ceo/users/:id/verify-email
+   * Aprovar manualmente o email de um usuário
+   */
+  async verifyUserEmail(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const ceoId = req.user?.userId;
+      
+      if (!ceoId) {
+        return ApiResponse.error(res, 'CEO não identificado', 401);
+      }
+
+      const result = await ceoService.verifyUserEmail(id, ceoId);
+      
+      return ApiResponse.success(res, result, result.message);
+    } catch (error: any) {
+      console.error('❌ Erro ao verificar email:', error);
+      return ApiResponse.error(res, error.message || 'Erro ao verificar email', 500);
+    }
+  }
+
+  /**
+   * PATCH /api/ceo/users/:id/unverify-email
+   * Remover verificação de email de um usuário
+   */
+  async unverifyUserEmail(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const ceoId = req.user?.userId;
+      
+      if (!ceoId) {
+        return ApiResponse.error(res, 'CEO não identificado', 401);
+      }
+
+      const result = await ceoService.unverifyUserEmail(id, ceoId);
+      
+      return ApiResponse.success(res, result, result.message);
+    } catch (error: any) {
+      console.error('❌ Erro ao remover verificação:', error);
+      return ApiResponse.error(res, error.message || 'Erro ao remover verificação', 500);
+    }
+  }
 }
 
 export const ceoController = new CeoController();

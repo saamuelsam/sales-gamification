@@ -14,10 +14,24 @@ const startServer = async () => {
     await verifyDatabaseSchema();
 
     // 🔹 3️⃣ Se tudo estiver ok, iniciar servidor
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`🚀 Servidor rodando na porta ${PORT}`);
       console.log(`📍 http://localhost:${PORT}`);
     });
+
+    // Handlers de erro para evitar crashes
+    server.on('error', (error: any) => {
+      console.error('❌ Erro no servidor:', error);
+    });
+
+    process.on('unhandledRejection', (reason: any) => {
+      console.error('❌ Unhandled Rejection:', reason);
+    });
+
+    process.on('uncaughtException', (error: Error) => {
+      console.error('❌ Uncaught Exception:', error);
+    });
+
   } catch (error) {
     console.error('❌ Erro ao iniciar servidor:', error);
     process.exit(1);

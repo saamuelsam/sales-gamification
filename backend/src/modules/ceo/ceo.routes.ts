@@ -121,4 +121,25 @@ router.delete('/clients/:id', (req, res) => ceoController.deleteClient(req, res)
  */
 router.get('/activity-logs', (req, res) => ceoController.getActivityLogs(req, res));
 
+// ========== GESTÃO DE VERIFICAÇÃO DE EMAIL ==========
+
+/**
+ * GET /api/ceo/users/email-verification
+ * Lista todos os usuários com status de verificação de email
+ * Query params: ?role=consultant&search=nome&verified=true
+ */
+router.get('/users/email-verification', (req, res) => ceoController.getUsersEmailVerification(req, res));
+
+/**
+ * PATCH /api/ceo/users/:id/verify-email
+ * Aprovar manualmente o email de um usuário
+ */
+router.patch('/users/:id/verify-email', (req, res) => ceoController.verifyUserEmail(req, res));
+
+/**
+ * PATCH /api/ceo/users/:id/unverify-email
+ * Remover verificação de email de um usuário
+ */
+router.patch('/users/:id/unverify-email', (req, res) => ceoController.unverifyUserEmail(req, res));
+
 export default router;

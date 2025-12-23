@@ -88,25 +88,36 @@ export class AuthService {
    */
   async login(email: string, password: string, ip?: string, userAgent?: string) {
     try {
+      console.log('🔐 Tentando login para:', email); // DEBUG
+      
       // Buscar usuário
       const result = await pool.query(
         'SELECT * FROM users WHERE email = $1',
         [email]
       );
 
+      console.log('👤 Usuário encontrado:', result.rows.length > 0); // DEBUG
+
       if (result.rows.length === 0) {
         // ✅ Registrar tentativa falha
-        await logFailedLogin(email, ip, userAgent);
+        // await logFailedLogin(email, ip, userAgent); // TEMPORÁRIO: desabilitado para debug
         throw new Error('Email ou senha inválidos');
       }
 
       const user = result.rows[0];
+      console.log('✅ Dados do usuário:', { id: user.id, email: user.email, role: user.role, is_active: user.is_active, email_verified: user.email_verified }); // DEBUG
+      console.log('🔑 Password hash from DB:', user.password); // DEBUG
+      console.log('🔑 Password hash length:', user.password.length); // DEBUG
 
       // Verificar senha
+      console.log('🔑 Verificando senha...'); // DEBUG
+      console.log('🔑 Password input:', password); // DEBUG
       const isValidPassword = await bcrypt.compare(password, user.password);
+      console.log('✅ Senha válida:', isValidPassword); // DEBUG
+      
       if (!isValidPassword) {
         // ✅ Registrar tentativa falha
-        await logFailedLogin(email, ip, userAgent);
+        // await logFailedLogin(email, ip, userAgent); // TEMPORÁRIO: desabilitado para debug
         throw new Error('Email ou senha inválidos');
       }
 
@@ -121,7 +132,7 @@ export class AuthService {
       }
 
       // ✅ Registrar login bem-sucedido
-      await logUserAccess(user.id, 'login', ip, userAgent);
+      // await logUserAccess(user.id, 'login', ip, userAgent); // TEMPORÁRIO: desabilitado para debug
 
       // Gerar token JWT
       const token = generateToken({

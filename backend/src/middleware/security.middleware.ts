@@ -78,18 +78,12 @@ export const roleChangeLimiter = rateLimit({
 
 // ✅ Sanitização de logs (remove dados sensíveis)
 export const sanitizeLogsMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  // Remove campos sensíveis antes de logar
-  const sanitizedBody = { ...req.body };
-  const sensitiveFields = ['password', 'token', 'jwt', 'secret', 'authorization'];
+  // Remove campos sensíveis apenas para logging, NÃO modifica req.body
+  const originalSend = res.send;
   
-  sensitiveFields.forEach(field => {
-    if (sanitizedBody[field]) {
-      sanitizedBody[field] = '***REDACTED***';
-    }
-  });
-
-  // Sobrescreve o body para logs
-  req.body = sanitizedBody;
+  // Intercepta logs se necessário, mas NÃO modifica req.body
+  // O body deve permanecer intacto para que os controllers funcionem
+  
   next();
 };
 

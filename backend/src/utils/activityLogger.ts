@@ -54,6 +54,8 @@ export enum ActivityAction {
   CEO_TOGGLE_USER_STATUS = 'CEO alterou status do usuário',
   CEO_TRANSFER_USER = 'CEO transferiu usuário para outro patrocinador',
   CEO_RESET_PASSWORD = 'CEO resetou senha do usuário',
+  CEO_VERIFY_USER_EMAIL = 'CEO verificou email do usuário manualmente',
+  CEO_UNVERIFY_USER_EMAIL = 'CEO removeu verificação de email do usuário',
   
   // Ações de Autenticação
   USER_LOGIN = 'Realizou login',

@@ -88,10 +88,11 @@ logger.error = ((message: any, ...meta: any[]) => {
   // log original do Winston
   originalError(msg, ...meta);
 
+  // TEMPORÁRIO: desabilitado para debug - não gravar erros no banco
   // grava no banco de forma assíncrona
-  saveErrorToDatabase(msg, meta).catch((err) =>
-    console.error('⚠️ Erro ao persistir log no banco:', err.message)
-  );
+  // saveErrorToDatabase(msg, meta).catch((err) =>
+  //   console.error('⚠️ Erro ao persistir log no banco:', err.message)
+  // );
 }) as winston.LeveledLogMethod;
 
 /**

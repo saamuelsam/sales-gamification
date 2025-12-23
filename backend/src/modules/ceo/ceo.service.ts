@@ -916,6 +916,186 @@ export class CeoService {
     const result = await pool.query(query);
     return result.rows;
   }
+
+  /**
+   * 📧 Buscar todos os usuários com status de verificação de email
+   */
+  async getAllUsersWithEmailStatus(filters?: { role?: string; search?: string; verified?: boolean }) {
+    let query = `
+      SELECT 
+        u.id,
+        u.name,
+        u.email,
+        u.role,
+        u.email_verified,
+        u.is_active,
+        u.created_at,
+        u.email_verification_token,
+        u.email_verification_expires,
+        parent.name as parent_name
+      FROM users u
+      LEFT JOIN users parent ON u.parent_id = parent.id
+      WHERE 1=1
+    `;
+
+    const params: any[] = [];
+
+    if (filters?.role) {
+      params.push(filters.role);
+      query += ` AND u.role = $${params.length}`;
+    }
+
+    if (filters?.search) {
+      params.push(`%${filters.search}%`);
+      query += ` AND (u.name ILIKE $${params.length} OR u.email ILIKE $${params.length})`;
+    }
+
+    if (filters?.verified !== undefined) {
+      params.push(filters.verified);
+      query += ` AND u.email_verified = $${params.length}`;
+    }
+
+    query += ` ORDER BY u.email_verified ASC, u.created_at DESC`;
+
+    const result = await pool.query(query, params);
+    return result.rows;
+  }
+
+  /**
+   * ✅ Aprovar manualmente o email de um usuário
+   */
+  async verifyUserEmail(userId: string, ceoId: string) {
+    const client = await pool.connect();
+    
+    try {
+      await client.query('BEGIN');
+
+      // Verificar se usuário existe
+      const userCheck = await client.query(
+        'SELECT id, name, email, email_verified FROM users WHERE id = $1',
+        [userId]
+      );
+
+      if (userCheck.rows.length === 0) {
+        throw new Error('Usuário não encontrado');
+      }
+
+      const user = userCheck.rows[0];
+
+      if (user.email_verified) {
+        throw new Error('Email já está verificado');
+      }
+
+      // Atualizar status de verificação
+      await client.query(
+        `UPDATE users 
+         SET email_verified = true, 
+             email_verification_token = NULL, 
+             email_verification_expires = NULL,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $1`,
+        [userId]
+      );
+
+      // Registrar atividade
+      await logActivity(
+        ceoId,
+        'CEO_VERIFY_USER_EMAIL' as ActivityAction,
+        {
+          entity_type: 'users',
+          entity_id: userId,
+          user_name: user.name,
+          user_email: user.email,
+          verified_manually: true
+        }
+      );
+
+      await client.query('COMMIT');
+
+      return {
+        success: true,
+        message: `Email de ${user.name} verificado com sucesso`,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          email_verified: true
+        }
+      };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * ❌ Remover verificação de email de um usuário
+   */
+  async unverifyUserEmail(userId: string, ceoId: string) {
+    const client = await pool.connect();
+    
+    try {
+      await client.query('BEGIN');
+
+      // Verificar se usuário existe
+      const userCheck = await client.query(
+        'SELECT id, name, email, email_verified FROM users WHERE id = $1',
+        [userId]
+      );
+
+      if (userCheck.rows.length === 0) {
+        throw new Error('Usuário não encontrado');
+      }
+
+      const user = userCheck.rows[0];
+
+      if (!user.email_verified) {
+        throw new Error('Email não está verificado');
+      }
+
+      // Remover verificação
+      await client.query(
+        `UPDATE users 
+         SET email_verified = false,
+             updated_at = CURRENT_TIMESTAMP
+         WHERE id = $1`,
+        [userId]
+      );
+
+      // Registrar atividade
+      await logActivity(
+        ceoId,
+        'CEO_UNVERIFY_USER_EMAIL' as ActivityAction,
+        {
+          entity_type: 'users',
+          entity_id: userId,
+          user_name: user.name,
+          user_email: user.email,
+          unverified_manually: true
+        }
+      );
+
+      await client.query('COMMIT');
+
+      return {
+        success: true,
+        message: `Verificação de email de ${user.name} removida`,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          email_verified: false
+        }
+      };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
 }
 
 export const ceoService = new CeoService();

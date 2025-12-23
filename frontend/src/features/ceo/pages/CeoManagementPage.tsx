@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/Card';
 import { TeamHierarchyView } from '../components/TeamHierarchyView';
+import { UserEmailManagement } from '../components/UserEmailManagement';
 import { SaleFormModal } from '@/features/sales/components/SaleFormModal';
 import api from '@/services/api';
 import toast from 'react-hot-toast';
@@ -85,7 +86,7 @@ interface TeamMember {
 
 export function CeoManagementPage() {
   // Tabs
-  const [activeTab, setActiveTab] = useState<'consultants' | 'team'>('consultants');
+  const [activeTab, setActiveTab] = useState<'consultants' | 'team' | 'users'>('consultants');
   
   const [consultants, setConsultants] = useState<Consultant[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
@@ -302,6 +303,19 @@ export function CeoManagementPage() {
           <div className="flex items-center gap-2">
             <Users className="w-4 h-4" />
             Hierarquia da Equipe
+          </div>
+        </button>
+        <button
+          onClick={() => setActiveTab('users')}
+          className={`px-6 py-3 font-medium transition-colors ${
+            activeTab === 'users'
+              ? 'text-blue-600 border-b-2 border-blue-600'
+              : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <Shield className="w-4 h-4" />
+            Gestão de Usuários
           </div>
         </button>
       </div>
@@ -537,6 +551,11 @@ export function CeoManagementPage() {
           loading={loading}
           roleLabels={roleLabels}
         />
+      )}
+
+      {/* Conteúdo da aba Gestão de Usuários */}
+      {activeTab === 'users' && (
+        <UserEmailManagement />
       )}
 
       {/* Modal de Detalhes - será implementado na próxima parte */}

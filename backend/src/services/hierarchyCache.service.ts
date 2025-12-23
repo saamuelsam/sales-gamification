@@ -22,6 +22,13 @@ class HierarchyCacheService {
   async connect(): Promise<void> {
     if (this.isConnected) return;
 
+    // Verificar se Redis está habilitado
+    const REDIS_ENABLED = process.env.REDIS_ENABLED === 'true';
+    if (!REDIS_ENABLED) {
+      logger.info('⚠️ Redis desabilitado - sistema funcionará sem cache');
+      return;
+    }
+
     try {
       const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
       
@@ -233,7 +240,8 @@ class HierarchyCacheService {
 
 export const hierarchyCacheService = new HierarchyCacheService();
 
+// TEMPORÁRIO: Desabilitado auto-conexão para debug
 // Conectar ao Redis na inicialização
-hierarchyCacheService.connect().catch((err) => {
-  logger.warn(`⚠️ Redis não disponível - sistema funcionará sem cache: ${err.message}`);
-});
+// hierarchyCacheService.connect().catch((err) => {
+//   logger.warn(`⚠️ Redis não disponível - sistema funcionará sem cache: ${err.message}`);
+// });
